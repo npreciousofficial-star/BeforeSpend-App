@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-beforespend-navy: #0E2A47;
+  --color-beforespend-teal: #00A896;
+  --color-beforespend-canvas: #F8F9F5;
+  --color-beforespend-card: #FFFFFF;
+  --color-beforespend-muted: #64748B;
+
+  --radius-app: 16px;
+  --radius-card: 20px;
+  --shadow-soft: 0 4px 20px -2px rgba(14, 42, 71, 0.05);
+  --shadow-card-hover: 0 10px 25px -5px rgba(14, 42, 71, 0.1);
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+h1, h2, h3, h4, .brand-font {
+  font-family: var(--font-heading);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-beforespend-canvas);
+  color: var(--color-beforespend-navy);
+}
+
+.dark body {
+  background-color: #09090b;
+  color: #f4f4f5;
+}
+
+/* Custom Designed Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 168, 150, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(63, 63, 70, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 168, 150, 0.7);
+}

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140" width="560" height="140" fill="none">
+  <!-- Monoline Icon (B + Coins) -->
+  <g transform="translate(10, 10) scale(0.65)">
+    <!-- Outer Navy B Loop -->
+    <path
+      d="M 58 162 V 62 C 58 36 78 20 106 20 C 134 20 154 38 154 62 C 154 84 136 96 108 96 C 138 96 160 112 160 140 C 160 166 138 182 106 182 H 78 C 64 182 58 172 58 162 Z"
+      stroke="#0E2A47"
+      stroke-width="14"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <!-- Inner Teal Loop -->
+    <path
+      d="M 74 62 C 74 46 88 34 106 34 C 122 34 138 46 138 62 C 138 78 122 84 96 84 H 74"
+      stroke="#00A896"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <!-- Stacked Coins inside B counter -->
+    <g transform="translate(10, 2)">
+      <!-- Bottom coin rim & base -->
+      <path
+        d="M 94 146 C 94 151 103 155 114 155 C 125 155 134 151 134 146 V 150 C 134 155 125 159 114 159 C 103 159 94 155 94 150 Z"
+        fill="#00A896"
+      />
+      <!-- Middle coin rim & base -->
+      <path
+        d="M 94 138 C 94 143 103 147 114 147 C 125 147 134 143 134 138 V 142 C 134 147 125 151 114 151 C 103 151 94 147 94 142 Z"
+        fill="#00A896"
+      />
+      <!-- Top coin top surface -->
+      <ellipse
+        cx="114"
+        cy="133"
+        rx="20"
+        ry="6"
+        fill="#00A896"
+      />
+    </g>
+  </g>
+
+  <!-- Wordmark Text -->
+  <text x="135" y="80" font-family="'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif" font-weight="900" font-size="62" letter-spacing="-1">
+    <tspan fill="#0E2A47">Before</tspan><tspan fill="#00A896">Spend</tspan>
+  </text>
+
+  <!-- Tagline Text -->
+  <text x="137" y="112" font-family="'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif" font-weight="800" font-size="18" fill="#0E2A47" letter-spacing="3.5">
+    Plan. Allocate. Protect.
+  </text>
+</svg>

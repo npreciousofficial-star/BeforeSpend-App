@@ -1,0 +1,23 @@
+{
+  "short_name": "BeforeSpend",
+  "name": "BeforeSpend - Income & Money Manager",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/pwa-icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F8F9F5",
+  "theme_color": "#00A896",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "Master your income before it leaves your hands. Simple income splitting, bank statement imports, and expense tracking."
+}

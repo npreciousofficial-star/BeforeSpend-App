@@ -1,0 +1,6 @@
+{
+  "name": "BeforeSpend",
+  "description": "An immutable double-entry ledger personal finance app for budget splits, balance reconciliation, statement parsing, expense tracking, and savings milestones.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -27,8 +27,7 @@ const ROLE_OPTIONS = [
   { value: 'Salaried Employee / Professional', label: 'Salaried Employee / Professional' },
   { value: 'Freelancer & Contractor', label: 'Freelancer & Contractor' },
   { value: 'Business Owner / Entrepreneur', label: 'Business Owner / Entrepreneur' },
-  { value: 'Student & Personal Budgeter', label: 'Student & Personal Budgeter' },
-  { value: 'Platform Administrator', label: 'Platform Administrator' }
+  { value: 'Student & Personal Budgeter', label: 'Student & Personal Budgeter' }
 ];
 
 const CURRENCY_OPTIONS = [

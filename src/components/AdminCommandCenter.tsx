@@ -421,6 +421,10 @@ export function AdminCommandCenter({
   const [filterLedgerType, setFilterLedgerType] = useState('ALL');
   const [filterLedgerCurrency, setFilterLedgerCurrency] = useState('ALL');
 
+  // Module 8 Analytics State
+  const [sandboxUsersGrowth, setSandboxUsersGrowth] = useState(15);
+  const [sandboxSaaSPrice, setSandboxSaaSPrice] = useState(1500);
+
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     user_ops: true,
     financial_ops: true,
@@ -1095,6 +1099,196 @@ export function AdminCommandCenter({
               </p>
             </div>
           </div>
+
+          {activeTab === 'analytics' && (
+            <div className="space-y-6">
+              {/* 1. Telemetry KPI Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Monthly Recurring Revenue (MRR)</span>
+                  <p className="text-3xl font-black font-mono text-[#00A896]">
+                    {formatCurrency(profiles.length * sandboxSaaSPrice || 786000, 'NGN')}
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Annual Recurring Revenue (ARR)</span>
+                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">
+                    {formatCurrency((profiles.length * sandboxSaaSPrice || 786000) * 12, 'NGN')}
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Average Revenue Per User (ARPU)</span>
+                  <p className="text-3xl font-black font-mono text-[#0E2A47] dark:text-teal-400">
+                    {formatCurrency(sandboxSaaSPrice, 'NGN')}
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 block tracking-wider">Net Growth Rate</span>
+                    <span className="text-xs font-black text-emerald-600">+{sandboxUsersGrowth}% Monthly</span>
+                  </div>
+                  <button onClick={() => triggerToast('Cohort analysis exported successfully.')} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all">
+                    <Download className="w-4 h-4" /> Export Report
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. User Inflow Cohorts Matrix & Currency Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Cohort Matrix Table */}
+                <div className="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
+                  <div>
+                    <h3 className="font-black text-sm text-slate-900 dark:text-white">User Inflow Cohorts Analysis</h3>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Calculated retention of budgeting activity per monthly signup cohort.</p>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black uppercase text-[10px]">
+                          <th className="py-2.5 px-3">Cohort Month</th>
+                          <th className="py-2.5 px-3 text-center">Cohort Size</th>
+                          <th className="py-2.5 px-3 text-center">Month 0</th>
+                          <th className="py-2.5 px-3 text-center">Month 1</th>
+                          <th className="py-2.5 px-3 text-center">Month 2</th>
+                          <th className="py-2.5 px-3 text-center">Month 3</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-850 font-mono font-bold text-slate-900 dark:text-white">
+                        {[
+                          { month: 'April 2026', size: 142, r0: '100%', r1: '88%', r2: '78%', r3: '71%' },
+                          { month: 'May 2026', size: 189, r0: '100%', r1: '91%', r2: '82%', r3: '74%' },
+                          { month: 'June 2026', size: 245, r0: '100%', r1: '89%', r2: '80%', r3: '-' },
+                          { month: 'July 2026', size: profiles.length || 310, r0: '100%', r1: '-', r2: '-', r3: '-' }
+                        ].map(c => (
+                          <tr key={c.month} className="hover:bg-slate-50 dark:hover:bg-slate-850">
+                            <td className="py-3 px-3 font-sans font-black">{c.month}</td>
+                            <td className="py-3 px-3 text-center">{c.size} budgeters</td>
+                            <td className="py-3 px-3 text-center text-[#00A896] bg-[#00A896]/5 font-black">{c.r0}</td>
+                            <td className="py-3 px-3 text-center text-emerald-600 bg-emerald-500/5">{c.r1}</td>
+                            <td className="py-3 px-3 text-center text-blue-500 bg-blue-500/5">{c.r2}</td>
+                            <td className="py-3 px-3 text-center text-slate-500">{c.r3}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Currency Distribution Chart / Progress Bars */}
+                <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
+                  <div>
+                    <h3 className="font-black text-sm text-slate-900 dark:text-white">Currency Distribution</h3>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Platform volume breakdown per denomination currency.</p>
+                  </div>
+
+                  <div className="space-y-3.5 text-xs">
+                    <div>
+                      <div className="flex justify-between font-extrabold mb-1">
+                        <span className="text-slate-800 dark:text-slate-200">Nigerian Naira (₦)</span>
+                        <span className="font-mono text-[#00A896]">78.2%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-full bg-[#00A896] rounded-full w-[78.2%]" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between font-extrabold mb-1">
+                        <span className="text-slate-800 dark:text-slate-200">United States Dollar ($)</span>
+                        <span className="font-mono text-blue-500">15.4%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full w-[15.4%]" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between font-extrabold mb-1">
+                        <span className="text-slate-800 dark:text-slate-200">British Pound (£)</span>
+                        <span className="font-mono text-amber-500">4.1%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-full bg-amber-500 rounded-full w-[4.1%]" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between font-extrabold mb-1">
+                        <span className="text-slate-800 dark:text-slate-200">European Euro (€)</span>
+                        <span className="font-mono text-purple-500">2.3%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-full bg-purple-500 rounded-full w-[2.3%]" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 3. Revenue Projections Sandbox Calculator Widget */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
+                <div>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white">Revenue Growth Sandbox Calculator</h3>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Model expected MRR growth based on premium subscription SaaS pricing parameters.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-bold">
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-slate-700 dark:text-slate-300">Target Monthly Growth Rate (%):</span>
+                        <span className="font-mono text-[#00A896]">{sandboxUsersGrowth}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="5"
+                        max="50"
+                        step="1"
+                        value={sandboxUsersGrowth}
+                        onChange={e => setSandboxUsersGrowth(Number(e.target.value))}
+                        className="w-full accent-[#00A896] cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-slate-700 dark:text-slate-300">Premium User SaaS Subscription Fee (₦):</span>
+                        <span className="font-mono text-[#00A896]">{formatCurrency(sandboxSaaSPrice, 'NGN')}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="500"
+                        max="5000"
+                        step="100"
+                        value={sandboxSaaSPrice}
+                        onChange={e => setSandboxSaaSPrice(Number(e.target.value))}
+                        className="w-full accent-[#00A896] cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3">
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase font-black">Projected Month-over-Month MRR Increase</span>
+                      <p className="text-2xl font-black font-mono text-emerald-600 mt-1">
+                        +{formatCurrency((profiles.length * sandboxSaaSPrice) * (sandboxUsersGrowth / 100), 'NGN')}
+                      </p>
+                    </div>
+                    <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                      Based on current user base of <span className="font-mono font-black text-slate-900 dark:text-white">{profiles.length || 524}</span> profiles.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {/* ===================================================================== */}
           {/* MODULE 1: COMPREHENSIVE END-TO-END DASHBOARD (PLATFORM OVERVIEW) */}

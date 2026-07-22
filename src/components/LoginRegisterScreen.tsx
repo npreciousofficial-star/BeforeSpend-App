@@ -362,30 +362,31 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
 
       {/* === RIGHT FORM PANEL === */}
       <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-8 py-10 overflow-y-auto">
-        <div className="w-full max-w-[420px] space-y-8">
+        <div className="w-full max-w-[420px] space-y-6">
           
-          {/* Top Form Header with Brand Logo & Back Action */}
-          <div className="flex items-center justify-between w-full pb-2">
+          {/* Mobile & Form Top Bar with Brand Logo */}
+          <div className="flex items-center justify-between w-full pb-2 border-b border-gray-150/60 dark:border-zinc-850">
             <div 
               onClick={onBackToLanding} 
-              className="cursor-pointer hover:opacity-85 transition-opacity"
+              className="cursor-pointer hover:opacity-85 transition-all duration-200"
               title="Return to Homepage"
             >
-              <BeforeSpendLogo size="md" />
+              <BeforeSpendLogo size="md" className="h-10 sm:h-12" />
             </div>
             {onBackToLanding && (
               <button
+                type="button"
                 onClick={onBackToLanding}
-                className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-zinc-400 hover:text-[#00A896] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-850 hover:bg-gray-200 dark:hover:bg-zinc-800 text-xs font-bold text-gray-600 dark:text-zinc-300 transition-colors cursor-pointer"
               >
-                <ChevronDown className="w-4 h-4 rotate-90" />
-                <span>Back</span>
+                <ChevronDown className="w-4 h-4 rotate-90 text-[#00A896]" />
+                <span>Back to Home</span>
               </button>
             )}
           </div>
 
           {/* Form Header */}
-          <div className="space-y-2 text-left">
+          <div className="space-y-2 text-left pt-1">
             <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
               {isRegister ? 'Create an account' : 'Sign in to account'}
             </h1>

@@ -5,7 +5,7 @@ import { registerUserAccountToSupabase, loginUserAccountToSupabase, copyLocalSto
 import { BeforeSpendLogo } from './BeforeSpendLogo';
 import { 
   ShieldAlert, Key, Mail, User, Briefcase, DollarSign, ArrowRight, Eye, EyeOff, X,
-  ChevronDown, Check, Layers, PieChart, Target, Bell
+  ChevronDown, Check, Layers, PieChart, Target, Bell, Phone
 } from 'lucide-react';
 
 interface LoginRegisterScreenProps {
@@ -21,6 +21,7 @@ interface RegisteredUser {
   passwordHash: string;
   role: string;
   defaultCurrency: string;
+  phoneNumber?: string;
 }
 
 const ROLE_OPTIONS = [
@@ -46,7 +47,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
   const [isRegister, setIsRegister] = useState(initialIsRegister);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [role, setRole] = useState('Salaried Employee / Professional');
   const [currency, setCurrency] = useState('NGN');
@@ -82,8 +84,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
     }
 
     if (isRegister) {
-      if (!name.trim()) {
-        setErrorMsg('Please enter your full name.');
+      if (!firstName.trim() || !lastName.trim()) {
+        setErrorMsg('Please enter both your first name and last name.');
         return;
       }
       if (password.length < 6) {
@@ -98,6 +100,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
         return;
       }
 
+      const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
       const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID 
         ? crypto.randomUUID() 
         : '00000000-0000-4000-8000-' + Date.now().toString(16).slice(-12).padStart(12, '0');
@@ -105,10 +109,11 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
       const newUser: RegisteredUser = {
         id: newUserId,
         email: emailLower,
-        name: name.trim(),
+        name: fullName,
         passwordHash: password,
         role: role.trim() || 'Freelancer',
         defaultCurrency: currency,
+        phoneNumber: phoneNumber.trim() || undefined,
       };
 
       let finalId = newUserId;
@@ -130,7 +135,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
         email: newUser.email,
         role: newUser.role,
         defaultCurrency: newUser.defaultCurrency,
-        avatar: 'preset-emerald'
+        avatar: 'preset-emerald',
+        phoneNumber: newUser.phoneNumber,
       };
       window.localStorage.setItem(profileKey, JSON.stringify(profileData));
       onLogin(finalId);
@@ -361,8 +367,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
       </div>
 
       {/* === RIGHT FORM PANEL === */}
-      <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-8 py-10 overflow-y-auto">
-        <div className="w-full max-w-[420px] space-y-8">
+      <div className="flex-1 flex flex-col items-center px-4 sm:px-8 py-6 sm:py-10 overflow-y-auto">
+        <div className="w-full max-w-[420px] my-auto py-4 space-y-8">
           
           {/* Mobile Back / Logo topbar (hidden on desktop lg:flex since left sidebar has the logo) */}
           <div className="flex items-center justify-between lg:hidden mb-4 w-full">
@@ -435,20 +441,37 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
           <form onSubmit={handleAuthSubmit} className="space-y-5">
             {isRegister && (
               <>
-                {/* Full Name */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-black text-gray-550 dark:text-zinc-400 uppercase tracking-wider">Full Name</label>
-                  <div className="relative flex items-center rounded-2xl border border-gray-300/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/8 transition-all">
-                    <User className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
-                    <input
-                      id="register-name"
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Chidi Okechukwu"
-                      className="w-full pl-11 pr-4 py-3.5 text-base bg-transparent text-gray-900 dark:text-zinc-50 placeholder-gray-400 focus:outline-none rounded-2xl"
-                    />
+                {/* First Name & Last Name */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-black text-gray-550 dark:text-zinc-400 uppercase tracking-wider">First Name</label>
+                    <div className="relative flex items-center rounded-2xl border border-gray-300/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/8 transition-all">
+                      <User className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <input
+                        id="register-first-name"
+                        type="text"
+                        required
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="e.g. Chidi"
+                        className="w-full pl-11 pr-4 py-3.5 text-base bg-transparent text-gray-900 dark:text-zinc-50 placeholder-gray-400 focus:outline-none rounded-2xl"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-black text-gray-550 dark:text-zinc-400 uppercase tracking-wider">Last Name</label>
+                    <div className="relative flex items-center rounded-2xl border border-gray-300/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/8 transition-all">
+                      <User className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <input
+                        id="register-last-name"
+                        type="text"
+                        required
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="e.g. Okechukwu"
+                        className="w-full pl-11 pr-4 py-3.5 text-base bg-transparent text-gray-900 dark:text-zinc-50 placeholder-gray-400 focus:outline-none rounded-2xl"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -456,7 +479,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
                 <div className="space-y-1.5">
                   <label className="block text-[11px] font-black text-gray-550 dark:text-zinc-400 uppercase tracking-wider">Phone Number</label>
                   <div className="relative flex items-center rounded-2xl border border-gray-300/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/8 transition-all">
-                    <ShieldAlert className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <Phone className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
                       id="register-phone"
                       type="tel"

@@ -54,7 +54,7 @@ END $$;
 -- STEP 6: CRITICAL — Reload the PostgREST schema cache to clear 400 errors
 NOTIFY pgrst, 'reload schema';
 
--- STEP 7: RLS policies (safe re-apply)
+-- STEP 7: RLS policies (recursion-free admin bypass via JWT claims)
 ALTER TABLE public.buckets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
@@ -65,31 +65,83 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public manage buckets" ON public.buckets;
 CREATE POLICY "Public manage buckets" ON public.buckets
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  ) WITH CHECK (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 DROP POLICY IF EXISTS "Public manage profiles" ON public.profiles;
 CREATE POLICY "Public manage profiles" ON public.profiles
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  ) WITH CHECK (
+    auth.uid() = id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 DROP POLICY IF EXISTS "Public manage transactions" ON public.transactions;
 CREATE POLICY "Public manage transactions" ON public.transactions
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 DROP POLICY IF EXISTS "Public manage payments" ON public.payments;
 CREATE POLICY "Public manage payments" ON public.payments
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  ) WITH CHECK (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 DROP POLICY IF EXISTS "Public manage milestones" ON public.milestones;
 CREATE POLICY "Public manage milestones" ON public.milestones
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  ) WITH CHECK (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 DROP POLICY IF EXISTS "Public manage reminders" ON public.reminders;
 CREATE POLICY "Public manage reminders" ON public.reminders
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  ) WITH CHECK (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 DROP POLICY IF EXISTS "Public manage notifications" ON public.notifications;
 CREATE POLICY "Public manage notifications" ON public.notifications
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL USING (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  ) WITH CHECK (
+    auth.uid() = user_id 
+    OR auth.jwt() ->> 'email' IN ('admin@beforespend.app', 'admin@beforespend.xyz')
+    OR auth.jwt() -> 'user_metadata' ->> 'role' = 'Platform Administrator'
+  );
 
 -- STEP 8: Storage buckets (safe upsert)
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

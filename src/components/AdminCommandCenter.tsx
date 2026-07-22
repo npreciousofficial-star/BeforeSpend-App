@@ -818,8 +818,12 @@ export function AdminCommandCenter({
 
   const getUserTelemetry = (user: any) => {
     if (!user) return null;
-    const userBuckets = buckets.filter(b => b.user_id === user.id);
     const userTxns = transactions.filter(t => t.user_id === user.id);
+    const userBuckets = buckets.filter(b => b.user_id === user.id).map(b => {
+      const bTxns = userTxns.filter(t => t.bucket_id === b.id);
+      const balance = bTxns.reduce((sum, t) => sum + (t.direction === 'CREDIT' ? Number(t.amount) : -Number(t.amount)), 0);
+      return { ...b, balance };
+    });
     const totalAllocated = userBuckets.reduce((sum, b) => sum + (Number(b.balance) || 0), 0);
     return { userBuckets, userTxns, totalAllocated };
   };
@@ -1107,14 +1111,14 @@ export function AdminCommandCenter({
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Monthly Recurring Revenue (MRR)</span>
                   <p className="text-3xl font-black font-mono text-[#00A896]">
-                    {formatCurrency(profiles.length * sandboxSaaSPrice || 786000, 'NGN')}
+                    {formatCurrency(profiles.length * sandboxSaaSPrice, 'NGN')}
                   </p>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Annual Recurring Revenue (ARR)</span>
                   <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">
-                    {formatCurrency((profiles.length * sandboxSaaSPrice || 786000) * 12, 'NGN')}
+                    {formatCurrency((profiles.length * sandboxSaaSPrice) * 12, 'NGN')}
                   </p>
                 </div>
 
@@ -1163,7 +1167,7 @@ export function AdminCommandCenter({
                           { month: 'April 2026', size: 142, r0: '100%', r1: '88%', r2: '78%', r3: '71%' },
                           { month: 'May 2026', size: 189, r0: '100%', r1: '91%', r2: '82%', r3: '74%' },
                           { month: 'June 2026', size: 245, r0: '100%', r1: '89%', r2: '80%', r3: '-' },
-                          { month: 'July 2026', size: profiles.length || 310, r0: '100%', r1: '-', r2: '-', r3: '-' }
+                          { month: 'July 2026', size: profiles.length, r0: '100%', r1: '-', r2: '-', r3: '-' }
                         ].map(c => (
                           <tr key={c.month} className="hover:bg-slate-50 dark:hover:bg-slate-850">
                             <td className="py-3 px-3 font-sans font-black">{c.month}</td>
@@ -1281,7 +1285,7 @@ export function AdminCommandCenter({
                       </p>
                     </div>
                     <div className="text-[11px] text-slate-600 dark:text-slate-400">
-                      Based on current user base of <span className="font-mono font-black text-slate-900 dark:text-white">{profiles.length || 524}</span> profiles.
+                      Based on current user base of <span className="font-mono font-black text-slate-900 dark:text-white">{profiles.length}</span> profiles.
                     </div>
                   </div>
                 </div>
@@ -1296,21 +1300,21 @@ export function AdminCommandCenter({
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Daily Active Users (DAU)</span>
                   <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">
-                    {Math.round((profiles.length || 524) * 0.46)}
+                    {Math.round((profiles.length) * 0.46)}
                   </p>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Weekly Active Users (WAU)</span>
                   <p className="text-3xl font-black font-mono text-[#00A896]">
-                    {Math.round((profiles.length || 524) * 0.73)}
+                    {Math.round((profiles.length) * 0.73)}
                   </p>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Monthly Active Users (MAU)</span>
                   <p className="text-3xl font-black font-mono text-[#0E2A47] dark:text-teal-400">
-                    {Math.round((profiles.length || 524) * 0.95)}
+                    {Math.round((profiles.length) * 0.95)}
                   </p>
                 </div>
 
@@ -1482,12 +1486,12 @@ export function AdminCommandCenter({
                   <div className="flex justify-between items-start">
                     <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Total Registered Users</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                      +12.4% this week
+                      Live Database
                     </span>
                   </div>
-                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{profiles.length || 52410}</p>
+                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{profiles.length}</p>
                   <div className="flex justify-between items-center text-[11px] pt-1">
-                    <span className="text-slate-600 dark:text-slate-400 font-bold">Active Ratio: 99.2%</span>
+                    <span className="text-slate-600 dark:text-slate-400 font-bold">Active Ratio: 100%</span>
                     <button onClick={() => navigateToTab('users')} className="text-[#00A896] hover:underline font-extrabold flex items-center gap-0.5">
                       Directory <ChevronRight className="w-3 h-3" />
                     </button>
@@ -1498,10 +1502,10 @@ export function AdminCommandCenter({
                   <div className="flex justify-between items-start">
                     <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Total Active Buckets</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00A896]/10 text-[#00A896]">
-                      3.2 Buckets / User
+                      Cloud Sync
                     </span>
                   </div>
-                  <p className="text-3xl font-black font-mono text-[#00A896]">{buckets.length || 314890}</p>
+                  <p className="text-3xl font-black font-mono text-[#00A896]">{buckets.length}</p>
                   <div className="flex justify-between items-center text-[11px] pt-1">
                     <span className="text-slate-600 dark:text-slate-400 font-bold">Bucket Lock Policy: Active</span>
                     <button onClick={() => navigateToTab('categories')} className="text-[#00A896] hover:underline font-extrabold flex items-center gap-0.5">
@@ -1514,12 +1518,12 @@ export function AdminCommandCenter({
                   <div className="flex justify-between items-start">
                     <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Managed Transactions</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/10 text-blue-500">
-                      ₦1.84B Volume
+                      {formatCurrency(transactions.reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0), 'NGN')}
                     </span>
                   </div>
-                  <p className="text-3xl font-black font-mono text-[#0E2A47] dark:text-teal-400">{transactions.length || 18420}</p>
+                  <p className="text-3xl font-black font-mono text-[#0E2A47] dark:text-teal-400">{transactions.length}</p>
                   <div className="flex justify-between items-center text-[11px] pt-1">
-                    <span className="text-slate-600 dark:text-slate-400 font-bold">Velocity: 24 tx/min</span>
+                    <span className="text-slate-600 dark:text-slate-400 font-bold">Velocity: Live Sync</span>
                     <button onClick={() => navigateToTab('ledger')} className="text-[#00A896] hover:underline font-extrabold flex items-center gap-0.5">
                       Ledger <ChevronRight className="w-3 h-3" />
                     </button>
@@ -1970,11 +1974,13 @@ export function AdminCommandCenter({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Total Active Buckets</span>
-                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{buckets.length || 314890}</p>
+                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{buckets.length}</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Total Allocated Volume</span>
-                  <p className="text-3xl font-black font-mono text-[#00A896]">₦1.84B</p>
+                  <p className="text-3xl font-black font-mono text-[#00A896]">
+                    {formatCurrency(buckets.reduce((sum, b) => sum + (Number(b.balance) || 0), 0), 'NGN')}
+                  </p>
                 </div>
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Allocation Efficiency</span>

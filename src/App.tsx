@@ -3066,41 +3066,56 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useLocalStorage<string | null>('beforespend_logged_in_user_id', null);
   const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register'>('beforespend_auth_view', 'landing');
 
-  // URL Hash Navigation Synchronizer
-  const [currentHash, setCurrentHash] = useState(() => window.location.hash || '#/');
+  // Clean HTML5 History Navigation Synchronizer
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname || '/');
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash || '#/';
-      setCurrentHash(hash);
-      if (hash.startsWith('#/admin') || hash.startsWith('#/dashboard')) {
+    const handlePopState = () => {
+      const path = window.location.pathname || '/';
+      setCurrentPath(path);
+      if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
         if (currentUserId) setAuthView('app');
-      } else if (hash === '#/login') {
+      } else if (path === '/login') {
         setAuthView('login');
-      } else if (hash === '#/register') {
+      } else if (path === '/register') {
         setAuthView('register');
-      } else if (hash === '#/') {
+      } else if (path === '/') {
         setAuthView('landing');
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [currentUserId]);
 
-  // Sync initial route based on hash or auth state
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
+      if (currentUserId) setAuthView('app');
+    } else if (path === '/login') {
+      setAuthView('login');
+    } else if (path === '/register') {
+      setAuthView('register');
+    } else if (path === '/') {
+      setAuthView('landing');
+    }
+  };
+
+  // Sync initial route on mount
   useEffect(() => {
     if (currentUserId) {
-      if (window.location.hash.startsWith('#/admin')) {
+      if (window.location.pathname.startsWith('/admin')) {
         setAuthView('app');
-      } else if (authView === 'landing' && (!window.location.hash || window.location.hash === '#/')) {
-        window.location.hash = '#/dashboard';
+      } else if (authView === 'landing' && (window.location.pathname === '/' || !window.location.pathname)) {
+        window.history.replaceState({}, '', '/dashboard');
+        setCurrentPath('/dashboard');
         setAuthView('app');
       }
     }
   }, [currentUserId]);
 
-  // Theme synchronization across views
+  // Theme synchronization
   const [isDark, setIsDark] = useState(() => {
     return window.localStorage.getItem('before spend_dark_mode') === 'true';
   });
@@ -3117,30 +3132,27 @@ export default function App() {
   const handleLogout = () => {
     setCurrentUserId(null);
     setAuthView('landing');
-    window.location.hash = '#/';
-  };
-
-  const navigateTo = (route: string) => {
-    window.location.hash = route;
+    window.history.pushState({}, '', '/');
+    setCurrentPath('/');
   };
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 font-sans transition-colors duration-200">
-      {currentUserId && (authView === 'app' || currentHash.startsWith('#/admin') || currentHash.startsWith('#/dashboard')) ? (
+      {currentUserId && (authView === 'app' || currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard')) ? (
         <AuthenticatedApp 
           currentUserId={currentUserId} 
           onLogout={handleLogout} 
-          onGoToLanding={() => { navigateTo('#/'); setAuthView('landing'); }} 
+          onGoToLanding={() => { navigateTo('/'); setAuthView('landing'); }} 
         />
-      ) : authView === 'landing' || (!currentUserId && (currentHash === '#/' || !currentHash)) ? (
+      ) : authView === 'landing' || (!currentUserId && (currentPath === '/' || !currentPath)) ? (
         <LandingPage
-          onGoToLogin={() => { navigateTo('#/login'); setAuthView('login'); }}
-          onGoToRegister={() => { navigateTo('#/register'); setAuthView('register'); }}
+          onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
+          onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
           isDark={isDark}
           onToggleTheme={() => setIsDark(!isDark)}
           isLoggedIn={Boolean(currentUserId)}
           currentUserId={currentUserId}
-          onGoToDashboard={() => { navigateTo('#/dashboard'); setAuthView('app'); }}
+          onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
           onLogout={handleLogout}
         />
       ) : (
@@ -3148,11 +3160,12 @@ export default function App() {
           onLogin={(userId) => {
             setCurrentUserId(userId);
             setAuthView('app');
-            // Immediate route dispatch: if admin email, go directly to #/admin
             const isUserAdmin = userId.includes('admin') || window.localStorage.getItem('beforespend_user_profile')?.includes('Platform Administrator');
-            window.location.hash = isUserAdmin ? '#/admin' : '#/dashboard';
+            const targetPath = isUserAdmin ? '/admin' : '/dashboard';
+            window.history.pushState({}, '', targetPath);
+            setCurrentPath(targetPath);
           }}
-          onBackToLanding={() => { navigateTo('#/'); setAuthView('landing'); }}
+          onBackToLanding={() => { navigateTo('/'); setAuthView('landing'); }}
           initialIsRegister={authView === 'register'}
         />
       )}

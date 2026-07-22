@@ -1,7 +1,7 @@
 /**
  * AdminCommandCenter.tsx
- * Standalone Enterprise B2B ERP Admin Command Center
- * Deep User Behavioral Intelligence, Custom Styled Dropdowns, & Telemetry Analytics
+ * Standalone Enterprise ERP Admin Command Center
+ * Engineered with BeforeSpend Brand System (#0E2A47 Navy, #00A896 Electric Teal), High-Contrast Typography, Custom Popovers, & $100k B2B SaaS Layout.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -123,14 +123,12 @@ export function AdminCommandCenter({
   const [filterRole, setFilterRole] = useState('ALL');
   const [filterCurrency, setFilterCurrency] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState('2026-06-14');
   const [dateTo, setDateTo] = useState('2026-07-13');
 
   // Custom Dropdown Open States (NO Browser Native Selects)
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   // Deep-Dive User Behavioral Inspection Drawer
   const [deepDiveUser, setDeepDiveUser] = useState<any | null>(null);
@@ -257,71 +255,64 @@ export function AdminCommandCenter({
     
     const matchesRole = filterRole === 'ALL' || p.role === filterRole;
     const matchesCurrency = filterCurrency === 'ALL' || p.default_currency === filterCurrency;
-    const matchesStatus = filterStatus === 'ALL' || (filterStatus === 'ACTIVE' ? true : false);
 
-    return matchesSearch && matchesRole && matchesCurrency && matchesStatus;
+    return matchesSearch && matchesRole && matchesCurrency;
   });
 
   const toggleSection = (sectionId: string) => {
     setOpenSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
 
-  // Compute User Specific Behavioral Telemetry
+  // User Telemetry Analytics
   const getUserTelemetry = (user: any) => {
     if (!user) return null;
     const userBuckets = buckets.filter(b => b.user_id === user.id);
     const userTxns = transactions.filter(t => t.user_id === user.id);
     const totalAllocated = userBuckets.reduce((sum, b) => sum + (Number(b.balance) || 0), 0);
-    const totalSplits = userTxns.filter(t => t.type === 'INCOME_SPLIT').length;
-    const totalExpenses = userTxns.filter(t => t.type === 'EXPENSE').length;
 
     return {
       userBuckets,
       userTxns,
       totalAllocated,
-      totalSplits,
-      totalExpenses,
       lastActive: new Date().toLocaleDateString(),
       kycVerified: true,
-      riskScore: 'Low (0.2%)'
     };
   };
 
   const currentDeepDiveTelemetry = deepDiveUser ? getUserTelemetry(deepDiveUser) : null;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex bg-[#0B1528] text-slate-100 font-sans ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`fixed inset-0 z-[100] flex bg-[#0E1A2E] text-slate-100 font-sans ${isDarkMode ? 'dark' : ''}`}>
 
-      {/* Backdrop for closing custom popover dropdowns */}
-      {(isRoleDropdownOpen || isCurrencyDropdownOpen || isStatusDropdownOpen) && (
+      {/* Backdrop for closing custom popovers */}
+      {(isRoleDropdownOpen || isCurrencyDropdownOpen) && (
         <div
           className="fixed inset-0 z-30 cursor-default"
           onClick={() => {
             setIsRoleDropdownOpen(false);
             setIsCurrencyDropdownOpen(false);
-            setIsStatusDropdownOpen(false);
           }}
         />
       )}
 
       {/* ========================================================================= */}
-      {/* 1. LEFT SIDEBAR (Dark Navy ERP Rail - Reference Image Standard) */}
+      {/* 1. LEFT PERSISTENT SIDEBAR (Desktop & Tablet - Completely Hidden on Mobile) */}
       {/* ========================================================================= */}
-      <aside className={`flex flex-col bg-[#0A1222] border-r border-slate-800/80 select-none flex-shrink-0 transition-all duration-200 ${
+      <aside className={`hidden md:flex flex-col bg-[#0A1220] border-r border-slate-800/80 select-none flex-shrink-0 transition-all duration-200 ${
         isSidebarCollapsed ? 'w-16' : 'w-60'
       }`}>
         
         {/* Brand Header */}
-        <div className="px-5 py-4 border-b border-slate-800/60 flex items-center justify-between flex-shrink-0">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between flex-shrink-0">
           {isSidebarCollapsed ? (
-            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white text-xs mx-auto">
+            <div className="w-8 h-8 rounded-xl bg-[#00A896] flex items-center justify-center font-black text-white text-xs mx-auto shadow-md">
               BS
             </div>
           ) : (
             <div className="flex items-center justify-between w-full">
               <BeforeSpendLogo size="md" variant="white" />
-              <span className="text-[9px] font-mono font-bold bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30">
-                ERP
+              <span className="text-[9px] font-mono font-black uppercase bg-[#00A896]/20 text-[#00A896] px-1.5 py-0.5 rounded border border-[#00A896]/30">
+                Admin
               </span>
             </div>
           )}
@@ -351,16 +342,16 @@ export function AdminCommandCenter({
                       setActiveTab(section.id);
                     }
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                     isSectionActive && !hasSubItems
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                      ? 'bg-[#00A896] text-white shadow-md shadow-[#00A896]/30'
                       : isSectionActive
-                      ? 'text-white font-black'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                      ? 'text-white font-black bg-slate-800/80'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <SectionIcon className={`w-4 h-4 flex-shrink-0 ${isSectionActive ? 'text-blue-400' : 'text-slate-400'}`} />
+                    <SectionIcon className={`w-4 h-4 flex-shrink-0 ${isSectionActive ? 'text-[#00A896]' : 'text-slate-400'}`} />
                     {!isSidebarCollapsed && <span className="truncate">{section.label}</span>}
                   </div>
 
@@ -378,10 +369,10 @@ export function AdminCommandCenter({
                         <button
                           key={sub.id}
                           onClick={() => setActiveTab(sub.id)}
-                          className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer block ${
+                          className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer block ${
                             isSubActive
-                              ? 'bg-blue-600 text-white font-bold shadow-xs'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                              ? 'bg-[#00A896] text-white font-extrabold shadow-2xs'
+                              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                           }`}
                         >
                           {sub.label}
@@ -395,23 +386,23 @@ export function AdminCommandCenter({
           })}
         </nav>
 
-        {/* Bottom User Card (Josh Schultz Style) */}
+        {/* Bottom Pinned User Profile (Josh Schultz Style) */}
         <div className="p-3 border-t border-slate-800/80 space-y-2 flex-shrink-0">
           {!isSidebarCollapsed && (
-            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/90 border border-slate-800">
               <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 rounded-full border border-slate-700 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate">{userProfile.name}</p>
-                <p className="text-[10px] text-blue-400 font-mono font-semibold truncate">Platform Administrator</p>
+                <p className="text-xs font-extrabold text-white truncate">{userProfile.name}</p>
+                <p className="text-[10px] text-[#00A896] font-mono font-bold truncate">Platform Administrator</p>
               </div>
             </div>
           )}
 
           <div className="flex gap-1.5">
-            <button onClick={onExit} className="flex-1 py-1.5 text-[11px] font-bold rounded-lg border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center gap-1 cursor-pointer">
-              <ExternalLink className="w-3.5 h-3.5 text-blue-400" /> {!isSidebarCollapsed && 'User App'}
+            <button onClick={onExit} className="flex-1 py-2 text-[11px] font-extrabold rounded-xl border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+              <ExternalLink className="w-3.5 h-3.5 text-[#00A896]" /> {!isSidebarCollapsed && 'User App'}
             </button>
-            <button onClick={onLogout} className="py-1.5 px-2.5 text-[11px] font-bold rounded-lg border border-slate-800 text-rose-400 hover:bg-rose-500/10 flex items-center justify-center cursor-pointer" title="Sign Out">
+            <button onClick={onLogout} className="py-2 px-3 text-[11px] font-extrabold rounded-xl border border-slate-800 text-rose-400 hover:bg-rose-500/10 flex items-center justify-center cursor-pointer transition-colors" title="Sign Out">
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -419,139 +410,197 @@ export function AdminCommandCenter({
 
       </aside>
 
-      {/* ========================================================================= */}
-      {/* 2. RIGHT MAIN BODY FRAME */}
-      {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#FAFAFC] dark:bg-[#0B1528] overflow-hidden">
+      {/* Mobile Drawer Navigation Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-xs" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="relative w-4/5 max-w-xs bg-[#0A1220] text-white h-full flex flex-col z-50 p-4 space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <BeforeSpendLogo size="md" variant="white" />
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 rounded-lg text-slate-400">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-        {/* Persistent Top Bar Header */}
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {SIDEBAR_SECTIONS.map((section) => (
+                <div key={section.id} className="space-y-1">
+                  <p className="px-2 text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">{section.label}</p>
+                  {section.subItems ? (
+                    section.subItems.map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => { setActiveTab(sub.id); setIsMobileMenuOpen(false); }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold ${
+                          activeTab === sub.id ? 'bg-[#00A896] text-white' : 'text-slate-300'
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    ))
+                  ) : (
+                    <button
+                      onClick={() => { setActiveTab(section.id); setIsMobileMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold ${
+                        activeTab === section.id ? 'bg-[#00A896] text-white' : 'text-slate-300'
+                      }`}
+                    >
+                      {section.label}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 space-y-2">
+              <button onClick={onExit} className="w-full py-2.5 text-xs font-extrabold text-white bg-slate-800 rounded-xl flex items-center justify-center gap-2">
+                <ExternalLink className="w-4 h-4 text-[#00A896]" /> Switch to User App
+              </button>
+              <button onClick={onLogout} className="w-full py-2.5 text-xs font-extrabold text-rose-400 bg-rose-950/30 rounded-xl flex items-center justify-center gap-2">
+                <LogOut className="w-4 h-4" /> Sign Out Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. RIGHT MAIN CONTENT FRAME (100% Full Width on Mobile) */}
+      {/* ========================================================================= */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-[#0B1528] overflow-hidden">
+
+        {/* Top Header */}
         <header className="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1B34] px-4 sm:px-6 flex items-center justify-between flex-shrink-0 z-30">
           
           <div className="flex items-center gap-3">
-            <button onClick={() => setActiveTab('dashboard')} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <button onClick={() => setActiveTab('dashboard')} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer hidden sm:block">
               <Home className="w-4 h-4" />
             </button>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 capitalize">{activeTab}</span>
+            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
+            <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 capitalize">{activeTab}</span>
           </div>
 
-          {/* Search Trigger Input (Reference Image Palette) */}
+          {/* Search Trigger */}
           <div className="flex-1 max-w-md mx-4 hidden sm:block">
             <button
               onClick={() => setShowCommandPalette(true)}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-900/60 text-slate-400 text-xs font-medium cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+              className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-750 bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 text-xs font-semibold cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-all shadow-2xs"
             >
               <span className="flex items-center gap-2">
                 <Search className="w-3.5 h-3.5 text-slate-400" />
-                <span>Search serial, UUID, or user...</span>
+                <span>Search user, account ID, or action...</span>
               </span>
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-500">⌘K</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] font-mono font-black text-slate-600 dark:text-slate-300">⌘K</kbd>
             </button>
           </div>
 
-          {/* Right Action Icons & Avatar */}
+          {/* Right Controls & SaaS Avatar Dropdown */}
           <div className="flex items-center gap-3">
-            <button className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white relative cursor-pointer">
+            <button className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white relative cursor-pointer">
               <Bell className="w-4.5 h-4.5" />
-              <span className="w-2 h-2 rounded-full bg-blue-500 absolute top-1.5 right-1.5" />
+              <span className="w-2 h-2 rounded-full bg-[#00A896] absolute top-1.5 right-1.5" />
             </button>
 
-            <button onClick={toggleDarkMode} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
+            <button onClick={toggleDarkMode} className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer">
               {isDarkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5" />}
             </button>
 
-            <div className="flex items-center gap-2 cursor-pointer">
-              <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700" />
-              <span className="hidden sm:inline text-xs font-extrabold text-slate-800 dark:text-slate-100">{userProfile.name}</span>
+            <div className="flex items-center gap-2.5 cursor-pointer">
+              <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-700" />
+              <span className="hidden sm:inline text-xs font-black text-slate-900 dark:text-slate-100">{userProfile.name}</span>
             </div>
           </div>
         </header>
 
-        {/* Main Content Area */}
+        {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6 scrollbar-none">
 
-          {/* Header Title & Date Range Inputs */}
+          {/* Title Header */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer hover:text-blue-500" onClick={() => setActiveTab('dashboard')}>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 cursor-pointer hover:text-[#00A896]" onClick={() => setActiveTab('dashboard')}>
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span>Command center</span>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {activeTab === 'dashboard' && 'Platform Telemetry & KPIs'}
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-heading">
+                  {activeTab === 'dashboard' && 'Platform Overview'}
                   {activeTab === 'users' && 'User Account Directory'}
                   {activeTab === 'categories' && 'Budget Bucket Ratios'}
                   {activeTab === 'ledger' && 'Transactions Audit Ledger'}
                   {activeTab === 'broadcast' && 'System Broadcasts'}
                   {activeTab === 'backups' && 'Database Snapshots'}
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium max-w-2xl">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-semibold max-w-2xl">
                   {activeTab === 'users' ? 'Search accounts, inspect behavioral telemetry, manage roles, and review allocation balances.' : 'Dock-to-stock, pick accuracy, on-time ship, exception aging, and throughput — against §8 benchmarks.'}
                 </p>
               </div>
 
               {/* Date Filters */}
               <div className="flex items-center gap-2 self-start md:self-auto">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold shadow-2xs">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-extrabold shadow-2xs">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-400 font-medium">From</span>
-                  <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-transparent text-slate-800 dark:text-slate-100 font-mono text-xs focus:outline-none" />
+                  <span className="text-slate-500 font-bold">From</span>
+                  <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none" />
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold shadow-2xs">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-extrabold shadow-2xs">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-400 font-medium">To</span>
-                  <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-transparent text-slate-800 dark:text-slate-100 font-mono text-xs focus:outline-none" />
+                  <span className="text-slate-500 font-bold">To</span>
+                  <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* ===================================================================== */}
-          {/* USER DIRECTORY MODULE (END-TO-END + CUSTOM DROPDOWNS + DEEP DIVE) */}
+          {/* USER DIRECTORY MODULE (HIGH CONTRAST & BEFORESPEND BRANDING) */}
           {/* ===================================================================== */}
           {activeTab === 'users' && (
             <div className="space-y-6">
 
-              {/* Top Summary Bar */}
+              {/* Summary Metric Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400">Total Registered Users</span>
-                  <p className="text-2xl font-black font-mono text-slate-900 dark:text-white">{profiles.length || 52410}</p>
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Total Registered Users</span>
+                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{profiles.length || 52410}</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400">Active Accounts</span>
-                  <p className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">{profiles.length || 51890}</p>
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Active Accounts</span>
+                  <p className="text-3xl font-black font-mono text-[#00A896]">{profiles.length || 51890}</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400">Default Currency</span>
-                  <p className="text-2xl font-black font-mono text-blue-500">NGN (₦)</p>
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Default Currency</span>
+                  <p className="text-3xl font-black font-mono text-[#0E2A47] dark:text-teal-400">NGN (₦)</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs flex items-center justify-between">
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-black uppercase text-slate-400 block">Actions</span>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Create Profile</span>
+                    <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Actions</span>
+                    <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">Create Profile</span>
                   </div>
-                  <button onClick={() => setShowAddUserModal(true)} className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer">
+                  <button onClick={() => setShowAddUserModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all">
                     <UserPlus className="w-4 h-4" /> Add User
                   </button>
                 </div>
               </div>
 
-              {/* Filters Toolbar with CUSTOM STYLED DROPDOWNS (No Native Selects) */}
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-3">
+              {/* Filters Toolbar with High-Contrast Custom Popover Dropdowns */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   
-                  {/* Search Input */}
+                  {/* High-Contrast Search Input (Fixes Invisible Pale Text) */}
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                    <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
                     <input
                       type="text"
                       placeholder="Search name, email, ID..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-base sm:text-xs font-medium focus:outline-none focus:border-blue-500"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-[#00A896]"
                     />
                   </div>
 
@@ -562,22 +611,21 @@ export function AdminCommandCenter({
                       onClick={() => {
                         setIsRoleDropdownOpen(!isRoleDropdownOpen);
                         setIsCurrencyDropdownOpen(false);
-                        setIsStatusDropdownOpen(false);
                       }}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-bold flex items-center justify-between cursor-pointer"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-xs font-extrabold text-slate-900 dark:text-white flex items-center justify-between cursor-pointer"
                     >
                       <span className="truncate">{filterRole === 'ALL' ? 'All Role Policies' : filterRole}</span>
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
                     </button>
 
                     {isRoleDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 shadow-xl z-40 text-xs space-y-1">
+                      <div className="absolute top-full left-0 right-0 mt-1.5 rounded-xl bg-white dark:bg-[#0E1A2E] border border-slate-300 dark:border-slate-700 p-2 shadow-2xl z-40 text-xs space-y-1">
                         {['ALL', 'Salaried Employee / Professional', 'Freelancer & Contractor', 'Business Owner / Entrepreneur', 'Student & Personal Budgeter', 'Platform Administrator'].map(r => (
                           <button
                             key={r}
                             onClick={() => { setFilterRole(r); setIsRoleDropdownOpen(false); }}
-                            className={`w-full text-left px-3 py-2 rounded-lg font-bold transition-colors cursor-pointer ${
-                              filterRole === r ? 'bg-blue-600 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            className={`w-full text-left px-3 py-2 rounded-lg font-extrabold transition-colors cursor-pointer ${
+                              filterRole === r ? 'bg-[#00A896] text-white' : 'text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                           >
                             {r === 'ALL' ? 'All Role Policies' : r}
@@ -594,22 +642,21 @@ export function AdminCommandCenter({
                       onClick={() => {
                         setIsCurrencyDropdownOpen(!isCurrencyDropdownOpen);
                         setIsRoleDropdownOpen(false);
-                        setIsStatusDropdownOpen(false);
                       }}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-bold flex items-center justify-between cursor-pointer"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-xs font-extrabold text-slate-900 dark:text-white flex items-center justify-between cursor-pointer"
                     >
                       <span>{filterCurrency === 'ALL' ? 'All Currencies' : filterCurrency}</span>
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
                     </button>
 
                     {isCurrencyDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 shadow-xl z-40 text-xs space-y-1">
+                      <div className="absolute top-full left-0 right-0 mt-1.5 rounded-xl bg-white dark:bg-[#0E1A2E] border border-slate-300 dark:border-slate-700 p-2 shadow-2xl z-40 text-xs space-y-1">
                         {['ALL', 'NGN', 'USD', 'EUR', 'GBP'].map(c => (
                           <button
                             key={c}
                             onClick={() => { setFilterCurrency(c); setIsCurrencyDropdownOpen(false); }}
-                            className={`w-full text-left px-3 py-2 rounded-lg font-bold transition-colors cursor-pointer ${
-                              filterCurrency === c ? 'bg-blue-600 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            className={`w-full text-left px-3 py-2 rounded-lg font-extrabold transition-colors cursor-pointer ${
+                              filterCurrency === c ? 'bg-[#00A896] text-white' : 'text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                           >
                             {c === 'ALL' ? 'All Currencies' : c}
@@ -619,10 +666,10 @@ export function AdminCommandCenter({
                     )}
                   </div>
 
-                  {/* Reset button */}
+                  {/* Reset Button */}
                   <button
                     onClick={() => { setSearchQuery(''); setFilterRole('ALL'); setFilterCurrency('ALL'); }}
-                    className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                    className="py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-extrabold text-slate-800 dark:text-slate-200 transition-colors cursor-pointer"
                   >
                     Reset Filters
                   </button>
@@ -630,40 +677,42 @@ export function AdminCommandCenter({
                 </div>
               </div>
 
-              {/* Directory Table */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-4">
+              {/* Directory Data Table */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-4">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                  <table className="w-full text-left text-xs text-slate-700 dark:text-slate-200">
                     <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-black uppercase text-[10px]">
-                        <th className="py-3 px-3">User Profile</th>
-                        <th className="py-3 px-3">Role Policy</th>
-                        <th className="py-3 px-3 text-center">Currency</th>
-                        <th className="py-3 px-3 text-center">Status</th>
-                        <th className="py-3 px-3 text-right">Deep Dive Inspection</th>
+                      <tr className="border-b border-slate-300 dark:border-slate-800 text-slate-500 font-black uppercase text-[10px] tracking-wider">
+                        <th className="py-3.5 px-4">User Profile</th>
+                        <th className="py-3.5 px-4">Role Policy</th>
+                        <th className="py-3.5 px-4 text-center">Currency</th>
+                        <th className="py-3.5 px-4 text-center">Status</th>
+                        <th className="py-3.5 px-4 text-right">Deep Dive Inspection</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-850">
                       {filteredProfiles.map(u => (
                         <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors">
-                          <td className="py-3.5 px-3">
+                          <td className="py-4 px-4">
                             <div className="flex items-center gap-3">
                               <Avatar name={u.name} className="w-8 h-8 rounded-full" />
                               <div>
-                                <p className="font-bold text-slate-900 dark:text-slate-100">{u.name}</p>
-                                <p className="text-[10px] text-slate-400 font-mono">{u.email}</p>
+                                <p className="font-black text-slate-900 dark:text-white">{u.name}</p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-semibold">{u.email}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="py-3.5 px-3 font-semibold">{u.role}</td>
-                          <td className="py-3.5 px-3 text-center font-mono font-bold">{u.default_currency || 'NGN'}</td>
-                          <td className="py-3.5 px-3 text-center">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Active</span>
+                          <td className="py-4 px-4 font-bold text-slate-800 dark:text-slate-200">{u.role}</td>
+                          <td className="py-4 px-4 text-center font-mono font-extrabold text-slate-900 dark:text-white">{u.default_currency || 'NGN'}</td>
+                          <td className="py-4 px-4 text-center">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              Active
+                            </span>
                           </td>
-                          <td className="py-3.5 px-3 text-right">
+                          <td className="py-4 px-4 text-right">
                             <button
                               onClick={() => { setDeepDiveUser(u); setDrawerActiveTab('overview'); }}
-                              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                              className="px-3.5 py-1.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
                             >
                               <Eye className="w-3.5 h-3.5" /> Deep Dive
                             </button>
@@ -678,22 +727,22 @@ export function AdminCommandCenter({
             </div>
           )}
 
-          {/* KPI Dashboard */}
+          {/* Dashboard Overview View */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-3">
-                  <span className="text-[11px] font-black uppercase text-slate-400">ALLOCATION ACCURACY</span>
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-3">
+                  <span className="text-[11px] font-black uppercase text-slate-500">ALLOCATION ACCURACY</span>
                   <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">100.00%</p>
-                  <div className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> On target</div>
+                  <div className="text-xs font-black text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> On target</div>
                 </div>
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-3">
-                  <span className="text-[11px] font-black uppercase text-slate-400">SETTLEMENT TIME</span>
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-3">
+                  <span className="text-[11px] font-black uppercase text-slate-500">SETTLEMENT TIME</span>
                   <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">0.4 h</p>
-                  <div className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> On target</div>
+                  <div className="text-xs font-black text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> On target</div>
                 </div>
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-3">
-                  <span className="text-[11px] font-black uppercase text-slate-400">THROUGHPUT VOLUME</span>
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-3">
+                  <span className="text-[11px] font-black uppercase text-slate-500">THROUGHPUT VOLUME</span>
                   <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">₦1.84B</p>
                   <div className="text-xs font-bold text-slate-400">— On target</div>
                 </div>
@@ -705,7 +754,7 @@ export function AdminCommandCenter({
       </div>
 
       {/* ========================================================================= */}
-      {/* DEEP-DIVE USER BEHAVIORAL INTELLIGENCE DRAWER */}
+      {/* 3. SLIDE-OVER DEEP-DIVE USER INSPECTION DRAWER (HIGH CONTRAST LABELS) */}
       {/* ========================================================================= */}
       {deepDiveUser && currentDeepDiveTelemetry && (
         <div className="fixed inset-0 z-[110] flex justify-end">
@@ -718,15 +767,15 @@ export function AdminCommandCenter({
                 <Avatar name={deepDiveUser.name} className="w-12 h-12 rounded-full" />
                 <div>
                   <h3 className="font-black text-lg text-slate-900 dark:text-white">{deepDiveUser.name}</h3>
-                  <p className="text-xs font-mono text-slate-400">{deepDiveUser.email}</p>
+                  <p className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">{deepDiveUser.email}</p>
                 </div>
               </div>
-              <button onClick={() => setDeepDiveUser(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setDeepDiveUser(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Deep Dive Navigation Tabs */}
+            {/* Drawer Tabs */}
             <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
               {[
                 { id: 'overview', label: 'Overview' },
@@ -737,10 +786,10 @@ export function AdminCommandCenter({
                 <button
                   key={tab.id}
                   onClick={() => setDrawerActiveTab(tab.id as any)}
-                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
                     drawerActiveTab === tab.id
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                      ? 'bg-[#00A896] text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -748,27 +797,40 @@ export function AdminCommandCenter({
               ))}
             </div>
 
-            {/* Tab 1: Overview */}
+            {/* Tab 1: Overview (HIGH CONTRAST FIX FOR INVISIBLE GREY TEXT) */}
             {drawerActiveTab === 'overview' && (
               <div className="space-y-4 text-xs">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-400">Total Managed Balance</span>
-                    <p className="text-lg font-black font-mono text-emerald-600">{formatCurrency(currentDeepDiveTelemetry.totalAllocated, deepDiveUser.default_currency || 'NGN')}</p>
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-500">TOTAL MANAGED BALANCE</span>
+                    <p className="text-xl font-black font-mono text-[#00A896]">{formatCurrency(currentDeepDiveTelemetry.totalAllocated, deepDiveUser.default_currency || 'NGN')}</p>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-400">Active Buckets</span>
-                    <p className="text-lg font-black font-mono text-blue-500">{currentDeepDiveTelemetry.userBuckets.length} Buckets</p>
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-500">ACTIVE BUCKETS</span>
+                    <p className="text-xl font-black font-mono text-[#0E2A47] dark:text-teal-400">{currentDeepDiveTelemetry.userBuckets.length} Buckets</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                  <span className="font-black text-slate-900 dark:text-white block uppercase text-[10px] tracking-wider">Profile Information</span>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between"><span className="text-slate-400">Account ID:</span><span className="font-mono font-bold truncate max-w-[200px]">{deepDiveUser.id}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-400">Role Policy:</span><span className="font-bold">{deepDiveUser.role}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-400">Default Currency:</span><span className="font-mono font-bold">{deepDiveUser.default_currency || 'NGN'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-400">Account Health:</span><span className="font-bold text-emerald-600">100% Verified</span></div>
+                {/* Profile Information Block - CRISP SLATE & WHITE LABELS */}
+                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-900/40">
+                  <span className="font-black text-slate-900 dark:text-white block uppercase text-[10px] tracking-wider">PROFILE INFORMATION</span>
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400 font-bold">Account ID:</span>
+                      <span className="font-mono font-extrabold text-slate-900 dark:text-white truncate max-w-[200px]">{deepDiveUser.id}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400 font-bold">Role Policy:</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">{deepDiveUser.role}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400 font-bold">Default Currency:</span>
+                      <span className="font-mono font-extrabold text-slate-900 dark:text-white">{deepDiveUser.default_currency || 'NGN'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400 font-bold">Account Health:</span>
+                      <span className="font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">100% Verified</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -777,17 +839,17 @@ export function AdminCommandCenter({
             {/* Tab 2: Buckets */}
             {drawerActiveTab === 'buckets' && (
               <div className="space-y-3">
-                <span className="text-xs font-black uppercase text-slate-400">User Configured Buckets ({currentDeepDiveTelemetry.userBuckets.length})</span>
+                <span className="text-xs font-black uppercase text-slate-500">User Configured Buckets ({currentDeepDiveTelemetry.userBuckets.length})</span>
                 {currentDeepDiveTelemetry.userBuckets.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-6 text-center">No custom buckets created yet by this user.</p>
+                  <p className="text-xs text-slate-500 py-6 text-center">No custom buckets created yet by this user.</p>
                 ) : (
                   currentDeepDiveTelemetry.userBuckets.map(b => (
                     <div key={b.id} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                       <div>
                         <p className="font-black text-slate-900 dark:text-white">{b.name}</p>
-                        <p className="text-[10px] text-slate-400">{b.destination_account || 'Default Account'} • {b.allocation_percentage}%</p>
+                        <p className="text-[10px] text-slate-500 font-bold">{b.destination_account || 'Default Account'} • {b.allocation_percentage}%</p>
                       </div>
-                      <span className="font-mono font-black text-emerald-600">{formatCurrency(b.balance, deepDiveUser.default_currency || 'NGN')}</span>
+                      <span className="font-mono font-black text-[#00A896]">{formatCurrency(b.balance, deepDiveUser.default_currency || 'NGN')}</span>
                     </div>
                   ))
                 )}
@@ -797,15 +859,15 @@ export function AdminCommandCenter({
             {/* Tab 3: Transactions */}
             {drawerActiveTab === 'transactions' && (
               <div className="space-y-3">
-                <span className="text-xs font-black uppercase text-slate-400">Recent User Activity Log ({currentDeepDiveTelemetry.userTxns.length})</span>
+                <span className="text-xs font-black uppercase text-slate-500">Activity Log ({currentDeepDiveTelemetry.userTxns.length})</span>
                 {currentDeepDiveTelemetry.userTxns.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-6 text-center">No transaction records found for this user.</p>
+                  <p className="text-xs text-slate-500 py-6 text-center font-bold">No transaction records found for this user.</p>
                 ) : (
                   currentDeepDiveTelemetry.userTxns.map(t => (
                     <div key={t.id} className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
                       <div>
                         <p className="font-bold text-slate-900 dark:text-white">{t.description}</p>
-                        <span className="text-[10px] text-slate-400">{new Date(t.created_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-slate-500">{new Date(t.created_at).toLocaleDateString()}</span>
                       </div>
                       <span className={`font-black ${t.direction === 'CREDIT' ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {t.direction === 'CREDIT' ? '+' : '-'}{formatCurrency(t.amount, deepDiveUser.default_currency || 'NGN')}
@@ -816,11 +878,11 @@ export function AdminCommandCenter({
               </div>
             )}
 
-            {/* Quick Actions */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex gap-2">
+            {/* Quick Action Button */}
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => handleDeleteUser(deepDiveUser.id, deepDiveUser.name)}
-                className="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-rose-500/20"
+                className="w-full py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-rose-500/20"
               >
                 <Trash2 className="w-4 h-4" /> Delete User Account
               </button>
@@ -835,13 +897,13 @@ export function AdminCommandCenter({
         <div className="fixed inset-0 z-[120] flex items-start justify-center pt-20 p-4 bg-black/60 backdrop-blur-xs">
           <div className="w-full max-w-lg bg-white dark:bg-[#0D1B34] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 space-y-3">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-xs font-bold text-slate-400">Search Command Center</span>
-              <kbd className="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">ESC</kbd>
+              <span className="text-xs font-black text-slate-500">Search Command Center</span>
+              <kbd className="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 font-bold">ESC</kbd>
             </div>
-            <input type="text" autoFocus placeholder="Type a command or user name..." className="w-full text-xs bg-transparent font-medium focus:outline-none" />
+            <input type="text" autoFocus placeholder="Type a command or user name..." className="w-full text-xs bg-transparent font-bold focus:outline-none text-slate-900 dark:text-white" />
             <div className="space-y-1 text-xs">
-              <button onClick={() => { setActiveTab('dashboard'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-blue-600/10 hover:text-blue-500 font-bold cursor-pointer">Jump to Dashboard Telemetry</button>
-              <button onClick={() => { setActiveTab('users'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-blue-600/10 hover:text-blue-500 font-bold cursor-pointer">Jump to User Directory</button>
+              <button onClick={() => { setActiveTab('dashboard'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-[#00A896]/10 hover:text-[#00A896] font-bold cursor-pointer">Jump to Dashboard Telemetry</button>
+              <button onClick={() => { setActiveTab('users'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-[#00A896]/10 hover:text-[#00A896] font-bold cursor-pointer">Jump to User Directory</button>
             </div>
           </div>
         </div>
@@ -849,8 +911,8 @@ export function AdminCommandCenter({
 
       {/* Toast Notification */}
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-[130] px-4 py-3 rounded-2xl bg-blue-600 text-white text-xs font-bold shadow-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" />
+        <div className="fixed bottom-6 right-6 z-[130] px-4 py-3 rounded-2xl bg-[#0E2A47] text-white text-xs font-bold shadow-2xl flex items-center gap-2 border border-[#103050]">
+          <CheckCircle2 className="w-4 h-4 text-[#00A896]" />
           <span>{showToast}</span>
         </div>
       )}

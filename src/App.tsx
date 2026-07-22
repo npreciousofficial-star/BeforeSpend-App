@@ -3064,17 +3064,43 @@ export function AuthenticatedApp({
 
 export default function App() {
   const [currentUserId, setCurrentUserId] = useLocalStorage<string | null>('beforespend_logged_in_user_id', null);
-  // Auto-restore session: if a userId is persisted, jump straight to the app view
   const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register'>('beforespend_auth_view', 'landing');
 
-  // Ensure if currentUserId exists and authView is still 'landing', switch to 'app'
-  React.useEffect(() => {
-    if (currentUserId && authView === 'landing') {
-      setAuthView('app');
+  // URL Hash Navigation Synchronizer
+  const [currentHash, setCurrentHash] = useState(() => window.location.hash || '#/');
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash || '#/';
+      setCurrentHash(hash);
+      if (hash.startsWith('#/admin') || hash.startsWith('#/dashboard')) {
+        if (currentUserId) setAuthView('app');
+      } else if (hash === '#/login') {
+        setAuthView('login');
+      } else if (hash === '#/register') {
+        setAuthView('register');
+      } else if (hash === '#/') {
+        setAuthView('landing');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [currentUserId]);
+
+  // Sync initial route based on hash or auth state
+  useEffect(() => {
+    if (currentUserId) {
+      if (window.location.hash.startsWith('#/admin')) {
+        setAuthView('app');
+      } else if (authView === 'landing' && (!window.location.hash || window.location.hash === '#/')) {
+        window.location.hash = '#/dashboard';
+        setAuthView('app');
+      }
     }
   }, [currentUserId]);
 
-  // Theme synchronization across unauthenticated landing / auth views
+  // Theme synchronization across views
   const [isDark, setIsDark] = useState(() => {
     return window.localStorage.getItem('before spend_dark_mode') === 'true';
   });
@@ -3091,25 +3117,30 @@ export default function App() {
   const handleLogout = () => {
     setCurrentUserId(null);
     setAuthView('landing');
+    window.location.hash = '#/';
+  };
+
+  const navigateTo = (route: string) => {
+    window.location.hash = route;
   };
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 font-sans transition-colors duration-200">
-      {currentUserId && authView === 'app' ? (
+      {currentUserId && (authView === 'app' || currentHash.startsWith('#/admin') || currentHash.startsWith('#/dashboard')) ? (
         <AuthenticatedApp 
           currentUserId={currentUserId} 
           onLogout={handleLogout} 
-          onGoToLanding={() => setAuthView('landing')} 
+          onGoToLanding={() => { navigateTo('#/'); setAuthView('landing'); }} 
         />
-      ) : authView === 'landing' || (currentUserId && authView === 'landing') ? (
+      ) : authView === 'landing' || (!currentUserId && (currentHash === '#/' || !currentHash)) ? (
         <LandingPage
-          onGoToLogin={() => setAuthView('login')}
-          onGoToRegister={() => setAuthView('register')}
+          onGoToLogin={() => { navigateTo('#/login'); setAuthView('login'); }}
+          onGoToRegister={() => { navigateTo('#/register'); setAuthView('register'); }}
           isDark={isDark}
           onToggleTheme={() => setIsDark(!isDark)}
           isLoggedIn={Boolean(currentUserId)}
           currentUserId={currentUserId}
-          onGoToDashboard={() => setAuthView('app')}
+          onGoToDashboard={() => { navigateTo('#/dashboard'); setAuthView('app'); }}
           onLogout={handleLogout}
         />
       ) : (
@@ -3117,8 +3148,11 @@ export default function App() {
           onLogin={(userId) => {
             setCurrentUserId(userId);
             setAuthView('app');
+            // Immediate route dispatch: if admin email, go directly to #/admin
+            const isUserAdmin = userId.includes('admin') || window.localStorage.getItem('beforespend_user_profile')?.includes('Platform Administrator');
+            window.location.hash = isUserAdmin ? '#/admin' : '#/dashboard';
           }}
-          onBackToLanding={() => setAuthView('landing')}
+          onBackToLanding={() => { navigateTo('#/'); setAuthView('landing'); }}
           initialIsRegister={authView === 'register'}
         />
       )}

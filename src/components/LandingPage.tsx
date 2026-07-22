@@ -554,23 +554,21 @@ export function LandingPage({
             ].map(bank => (
               <div
                 key={bank.alt}
-                className="flex items-center justify-center px-4 py-2.5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200/90 dark:border-zinc-800 shadow-xs hover:shadow-md hover:border-[#00A896]/60 dark:hover:border-[#00A896]/60 hover:scale-105 transition-all duration-200 cursor-pointer group min-w-[120px] h-[52px]"
+                className="flex items-center justify-center px-5 py-3 rounded-2xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-[#00A896] hover:scale-105 transition-all duration-200 cursor-pointer group min-w-[125px] h-[54px]"
                 title={bank.alt}
               >
-                <div className="p-1 rounded-lg bg-white flex items-center justify-center">
-                  <img
-                    src={bank.src}
-                    alt={bank.alt}
-                    className="h-7 w-auto object-contain max-w-[95px] filter drop-shadow-2xs group-hover:brightness-105 transition-all"
-                    onError={e => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      const span = document.createElement('span');
-                      span.textContent = bank.alt;
-                      span.className = 'text-xs font-black text-gray-800 dark:text-zinc-200';
-                      (e.target as HTMLImageElement).parentNode?.appendChild(span);
-                    }}
-                  />
-                </div>
+                <img
+                  src={bank.src}
+                  alt={bank.alt}
+                  className="h-8 w-auto object-contain max-w-[100px] transition-all"
+                  onError={e => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    const span = document.createElement('span');
+                    span.textContent = bank.alt;
+                    span.className = 'text-xs font-black text-gray-900';
+                    (e.target as HTMLImageElement).parentNode?.appendChild(span);
+                  }}
+                />
               </div>
             ))}
           </div>

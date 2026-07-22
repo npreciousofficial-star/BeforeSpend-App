@@ -857,10 +857,17 @@ export function AuthenticatedApp({
   // 1.3 Admin center API actions
   const isAdmin = userProfile.role === 'Platform Administrator' || userProfile.email.toLowerCase() === 'admin@beforespend.app' || userProfile.email.toLowerCase() === 'admin@beforespend.xyz';
 
-  // Standalone Admin Command Center overlay state
+  // Standalone Admin Command Center overlay state - auto-open for admins on login
   const [showAdminCenter, setShowAdminCenter] = useState(false);
 
-  // Keyboard shortcut: Ctrl+Shift+A opens Admin Command Center (admins only)
+  // Auto-redirect admin directly to Admin Command Center on login
+  useEffect(() => {
+    if (isAdmin) {
+      setShowAdminCenter(true);
+    }
+  }, [isAdmin]);
+
+  // Keyboard shortcut: Ctrl+Shift+A toggles Admin Command Center (admins only)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isAdmin && e.ctrlKey && e.shiftKey && e.key === 'A') {

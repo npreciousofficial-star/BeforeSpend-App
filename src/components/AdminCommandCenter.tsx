@@ -2463,65 +2463,143 @@ export function AdminCommandCenter({
           )}
 
           {activeTab === 'broadcast' && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-4 text-xs">
-              <h3 className="font-black text-base text-slate-900 dark:text-white">Dispatch Platform System Broadcast</h3>
-              <form onSubmit={handleSendBroadcast} className="space-y-3">
+            <div className="space-y-6">
+              {/* Compose Broadcast Form */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4 text-xs">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Broadcast Title</label>
-                  <input type="text" required value={broadcastSubject} onChange={e => setBroadcastSubject(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="Platform Security Maintenance Notice" />
+                  <h3 className="font-black text-base text-slate-900 dark:text-white">Dispatch Platform System Broadcast</h3>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Send a real-time system message to all currently registered user accounts via database socket triggers.</p>
                 </div>
+                <form onSubmit={handleSendBroadcast} className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Broadcast Title</label>
+                    <input
+                      type="text"
+                      required
+                      value={broadcastSubject}
+                      onChange={e => setBroadcastSubject(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+                      placeholder="Platform Security Maintenance Notice"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Broadcast Content</label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={broadcastMessage}
+                      onChange={e => setBroadcastMessage(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+                      placeholder="Enter system notification details to dispatch to all active user sessions..."
+                    />
+                  </div>
+                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
+                    <Send className="w-4 h-4" /> Send Broadcast to All Accounts
+                  </button>
+                </form>
+              </div>
+
+              {/* Broadcast Logs History */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Broadcast Content</label>
-                  <textarea required rows={4} value={broadcastMessage} onChange={e => setBroadcastMessage(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="Notification message text..." />
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white">Broadcast Log Stream</h3>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Audit history of dispatched administrative announcements.</p>
                 </div>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center gap-2 shadow-md">
-                  <Send className="w-4 h-4" /> Send Broadcast to All Accounts
-                </button>
-              </form>
+                <div className="space-y-3">
+                  {broadcastLog.length === 0 ? (
+                    <p className="text-xs text-slate-500 font-bold italic">No broadcasts sent in this session.</p>
+                  ) : (
+                    broadcastLog.map(b => (
+                      <div key={b.id} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1 text-xs">
+                        <div className="flex justify-between items-start">
+                          <span className="font-black text-slate-900 dark:text-white">{b.title}</span>
+                          <span className="font-mono text-[10px] text-slate-500 font-bold">{b.sentAt}</span>
+                        </div>
+                        <p className="text-slate-700 dark:text-slate-300 font-bold">{b.body}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
           {activeTab === 'audit' && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-4 text-xs">
-              <h3 className="font-black text-base text-slate-900 dark:text-white">Administrative System Audit Log</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black uppercase text-[10px]">
-                      <th className="py-3 px-4">Timestamp</th>
-                      <th className="py-3 px-4">Admin User</th>
-                      <th className="py-3 px-4">Action</th>
-                      <th className="py-3 px-4">Target Entity</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-850">
-                    {auditLogs.map(log => (
-                      <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-850">
-                        <td className="py-3 px-4 font-mono font-bold">{log.time}</td>
-                        <td className="py-3 px-4 font-bold">{log.admin}</td>
-                        <td className="py-3 px-4 font-mono font-black text-[#00A896]">{log.action}</td>
-                        <td className="py-3 px-4 font-bold">{log.target}</td>
+            <div className="space-y-6">
+              {/* Audit Search Toolbar */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Filter audit logs by action, admin, target..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+                  />
+                </div>
+              </div>
+
+              {/* Administrative Logs Table */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-800 dark:text-slate-200">
+                    <thead>
+                      <tr className="border-b border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black uppercase text-[10px] tracking-wider">
+                        <th className="py-3.5 px-4">Timestamp</th>
+                        <th className="py-3.5 px-4">Admin User</th>
+                        <th className="py-3.5 px-4">Action</th>
+                        <th className="py-3.5 px-4">Target Entity</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-850 font-mono font-bold">
+                      {auditLogs.filter(log => !searchQuery || 
+                        log.admin.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        log.target.toLowerCase().includes(searchQuery.toLowerCase())
+                      ).map(log => (
+                        <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors">
+                          <td className="py-3.5 px-4 text-slate-700 dark:text-slate-400">{log.time}</td>
+                          <td className="py-3.5 px-4 font-sans font-black text-slate-900 dark:text-white">{log.admin}</td>
+                          <td className="py-3.5 px-4 text-[#00A896] font-black">{log.action}</td>
+                          <td className="py-3.5 px-4 font-sans text-slate-800 dark:text-slate-200">{log.target}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === 'flags' && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-4 text-xs">
-              <h3 className="font-black text-base text-slate-900 dark:text-white">Platform Feature Flags</h3>
-              <div className="space-y-3">
+            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
+              <div>
+                <h3 className="font-black text-base text-slate-900 dark:text-white">Platform Feature Flags</h3>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Toggle advanced capabilities dynamically without manual build redeployments.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 {Object.entries(featureFlags).map(([key, enabled]) => (
-                  <div key={key} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                    <span className="font-mono font-bold capitalize text-slate-900 dark:text-white">{key.replace(/_/g, ' ')}</span>
-                    <input
-                      type="checkbox"
-                      checked={enabled}
-                      onChange={() => setFeatureFlags(prev => ({ ...prev, [key]: !prev[key] }))}
-                      className="w-4 h-4 accent-[#00A896] cursor-pointer"
-                    />
+                  <div key={key} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <div>
+                      <span className="font-mono font-black capitalize text-slate-900 dark:text-white">{key.replace(/_/g, ' ')}</span>
+                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                        {key === 'statement_parser_v2' && 'Advanced PDF multi-row OCR processing engine.'}
+                        {key === 'instant_bucket_locking' && 'Prevent overspending by auto-freezing budget slots.'}
+                        {key === 'multi_currency_converter' && 'Dynamic conversions for NGN, USD, and GBP assets.'}
+                        {key === 'emergency_withdrawal_override' && 'Authorize emergency transfers ignoring rules.'}
+                        {key === 'ai_financial_insights' && 'Generate personalized allocations budgeting insights.'}
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={() => setFeatureFlags(prev => ({ ...prev, [key]: !prev[key] }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#00A896]" />
+                    </label>
                   </div>
                 ))}
               </div>
@@ -2529,37 +2607,94 @@ export function AdminCommandCenter({
           )}
 
           {activeTab === 'backups' && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-4 text-xs">
-              <h3 className="font-black text-base text-slate-900 dark:text-white">Database Snapshots &amp; LocalStorage Quota</h3>
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
-                <span className="font-extrabold text-slate-700 dark:text-slate-300">LocalStorage Usage: {calculateLocalStorageQuota()}</span>
+            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
+              <div>
+                <h3 className="font-black text-base text-slate-900 dark:text-white">Database Snapshot &amp; Backup Center</h3>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Export, audit, or overwrite the local database storage configuration.</p>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold">
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase text-slate-500 block">LocalStorage Allocated Quota</span>
+                  <span className="font-mono text-slate-900 dark:text-white text-base">{calculateLocalStorageQuota()}</span>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase text-slate-500 block">Database Snapshots</span>
+                  <span className="text-emerald-600 text-sm">Backup Engine Operational</span>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Pasted JSON Backup Data</label>
+                <textarea
+                  rows={6}
+                  value={rawDbJson}
+                  onChange={e => setRawDbJson(e.target.value)}
+                  className="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-950 text-[#00A896] text-[10px] font-mono focus:outline-none focus:border-[#00A896]"
+                  placeholder="Paste database JSON payload snapshots here to import..."
+                />
+              </div>
+
               <div className="flex gap-3">
-                <button onClick={handleExportDb} className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md">
-                  Export JSON Backup
+                <button
+                  onClick={handleExportDb}
+                  className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md transition-all cursor-pointer"
+                >
+                  Generate &amp; Copy Backup
                 </button>
-                <button onClick={() => setShowImportDbModal(true)} className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-800 dark:text-slate-200 font-extrabold text-xs">
-                  Import JSON Snapshot
+                <button
+                  onClick={() => setShowImportDbModal(true)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold text-xs transition-all cursor-pointer"
+                >
+                  Restore Pasted Snapshot
                 </button>
               </div>
             </div>
           )}
 
           {activeTab === 'styleguide' && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-6 text-xs">
-              <h3 className="font-black text-base text-slate-900 dark:text-white">BeforeSpend Enterprise Design System Tokens</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="p-4 rounded-xl bg-[#00A896] text-white font-mono font-black shadow-md">
-                  #00A896 (Electric Teal)
+            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-6 text-xs">
+              <div>
+                <h3 className="font-black text-base text-slate-900 dark:text-white">BeforeSpend Enterprise Styleguide</h3>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5">Operational token reference matrix for high fidelity user interfaces.</p>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-extrabold text-slate-800 dark:text-slate-200">Color Swatch Palette</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono font-black text-white">
+                  <div className="p-4 rounded-xl bg-[#00A896] shadow-md flex flex-col justify-between h-20">
+                    <span>Electric Teal</span>
+                    <span>#00A896</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#0E2A47] shadow-md flex flex-col justify-between h-20">
+                    <span>Deep Navy</span>
+                    <span>#0E2A47</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#0A1220] shadow-md flex flex-col justify-between h-20">
+                    <span>Sidebar Dark</span>
+                    <span>#0A1220</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#F8FAFC] shadow-md flex flex-col justify-between h-20 border border-slate-300 text-slate-900">
+                    <span>Background Gray</span>
+                    <span>#F8FAFC</span>
+                  </div>
                 </div>
-                <div className="p-4 rounded-xl bg-[#0E2A47] text-white font-mono font-black shadow-md">
-                  #0E2A47 (Deep Navy)
-                </div>
-                <div className="p-4 rounded-xl bg-[#0A1220] text-white font-mono font-black shadow-md">
-                  #0A1220 (Sidebar Dark)
-                </div>
-                <div className="p-4 rounded-xl bg-[#F8FAFC] text-slate-900 font-mono font-black shadow-md border border-slate-300">
-                  #F8FAFC (Light Gray)
+              </div>
+
+              <div className="space-y-3.5">
+                <h4 className="font-extrabold text-slate-800 dark:text-slate-200">Primary UI Component References</h4>
+                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="flex flex-wrap gap-3">
+                    <button className="px-5 py-2.5 rounded-xl bg-[#00A896] text-white font-extrabold text-xs shadow-md">
+                      Teal Solid
+                    </button>
+                    <button className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-xs">
+                      Navy Outline
+                    </button>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-black text-[10px] inline-flex items-center">
+                      Verified Pill
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

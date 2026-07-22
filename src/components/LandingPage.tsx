@@ -538,40 +538,39 @@ export function LandingPage({
       </section>
 
       {/* 3. SUPPORTED BANK STATEMENT PARSERS */}
-      <section className="py-8 bg-gray-50/80 dark:bg-zinc-900/40 border-b border-gray-200/80 dark:border-zinc-800/80">
-        <div className="max-w-7xl mx-auto px-4 text-center space-y-5">
-          <p className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500">
+      <section className="py-10 bg-slate-50/80 dark:bg-zinc-950/60 border-y border-gray-200/60 dark:border-zinc-850">
+        <div className="max-w-7xl mx-auto px-4 text-center space-y-6">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-zinc-400">
             Easily Import Bank Statements From All Major Banks
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
             {[
-              { src: '/banks/opay.png',        alt: 'OPay Digital',  bg: 'bg-white dark:bg-zinc-900' },
-              { src: '/banks/GTBank.jpg',       alt: 'GTBank',        bg: 'bg-white dark:bg-zinc-900' },
-              { src: '/banks/Kuda Bank.png',    alt: 'Kuda Bank',     bg: 'bg-white dark:bg-zinc-900' },
-              { src: '/banks/Zenith Bank.jpg',  alt: 'Zenith Bank',   bg: 'bg-white dark:bg-zinc-900' },
-              { src: '/banks/Moniepoint.png',   alt: 'Moniepoint',    bg: 'bg-white dark:bg-zinc-900' },
-              { src: '/banks/FirstBank.svg',    alt: 'First Bank',    bg: 'bg-white dark:bg-zinc-900' },
+              { src: '/banks/opay.png',        alt: 'OPay Digital' },
+              { src: '/banks/GTBank.jpg',       alt: 'GTBank' },
+              { src: '/banks/Kuda Bank.png',    alt: 'Kuda Bank' },
+              { src: '/banks/Zenith Bank.jpg',  alt: 'Zenith Bank' },
+              { src: '/banks/Moniepoint.png',   alt: 'Moniepoint' },
+              { src: '/banks/FirstBank.svg',    alt: 'First Bank' },
             ].map(bank => (
               <div
                 key={bank.alt}
-                className={`flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-xs hover:shadow-md transition-shadow duration-200 ${bank.bg}`}
-                style={{ minWidth: '90px', height: '48px' }}
+                className="flex items-center justify-center px-4 py-2.5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200/90 dark:border-zinc-800 shadow-xs hover:shadow-md hover:border-[#00A896]/60 dark:hover:border-[#00A896]/60 hover:scale-105 transition-all duration-200 cursor-pointer group min-w-[120px] h-[52px]"
                 title={bank.alt}
               >
-                <img
-                  src={bank.src}
-                  alt={bank.alt}
-                  className="h-7 w-auto object-contain"
-                  style={{ maxWidth: '100px' }}
-                  onError={e => {
-                    // Fallback to text if image fails
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    const span = document.createElement('span');
-                    span.textContent = bank.alt;
-                    span.className = 'text-xs font-bold text-gray-600';
-                    (e.target as HTMLImageElement).parentNode?.appendChild(span);
-                  }}
-                />
+                <div className="p-1 rounded-lg bg-white flex items-center justify-center">
+                  <img
+                    src={bank.src}
+                    alt={bank.alt}
+                    className="h-7 w-auto object-contain max-w-[95px] filter drop-shadow-2xs group-hover:brightness-105 transition-all"
+                    onError={e => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const span = document.createElement('span');
+                      span.textContent = bank.alt;
+                      span.className = 'text-xs font-black text-gray-800 dark:text-zinc-200';
+                      (e.target as HTMLImageElement).parentNode?.appendChild(span);
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>

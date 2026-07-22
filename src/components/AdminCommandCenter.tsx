@@ -333,6 +333,71 @@ const INITIAL_TICKETS: SupportTicket[] = [
   }
 ];
 
+// Bank Audit Statements Interface
+interface AuditStatement {
+  id: string;
+  fileName: string;
+  userEmail: string;
+  bankName: string;
+  uploadDate: string;
+  reportedBalance: number;
+  calculatedBalance: number;
+  discrepancy: number;
+  status: 'Verified (Clean)' | 'Pending Review' | 'Discrepancy Alert' | 'Parser Failed';
+  parsedCount: number;
+}
+
+const INITIAL_AUDIT_STATEMENTS: AuditStatement[] = [
+  {
+    id: 'AUD-901',
+    fileName: 'GTBank_July_2026_Statement.pdf',
+    userEmail: 'chidi@example.com',
+    bankName: 'GTBank',
+    uploadDate: '2026-07-22 18:40',
+    reportedBalance: 1250000,
+    calculatedBalance: 1250000,
+    discrepancy: 0,
+    status: 'Verified (Clean)',
+    parsedCount: 42
+  },
+  {
+    id: 'AUD-902',
+    fileName: 'Zenith_Corporate_Inflow.csv',
+    userEmail: 'amina@example.com',
+    bankName: 'Zenith Bank',
+    uploadDate: '2026-07-22 16:15',
+    reportedBalance: 840000,
+    calculatedBalance: 838500,
+    discrepancy: 1500,
+    status: 'Pending Review',
+    parsedCount: 18
+  },
+  {
+    id: 'AUD-903',
+    fileName: 'Kuda_Monthly_Report.pdf',
+    userEmail: 'tunde@example.com',
+    bankName: 'Kuda Bank',
+    uploadDate: '2026-07-21 11:20',
+    reportedBalance: 450000,
+    calculatedBalance: 450000,
+    discrepancy: 0,
+    status: 'Verified (Clean)',
+    parsedCount: 12
+  },
+  {
+    id: 'AUD-904',
+    fileName: 'OPay_Merchant_Settlement.pdf',
+    userEmail: 'emeka@example.com',
+    bankName: 'OPay',
+    uploadDate: '2026-07-20 09:30',
+    reportedBalance: 310000,
+    calculatedBalance: 295000,
+    discrepancy: 15000,
+    status: 'Discrepancy Alert',
+    parsedCount: 28
+  }
+];
+
 export function AdminCommandCenter({
   currentUserId, userProfile, onExit, onLogout,
   exchangeRates, setExchangeRates,
@@ -343,6 +408,13 @@ export function AdminCommandCenter({
 }: AdminCommandCenterProps) {
   // Navigation State with URL Path History Persistence
   const [activeTab, setActiveTab] = useState<string>(getTabFromLocation);
+  
+  // Module 6 Reconciliation State
+  const [auditStatements, setAuditStatements] = useState<AuditStatement[]>(INITIAL_AUDIT_STATEMENTS);
+  const [selectedStatementDrawer, setSelectedStatementDrawer] = useState<AuditStatement | null>(null);
+  const [filterBankName, setFilterBankName] = useState('ALL');
+  const [filterAuditStatus, setFilterAuditStatus] = useState('ALL');
+  const [showUploadParserModal, setShowUploadParserModal] = useState(false);
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     user_ops: true,
     financial_ops: true,
@@ -509,6 +581,15 @@ export function AdminCommandCenter({
     await loadData();
     if (deepDiveUser?.id === id) setDeepDiveUser(null);
     triggerToast(`User account ${name} deleted`);
+  };
+
+  // Reconcile Audit Statement Handler
+  const handleReconcileStatement = (statementId: string) => {
+    setAuditStatements(prev => prev.map(s => s.id === statementId ? { ...s, status: 'Verified (Clean)' as const, discrepancy: 0, calculatedBalance: s.reportedBalance } : s));
+    if (selectedStatementDrawer?.id === statementId) {
+      setSelectedStatementDrawer(prev => prev ? { ...prev, status: 'Verified (Clean)', discrepancy: 0, calculatedBalance: prev.reportedBalance } : null);
+    }
+    triggerToast(`Statement ${statementId} reconciled & verified`);
   };
 
   // Delete Bucket Handler
@@ -682,6 +763,16 @@ export function AdminCommandCenter({
     const matchesRole = filterRole === 'ALL' || p.role === filterRole;
     const matchesCurrency = filterCurrency === 'ALL' || p.default_currency === filterCurrency;
     return matchesSearch && matchesRole && matchesCurrency;
+  });
+
+  const filteredAuditStatements = auditStatements.filter(s => {
+    const matchesSearch = !searchQuery || 
+      s.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesBank = filterBankName === 'ALL' || s.bankName === filterBankName;
+    const matchesStatus = filterAuditStatus === 'ALL' || s.status === filterAuditStatus;
+    return matchesSearch && matchesBank && matchesStatus;
   });
 
   const filteredBuckets = buckets.filter(b => {
@@ -1667,11 +1758,176 @@ export function AdminCommandCenter({
             </div>
           )}
 
-          {/* OTHER MODULES (6-14) */}
           {activeTab === 'reconciliation' && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-4 text-xs">
-              <h3 className="font-black text-base text-slate-900 dark:text-white">Bank Statement Audit Parser Logs</h3>
-              <p className="text-slate-700 dark:text-slate-300 font-bold">Inspect statement verification results, uploaded bank PDFs, and discrepancy alerts.</p>
+            <div className="space-y-6">
+              {/* 1. Audit Summary KPI Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Audited Statements</span>
+                  <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{auditStatements.length}</p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Verification Pass Rate</span>
+                  <p className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">99.85%</p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Active Bank Engines</span>
+                  <p className="text-3xl font-black font-mono text-[#00A896]">5 Banks Active</p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 block tracking-wider">Discrepancy Alerts</span>
+                    <span className="text-xs font-black text-rose-600 dark:text-rose-400">
+                      {auditStatements.filter(s => s.status.includes('Alert') || s.status.includes('Pending')).length} Require Audit
+                    </span>
+                  </div>
+                  <button onClick={() => setShowUploadParserModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all">
+                    <Upload className="w-4 h-4" /> Test Parser
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Filters Toolbar with CUSTOM POPOVER SELECTS */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search file name, email, statement ID..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+                    />
+                  </div>
+
+                  <CustomSelect
+                    value={filterBankName}
+                    onChange={val => setFilterBankName(val)}
+                    options={[
+                      { value: 'ALL', label: 'All Bank Engines' },
+                      { value: 'GTBank', label: 'GTBank PDF Engine' },
+                      { value: 'Zenith Bank', label: 'Zenith Bank CSV Engine' },
+                      { value: 'Kuda Bank', label: 'Kuda Bank PDF Engine' },
+                      { value: 'OPay', label: 'OPay Merchant Sync' },
+                    ]}
+                  />
+
+                  <CustomSelect
+                    value={filterAuditStatus}
+                    onChange={val => setFilterAuditStatus(val)}
+                    options={[
+                      { value: 'ALL', label: 'All Verification Statuses' },
+                      { value: 'Verified (Clean)', label: 'Verified (Clean Pass)' },
+                      { value: 'Pending Review', label: 'Pending Admin Review' },
+                      { value: 'Discrepancy Alert', label: 'Discrepancy Alert' },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* 3. Bank Statement Verification Desktop Table (hidden md:block) */}
+              <div className="hidden md:block p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-800 dark:text-slate-200">
+                    <thead>
+                      <tr className="border-b border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black uppercase text-[10px] tracking-wider">
+                        <th className="py-3.5 px-4">Statement File &amp; Bank</th>
+                        <th className="py-3.5 px-4">User Email</th>
+                        <th className="py-3.5 px-4 text-right">Reported Balance</th>
+                        <th className="py-3.5 px-4 text-right">Calculated Balance</th>
+                        <th className="py-3.5 px-4 text-center">Status</th>
+                        <th className="py-3.5 px-4 text-right">Audit Controls</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-850">
+                      {filteredAuditStatements.map(st => (
+                        <tr key={st.id} className="hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors">
+                          <td className="py-4 px-4">
+                            <p className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-[#00A896]" />
+                              {st.fileName}
+                            </p>
+                            <p className="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-bold mt-0.5">
+                              {st.bankName} • {st.uploadDate}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4 font-mono font-bold text-slate-800 dark:text-slate-200">{st.userEmail}</td>
+                          <td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 dark:text-white">
+                            {formatCurrency(st.reportedBalance, 'NGN')}
+                          </td>
+                          <td className="py-4 px-4 text-right font-mono font-extrabold text-[#00A896]">
+                            {formatCurrency(st.calculatedBalance, 'NGN')}
+                          </td>
+                          <td className="py-4 px-4 text-center">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                              st.status === 'Verified (Clean)' 
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                : st.status === 'Pending Review'
+                                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                            }`}>
+                              {st.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setSelectedStatementDrawer(st)}
+                                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-extrabold text-[11px] cursor-pointer"
+                              >
+                                Inspect Log
+                              </button>
+                              {st.discrepancy > 0 && (
+                                <button
+                                  onClick={() => handleReconcileStatement(st.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-[11px] cursor-pointer shadow-2xs"
+                                >
+                                  Reconcile
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 4. Bank Statement Verification Mobile Cards Reflow (md:hidden) */}
+              <div className="md:hidden flex flex-col gap-3">
+                {filteredAuditStatements.map(st => (
+                  <div key={st.id} className="p-4 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 space-y-2 text-xs">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-black text-slate-900 dark:text-white text-sm">{st.fileName}</span>
+                        <p className="text-[10px] font-mono text-slate-500">{st.bankName} • {st.userEmail}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                        st.status === 'Verified (Clean)' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+                      }`}>
+                        {st.status}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center font-mono font-bold text-slate-700 dark:text-slate-300 pt-1">
+                      <span>Reported: {formatCurrency(st.reportedBalance, 'NGN')}</span>
+                      <span className="text-[#00A896]">Calc: {formatCurrency(st.calculatedBalance, 'NGN')}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <button onClick={() => setSelectedStatementDrawer(st)} className="px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-[11px]">Inspect Log</button>
+                      {st.discrepancy > 0 && (
+                        <button onClick={() => handleReconcileStatement(st.id)} className="px-3 py-1 rounded-lg bg-[#00A896] text-white font-bold text-[11px]">Reconcile</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -1806,6 +2062,124 @@ export function AdminCommandCenter({
 
         </main>
       </div>
+
+      {/* DEEP-DIVE USER BEHAVIORAL INTELLIGENCE DRAWER */}
+      {deepDiveUser && (
+        <div className="fixed inset-0 z-[110] flex justify-end">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setDeepDiveUser(null)} />
+          <div className="relative w-full max-w-xl bg-white dark:bg-[#0D1B34] h-full shadow-2xl z-50 p-6 overflow-y-auto space-y-6 flex flex-col">
+            
+            <div className="flex justify-between items-start pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <Avatar name={deepDiveUser.name} className="w-12 h-12 rounded-full border border-slate-300 dark:border-slate-700" />
+                <div>
+                  <h3 className="font-black text-lg text-slate-900 dark:text-white">{deepDiveUser.name}</h3>
+                  <p className="text-xs font-mono text-slate-600 dark:text-slate-400 font-bold">{deepDiveUser.email}</p>
+                </div>
+              </div>
+              <button onClick={() => setDeepDiveUser(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex border-b border-slate-200 dark:border-slate-800 text-xs font-extrabold gap-4">
+              <button
+                onClick={() => setDrawerActiveTab('overview')}
+                className={`pb-2 border-b-2 transition-colors cursor-pointer ${
+                  drawerActiveTab === 'overview' ? 'border-[#00A896] text-[#00A896]' : 'border-transparent text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                Overview &amp; Managed Balance
+              </button>
+            </div>
+
+            {drawerActiveTab === 'overview' && (
+              <div className="space-y-4 text-xs">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300">Total Allocated Balance</span>
+                  <p className="text-2xl font-black font-mono text-[#00A896]">
+                    {formatCurrency(currentDeepDiveTelemetry?.totalAllocated || 0, deepDiveUser.default_currency || 'NGN')}
+                  </p>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* MODULE 6: STATEMENT AUDIT INSPECTOR DRAWER */}
+      {selectedStatementDrawer && (
+        <div className="fixed inset-0 z-[110] flex justify-end">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setSelectedStatementDrawer(null)} />
+          <div className="relative w-full max-w-xl bg-white dark:bg-[#0D1B34] h-full shadow-2xl z-50 p-6 overflow-y-auto space-y-6 flex flex-col">
+            
+            <div className="flex justify-between items-start pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-[#00A896]">{selectedStatementDrawer.id}</span>
+                <h3 className="font-black text-base text-slate-900 dark:text-white">{selectedStatementDrawer.fileName}</h3>
+                <p className="text-xs text-slate-500 font-semibold">{selectedStatementDrawer.bankName} • {selectedStatementDrawer.userEmail}</p>
+              </div>
+              <button onClick={() => setSelectedStatementDrawer(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+              <span className="font-extrabold text-slate-600 dark:text-slate-400">Balance Integrity Inspection Matrix</span>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Reported Statement Balance</span>
+                  <p className="font-mono font-black text-sm text-slate-900 dark:text-white">
+                    {formatCurrency(selectedStatementDrawer.reportedBalance, 'NGN')}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Calculated Parser Balance</span>
+                  <p className="font-mono font-black text-sm text-[#00A896]">
+                    {formatCurrency(selectedStatementDrawer.calculatedBalance, 'NGN')}
+                  </p>
+                </div>
+              </div>
+              {selectedStatementDrawer.discrepancy > 0 && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 font-extrabold text-xs">
+                  Discrepancy Delta: {formatCurrency(selectedStatementDrawer.discrepancy, 'NGN')}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <span className="font-extrabold text-slate-700 dark:text-slate-300">Parsed Line-Item Logs ({selectedStatementDrawer.parsedCount} Items)</span>
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 font-mono">
+                <div className="flex justify-between border-b border-slate-200 dark:border-slate-800 pb-1 font-bold">
+                  <span>Txn Description</span>
+                  <span>Amount</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Salary Payroll Credit</span>
+                  <span className="text-emerald-600">+₦450,000.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>POS Terminal Purchase</span>
+                  <span className="text-slate-500">-₦12,500.00</span>
+                </div>
+              </div>
+            </div>
+
+            {selectedStatementDrawer.discrepancy > 0 && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  onClick={() => handleReconcileStatement(selectedStatementDrawer.id)}
+                  className="w-full py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md transition-all cursor-pointer"
+                >
+                  Force Reconcile Statement
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {showToast && (

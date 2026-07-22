@@ -1057,16 +1057,18 @@ export function AuthenticatedApp({
         </div>
 
         {/* User Profile Block */}
-        <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-gray-200/60 dark:border-zinc-800 rounded-xl space-y-2.5">
+        <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-gray-200/80 dark:border-zinc-800 rounded-2xl space-y-2.5 shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 flex-shrink-0" />
+            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 dark:border-zinc-800">
+              <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 truncate">{userProfile.name}</p>
-              <p className="text-[9px] text-gray-400 truncate">{userProfile.role}</p>
+              <p className="text-xs font-black text-gray-900 dark:text-zinc-100 truncate">{userProfile.name}</p>
+              <p className="text-[9px] text-[#00A896] font-bold truncate">{userProfile.role}</p>
             </div>
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-gray-150 dark:border-zinc-800/80 text-[10px] text-gray-500">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-150 dark:border-zinc-850 text-[10px] text-gray-500">
+            <span className="flex items-center gap-1 font-bold">
               Total Managed
               <button 
                 onClick={() => setHideBalance(!hideBalance)}
@@ -1076,7 +1078,7 @@ export function AuthenticatedApp({
                 {hideBalance ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
               </button>
             </span>
-            <span className={`font-bold text-[#00A896] dark:text-[#00A896] transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
+            <span className={`font-black text-[#00A896] transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
               {formatCurrency(buckets.reduce((sum, b) => sum + b.balance, 0), userProfile.defaultCurrency)}
             </span>
           </div>
@@ -1296,7 +1298,7 @@ export function AuthenticatedApp({
             {/* Profile Avatar Trigger */}
             <button
               onClick={() => setActiveTab('settings')}
-              className="w-9 h-9 rounded-xl overflow-hidden focus:outline-none cursor-pointer border border-gray-200 dark:border-zinc-800 hover:border-[#00A896] transition-colors"
+              className="w-8.5 h-8.5 rounded-full overflow-hidden focus:outline-none cursor-pointer border border-gray-200 dark:border-zinc-800 hover:border-[#00A896] transition-colors shadow-2xs"
               title="View Account Profile"
             >
               <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
@@ -2705,12 +2707,12 @@ export function AuthenticatedApp({
 
         </main>
 
-      </div>
+        {/* FOOTER - Pinned to bottom right as outlined in Image 2 */}
+        <footer className="mt-auto py-5 px-6 sm:px-10 border-t border-gray-150/70 dark:border-zinc-850 text-right text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-white/40 dark:bg-zinc-950/40">
+          <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
+        </footer>
 
-      {/* FOOTER */}
-      <footer className="mt-auto py-6 border-t border-gray-200/60 dark:border-zinc-900 text-center text-xs text-gray-400 bg-white/40 dark:bg-zinc-950/20 px-4">
-        <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
-      </footer>
+      </div>
 
       {/* MODAL 1: ADD CUSTOM BUCKET */}
       {showAddCustomBucketModal && (

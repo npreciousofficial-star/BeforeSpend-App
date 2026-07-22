@@ -364,18 +364,24 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
       <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-8 py-10 overflow-y-auto">
         <div className="w-full max-w-[420px] space-y-8">
           
-          {/* Mobile Back / Logo topbar */}
-          <div className="flex items-center justify-between lg:hidden mb-4 w-full">
-            {onBackToLanding ? (
+          {/* Top Form Header with Brand Logo & Back Action */}
+          <div className="flex items-center justify-between w-full pb-2">
+            <div 
+              onClick={onBackToLanding} 
+              className="cursor-pointer hover:opacity-85 transition-opacity"
+              title="Return to Homepage"
+            >
+              <BeforeSpendLogo size="md" />
+            </div>
+            {onBackToLanding && (
               <button
                 onClick={onBackToLanding}
-                className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-150 transition-colors"
+                className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-zinc-400 hover:text-[#00A896] transition-colors"
               >
                 <ChevronDown className="w-4 h-4 rotate-90" />
                 <span>Back</span>
               </button>
-            ) : <div />}
-            <BeforeSpendLogo size="md" />
+            )}
           </div>
 
           {/* Form Header */}

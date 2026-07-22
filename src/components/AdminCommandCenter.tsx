@@ -1,7 +1,7 @@
 /**
  * AdminCommandCenter.tsx
- * Standalone Enterprise ERP Admin Command Center
- * Engineered with BeforeSpend Brand System (#0E2A47 Navy, #00A896 Electric Teal), High-Contrast Typography, Custom Popovers, & $100k B2B SaaS Layout.
+ * Enterprise ERP Admin Command Center & Roles & Permissions Module
+ * Engineered with BeforeSpend Brand System (#0E2A47 Navy, #00A896 Electric Teal), High-Contrast Typography, Custom Popovers, & Zero Breadcrumbs.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -13,7 +13,7 @@ import {
   ArrowDownRight, Sliders, Filter, Check, MoreHorizontal, ShieldCheck,
   ExternalLink, Code, Palette, Lock, Terminal, Plus, Eye, FileText,
   Download, Home, Calendar, UserPlus, Mail, Shield, DollarSign, Ban,
-  Key, Clock, Zap, CreditCard, PieChart, Target, AlertCircle
+  Key, Clock, Zap, CreditCard, PieChart, Target, AlertCircle, Phone
 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { BeforeSpendLogo } from './BeforeSpendLogo';
@@ -59,7 +59,7 @@ const SIDEBAR_SECTIONS: NavSection[] = [
     icon: Users,
     subItems: [
       { id: 'users', label: 'User Directory' },
-      { id: 'roles', label: 'Roles & Permissions' },
+      { id: 'roles', label: 'Roles & Access Control' },
       { id: 'support', label: 'Support Inquiries' },
     ]
   },
@@ -96,6 +96,88 @@ const SIDEBAR_SECTIONS: NavSection[] = [
   },
 ];
 
+// System Roles Definition
+interface SystemRole {
+  id: string;
+  name: string;
+  description: string;
+  userCount: number;
+  permissions: { [key: string]: { create: boolean; read: boolean; update: boolean; delete: boolean } };
+}
+
+const INITIAL_ROLES: SystemRole[] = [
+  {
+    id: 'admin',
+    name: 'Platform Administrator',
+    description: 'Full root access to all financial telemetry, audit logs, system configurations, and user accounts.',
+    userCount: 1,
+    permissions: {
+      users: { create: true, read: true, update: true, delete: true },
+      buckets: { create: true, read: true, update: true, delete: true },
+      ledger: { create: true, read: true, update: true, delete: true },
+      broadcasts: { create: true, read: true, update: true, delete: true },
+      audit: { create: true, read: true, update: true, delete: true },
+      settings: { create: true, read: true, update: true, delete: true },
+    }
+  },
+  {
+    id: 'fin_lead',
+    name: 'Finance Operations Manager',
+    description: 'Manages allocation bucket rules, reconciliation audit parsers, and financial statement verification.',
+    userCount: 3,
+    permissions: {
+      users: { create: false, read: true, update: true, delete: false },
+      buckets: { create: true, read: true, update: true, delete: true },
+      ledger: { create: true, read: true, update: true, delete: false },
+      broadcasts: { create: false, read: true, update: false, delete: false },
+      audit: { create: false, read: true, update: false, delete: false },
+      settings: { create: false, read: true, update: false, delete: false },
+    }
+  },
+  {
+    id: 'support_lead',
+    name: 'Compliance & Support Specialist',
+    description: 'Handles support inquiries, user account verification, direct broadcasts, and profile inspects.',
+    userCount: 5,
+    permissions: {
+      users: { create: false, read: true, update: true, delete: false },
+      buckets: { create: false, read: true, update: false, delete: false },
+      ledger: { create: false, read: true, update: false, delete: false },
+      broadcasts: { create: true, read: true, update: true, delete: false },
+      audit: { create: false, read: true, update: false, delete: false },
+      settings: { create: false, read: true, update: false, delete: false },
+    }
+  },
+  {
+    id: 'salaried',
+    name: 'Salaried Employee / Professional',
+    description: 'Standard end-user profile configured for automated salary income splits and bill allocations.',
+    userCount: 34200,
+    permissions: {
+      users: { create: false, read: true, update: true, delete: false },
+      buckets: { create: true, read: true, update: true, delete: true },
+      ledger: { create: true, read: true, update: false, delete: false },
+      broadcasts: { create: false, read: true, update: false, delete: false },
+      audit: { create: false, read: false, update: false, delete: false },
+      settings: { create: false, read: true, update: true, delete: false },
+    }
+  },
+  {
+    id: 'freelancer',
+    name: 'Freelancer & Contractor',
+    description: 'Dynamic user profile configured for variable client invoices, tax withholding, and project buckets.',
+    userCount: 12800,
+    permissions: {
+      users: { create: false, read: true, update: true, delete: false },
+      buckets: { create: true, read: true, update: true, delete: true },
+      ledger: { create: true, read: true, update: false, delete: false },
+      broadcasts: { create: false, read: true, update: false, delete: false },
+      audit: { create: false, read: false, update: false, delete: false },
+      settings: { create: false, read: true, update: true, delete: false },
+    }
+  }
+];
+
 export function AdminCommandCenter({
   currentUserId, userProfile, onExit, onLogout,
   exchangeRates, setExchangeRates,
@@ -122,19 +204,25 @@ export function AdminCommandCenter({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('ALL');
   const [filterCurrency, setFilterCurrency] = useState('ALL');
-  const [filterStatus, setFilterStatus] = useState('ALL');
   const [dateFrom, setDateFrom] = useState('2026-06-14');
   const [dateTo, setDateTo] = useState('2026-07-13');
 
-  // Custom Dropdown Open States (NO Browser Native Selects)
+  // Custom Dropdown Open States
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
 
-  // Deep-Dive User Behavioral Inspection Drawer
+  // Roles & Permissions Module State
+  const [roles, setRoles] = useState<SystemRole[]>(INITIAL_ROLES);
+  const [selectedRole, setSelectedRole] = useState<SystemRole>(INITIAL_ROLES[0]);
+  const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
+  const [newRoleName, setNewRoleName] = useState('');
+  const [newRoleDesc, setNewRoleDesc] = useState('');
+
+  // Deep-Dive User Drawer
   const [deepDiveUser, setDeepDiveUser] = useState<any | null>(null);
   const [drawerActiveTab, setDrawerActiveTab] = useState<'overview' | 'buckets' | 'transactions' | 'telemetry'>('overview');
 
-  // Add / Edit Modals
+  // Add / Edit User Modals
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [editingUserModal, setEditingUserModal] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -142,6 +230,7 @@ export function AdminCommandCenter({
   // Form Inputs
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPhone, setNewUserPhone] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState('Salaried Employee / Professional');
   const [newUserCurrency, setNewUserCurrency] = useState('NGN');
@@ -200,7 +289,8 @@ export function AdminCommandCenter({
       email: newUserEmail.toLowerCase().trim(),
       passwordHash: newUserPassword,
       role: newUserRole,
-      defaultCurrency: newUserCurrency
+      defaultCurrency: newUserCurrency,
+      phoneNumber: newUserPhone
     };
 
     try {
@@ -209,6 +299,7 @@ export function AdminCommandCenter({
       setShowAddUserModal(false);
       setNewUserName('');
       setNewUserEmail('');
+      setNewUserPhone('');
       setNewUserPassword('');
       triggerToast(`Account created for ${newUserObj.name}`);
     } catch (err) {
@@ -244,6 +335,51 @@ export function AdminCommandCenter({
     if (deepDiveUser?.id === id) setDeepDiveUser(null);
     setIsLoading(false);
     triggerToast(`User account ${name} permanently deleted`);
+  };
+
+  // Toggle Role Permission Matrix
+  const togglePermission = (roleId: string, moduleKey: string, permType: 'create' | 'read' | 'update' | 'delete') => {
+    setRoles(prev => prev.map(r => {
+      if (r.id !== roleId) return r;
+      const modPerms = r.permissions[moduleKey] || { create: false, read: false, update: false, delete: false };
+      return {
+        ...r,
+        permissions: {
+          ...r.permissions,
+          [moduleKey]: {
+            ...modPerms,
+            [permType]: !modPerms[permType]
+          }
+        }
+      };
+    }));
+    triggerToast('Role permission updated');
+  };
+
+  // Create Custom Role Handler
+  const handleCreateRoleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRoleName) return;
+    const newRole: SystemRole = {
+      id: 'custom_' + Date.now(),
+      name: newRoleName.trim(),
+      description: newRoleDesc.trim() || 'Custom operational role policy.',
+      userCount: 0,
+      permissions: {
+        users: { create: false, read: true, update: false, delete: false },
+        buckets: { create: false, read: true, update: false, delete: false },
+        ledger: { create: false, read: true, update: false, delete: false },
+        broadcasts: { create: false, read: false, update: false, delete: false },
+        audit: { create: false, read: false, update: false, delete: false },
+        settings: { create: false, read: false, update: false, delete: false },
+      }
+    };
+    setRoles([...roles, newRole]);
+    setSelectedRole(newRole);
+    setShowCreateRoleModal(false);
+    setNewRoleName('');
+    setNewRoleDesc('');
+    triggerToast(`New role policy "${newRole.name}" created`);
   };
 
   // Filter Directory
@@ -282,7 +418,7 @@ export function AdminCommandCenter({
   const currentDeepDiveTelemetry = deepDiveUser ? getUserTelemetry(deepDiveUser) : null;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex bg-[#0E1A2E] text-slate-100 font-sans ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`fixed inset-0 z-[100] flex bg-[#0E1A2E] text-slate-100 font-sans ${isDarkMode ? 'dark' : ''} w-full max-w-full overflow-x-hidden`}>
 
       {/* Backdrop for closing custom popovers */}
       {(isRoleDropdownOpen || isCurrencyDropdownOpen) && (
@@ -386,7 +522,7 @@ export function AdminCommandCenter({
           })}
         </nav>
 
-        {/* Bottom Pinned User Profile (Josh Schultz Style) */}
+        {/* Bottom Pinned User Profile */}
         <div className="p-3 border-t border-slate-800/80 space-y-2 flex-shrink-0">
           {!isSidebarCollapsed && (
             <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/90 border border-slate-800">
@@ -465,9 +601,9 @@ export function AdminCommandCenter({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. RIGHT MAIN CONTENT FRAME (100% Full Width on Mobile) */}
+      {/* 2. RIGHT MAIN CONTENT FRAME (100% Full Width on Mobile, Zero Breadcrumbs) */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-[#0B1528] overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-[#0B1528] overflow-x-hidden">
 
         {/* Top Header */}
         <header className="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1B34] px-4 sm:px-6 flex items-center justify-between flex-shrink-0 z-30">
@@ -476,12 +612,7 @@ export function AdminCommandCenter({
             <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
               <Menu className="w-5 h-5" />
             </button>
-
-            <button onClick={() => setActiveTab('dashboard')} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer hidden sm:block">
-              <Home className="w-4 h-4" />
-            </button>
-            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
-            <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 capitalize">{activeTab}</span>
+            <span className="text-xs font-black text-slate-900 dark:text-slate-100 capitalize">{activeTab.replace('_', ' ')}</span>
           </div>
 
           {/* Search Trigger */}
@@ -517,54 +648,48 @@ export function AdminCommandCenter({
         </header>
 
         {/* Scrollable Content */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6 scrollbar-none">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6 scrollbar-none max-w-full">
 
-          {/* Title Header */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 cursor-pointer hover:text-[#00A896]" onClick={() => setActiveTab('dashboard')}>
-              <ChevronRight className="w-4 h-4 rotate-180" />
-              <span>Command center</span>
+          {/* Title Header (ZERO BREADCRUMBS) */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-heading">
+                {activeTab === 'dashboard' && 'Platform Overview'}
+                {activeTab === 'users' && 'User Account Directory'}
+                {activeTab === 'roles' && 'Roles & Access Control'}
+                {activeTab === 'categories' && 'Budget Bucket Ratios'}
+                {activeTab === 'ledger' && 'Transactions Audit Ledger'}
+                {activeTab === 'broadcast' && 'System Broadcasts'}
+                {activeTab === 'backups' && 'Database Snapshots'}
+              </h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-semibold max-w-2xl">
+                {activeTab === 'users' && 'Search accounts, inspect behavioral telemetry, manage roles, and review allocation balances.'}
+                {activeTab === 'roles' && 'Configure granular permission matrices, define custom admin role policies, and manage user access.'}
+                {activeTab === 'dashboard' && 'Dock-to-stock, pick accuracy, on-time ship, exception aging, and throughput — against §8 benchmarks.'}
+              </p>
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-heading">
-                  {activeTab === 'dashboard' && 'Platform Overview'}
-                  {activeTab === 'users' && 'User Account Directory'}
-                  {activeTab === 'categories' && 'Budget Bucket Ratios'}
-                  {activeTab === 'ledger' && 'Transactions Audit Ledger'}
-                  {activeTab === 'broadcast' && 'System Broadcasts'}
-                  {activeTab === 'backups' && 'Database Snapshots'}
-                </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-semibold max-w-2xl">
-                  {activeTab === 'users' ? 'Search accounts, inspect behavioral telemetry, manage roles, and review allocation balances.' : 'Dock-to-stock, pick accuracy, on-time ship, exception aging, and throughput — against §8 benchmarks.'}
-                </p>
+            {/* Date Filters (Stacked & Clean on Mobile - Fixes Overflow Box 2) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-extrabold shadow-2xs">
+                <span className="text-slate-500 font-bold">From</span>
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none" />
               </div>
-
-              {/* Date Filters */}
-              <div className="flex items-center gap-2 self-start md:self-auto">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-extrabold shadow-2xs">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-500 font-bold">From</span>
-                  <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none" />
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-extrabold shadow-2xs">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-500 font-bold">To</span>
-                  <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none" />
-                </div>
+              <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-extrabold shadow-2xs">
+                <span className="text-slate-500 font-bold">To</span>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none" />
               </div>
             </div>
           </div>
 
           {/* ===================================================================== */}
-          {/* USER DIRECTORY MODULE (HIGH CONTRAST & BEFORESPEND BRANDING) */}
+          {/* USER DIRECTORY MODULE (CLEAN RESPONSIVE CARDS - FIXES BOX 3) */}
           {/* ===================================================================== */}
           {activeTab === 'users' && (
             <div className="space-y-6">
 
               {/* Summary Metric Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-1">
                   <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Total Registered Users</span>
                   <p className="text-3xl font-black font-mono text-slate-900 dark:text-white">{profiles.length || 52410}</p>
@@ -577,22 +702,24 @@ export function AdminCommandCenter({
                   <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Default Currency</span>
                   <p className="text-3xl font-black font-mono text-[#0E2A47] dark:text-teal-400">NGN (₦)</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs flex items-center justify-between">
+                
+                {/* Fixed Action Card (Stacking cleanly on mobile - Fixes Box 3) */}
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Actions</span>
+                    <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Quick Action</span>
                     <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">Create Profile</span>
                   </div>
-                  <button onClick={() => setShowAddUserModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all">
+                  <button onClick={() => setShowAddUserModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all">
                     <UserPlus className="w-4 h-4" /> Add User
                   </button>
                 </div>
               </div>
 
-              {/* Filters Toolbar with High-Contrast Custom Popover Dropdowns */}
+              {/* Filters Toolbar */}
               <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300/90 dark:border-slate-800 shadow-2xs space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   
-                  {/* High-Contrast Search Input (Fixes Invisible Pale Text) */}
+                  {/* Search Input */}
                   <div className="relative">
                     <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
                     <input
@@ -600,11 +727,11 @@ export function AdminCommandCenter({
                       placeholder="Search name, email, ID..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-[#00A896]"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
                     />
                   </div>
 
-                  {/* Custom Role Dropdown */}
+                  {/* Role Dropdown */}
                   <div className="relative">
                     <button
                       type="button"
@@ -635,7 +762,7 @@ export function AdminCommandCenter({
                     )}
                   </div>
 
-                  {/* Custom Currency Dropdown */}
+                  {/* Currency Dropdown */}
                   <div className="relative">
                     <button
                       type="button"
@@ -727,7 +854,115 @@ export function AdminCommandCenter({
             </div>
           )}
 
-          {/* Dashboard Overview View */}
+          {/* ===================================================================== */}
+          {/* ROLES & PERMISSIONS MODULE (COMPREHENSIVE END-TO-END IMPLEMENTATION) */}
+          {/* ===================================================================== */}
+          {activeTab === 'roles' && (
+            <div className="space-y-6">
+
+              {/* Roles Header Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs">
+                <div>
+                  <h3 className="font-black text-base text-slate-900 dark:text-white">Role Policy Management</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Define access control tiers, permissions, and operational capabilities.</p>
+                </div>
+                <button
+                  onClick={() => setShowCreateRoleModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all"
+                >
+                  <Shield className="w-4 h-4" /> Create Custom Role
+                </button>
+              </div>
+
+              {/* Role Cards Selector Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {roles.map(r => {
+                  const isSelected = selectedRole.id === r.id;
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => setSelectedRole(r)}
+                      className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-3 ${
+                        isSelected
+                          ? 'bg-white dark:bg-[#0D1B34] border-[#00A896] ring-2 ring-[#00A896]/20 shadow-md'
+                          : 'bg-white dark:bg-[#0D1B34] border-slate-300 dark:border-slate-800 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="w-9 h-9 rounded-xl bg-[#00A896]/10 flex items-center justify-center text-[#00A896]">
+                          <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                          {r.userCount} users
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-black text-sm text-slate-900 dark:text-white">{r.name}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 line-clamp-2">{r.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Granular Permission Matrix Table for Selected Role */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
+                  <div>
+                    <h3 className="font-black text-base text-slate-900 dark:text-white">Permission Matrix: {selectedRole.name}</h3>
+                    <p className="text-xs text-slate-500 font-semibold">Toggle capabilities for this role policy.</p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-[#00A896] bg-[#00A896]/10 px-2.5 py-1 rounded-full border border-[#00A896]/20">
+                    Policy Active
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-800 dark:text-slate-200">
+                    <thead>
+                      <tr className="border-b border-slate-300 dark:border-slate-800 text-slate-500 font-black uppercase text-[10px] tracking-wider">
+                        <th className="py-3 px-4">System Module</th>
+                        <th className="py-3 px-4 text-center">Create</th>
+                        <th className="py-3 px-4 text-center">Read / View</th>
+                        <th className="py-3 px-4 text-center">Update / Edit</th>
+                        <th className="py-3 px-4 text-center">Delete</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-850">
+                      {[
+                        { key: 'users', name: 'User Directory & Profiles' },
+                        { key: 'buckets', name: 'Budget Buckets & Ratios' },
+                        { key: 'ledger', name: 'Transactions Ledger & Audits' },
+                        { key: 'broadcasts', name: 'System Broadcast Notifications' },
+                        { key: 'audit', name: 'System Audit Logs' },
+                        { key: 'settings', name: 'Platform Settings & API Keys' },
+                      ].map(mod => {
+                        const perm = selectedRole.permissions[mod.key] || { create: false, read: false, update: false, delete: false };
+                        return (
+                          <tr key={mod.key} className="hover:bg-slate-50 dark:hover:bg-slate-850">
+                            <td className="py-3.5 px-4 font-black text-slate-900 dark:text-white">{mod.name}</td>
+                            {(['create', 'read', 'update', 'delete'] as const).map(type => (
+                              <td key={type} className="py-3.5 px-4 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={perm[type]}
+                                  onChange={() => togglePermission(selectedRole.id, mod.key, type)}
+                                  className="w-4 h-4 rounded accent-[#00A896] cursor-pointer"
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* Dashboard View */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -754,14 +989,98 @@ export function AdminCommandCenter({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. SLIDE-OVER DEEP-DIVE USER INSPECTION DRAWER (HIGH CONTRAST LABELS) */}
+      {/* 3. ADD NEW USER MODAL (INCLUDES PHONE NUMBER FIELD) */}
       {/* ========================================================================= */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <form onSubmit={handleAddUserSubmit} className="bg-white dark:bg-[#0E1A2E] rounded-2xl border border-slate-300 dark:border-slate-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Add New User Account</h3>
+              <button type="button" onClick={() => setShowAddUserModal(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                <input type="text" required value={newUserName} onChange={e => setNewUserName(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white" placeholder="e.g. Chidi Okechukwu" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address</label>
+                <input type="email" required value={newUserEmail} onChange={e => setNewUserEmail(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white" placeholder="you@example.com" />
+              </div>
+
+              {/* Phone Number Input */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone Number</label>
+                <input type="tel" value={newUserPhone} onChange={e => setNewUserPhone(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white" placeholder="+234 801 234 5678" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                <input type="password" required value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white" placeholder="Minimum 6 characters" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role Policy</label>
+                <select value={newUserRole} onChange={e => setNewUserRole(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white">
+                  <option value="Salaried Employee / Professional">Salaried Employee / Professional</option>
+                  <option value="Freelancer & Contractor">Freelancer &amp; Contractor</option>
+                  <option value="Business Owner / Entrepreneur">Business Owner / Entrepreneur</option>
+                  <option value="Student & Personal Budgeter">Student &amp; Personal Budgeter</option>
+                  <option value="Platform Administrator">Platform Administrator</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button type="button" onClick={() => setShowAddUserModal(false)} className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs">Cancel</button>
+              <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md">Create Account</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. CREATE CUSTOM ROLE MODAL */}
+      {/* ========================================================================= */}
+      {showCreateRoleModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <form onSubmit={handleCreateRoleSubmit} className="bg-white dark:bg-[#0E1A2E] rounded-2xl border border-slate-300 dark:border-slate-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Create Custom Role Policy</h3>
+              <button type="button" onClick={() => setShowCreateRoleModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role Title</label>
+                <input type="text" required value={newRoleName} onChange={e => setNewRoleName(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white" placeholder="e.g. Audit Compliance Lead" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Policy Description</label>
+                <textarea rows={3} value={newRoleDesc} onChange={e => setNewRoleDesc(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-base sm:text-xs font-bold text-slate-900 dark:text-white" placeholder="Describe role capabilities..." />
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button type="button" onClick={() => setShowCreateRoleModal(false)} className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs">Cancel</button>
+              <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md">Create Role Policy</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Slide-Over Deep-Dive Drawer */}
       {deepDiveUser && currentDeepDiveTelemetry && (
         <div className="fixed inset-0 z-[110] flex justify-end">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setDeepDiveUser(null)} />
           <div className="relative w-full max-w-xl bg-white dark:bg-[#0D1B34] h-full shadow-2xl z-50 p-6 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-200">
-            
-            {/* Drawer Header */}
             <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <Avatar name={deepDiveUser.name} className="w-12 h-12 rounded-full" />
@@ -775,119 +1094,18 @@ export function AdminCommandCenter({
               </button>
             </div>
 
-            {/* Drawer Tabs */}
-            <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
-              {[
-                { id: 'overview', label: 'Overview' },
-                { id: 'buckets', label: 'Allocated Buckets' },
-                { id: 'transactions', label: 'Activity Logs' },
-                { id: 'telemetry', label: 'Risk & Behavior' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setDrawerActiveTab(tab.id as any)}
-                  className={`flex-1 py-1.5 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
-                    drawerActiveTab === tab.id
-                      ? 'bg-[#00A896] text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-900/40 text-xs">
+              <span className="font-black text-slate-900 dark:text-white block uppercase text-[10px] tracking-wider">PROFILE INFORMATION</span>
+              <div className="space-y-2.5">
+                <div className="flex justify-between items-center"><span className="text-slate-600 dark:text-slate-400 font-bold">Account ID:</span><span className="font-mono font-extrabold text-slate-900 dark:text-white truncate max-w-[200px]">{deepDiveUser.id}</span></div>
+                <div className="flex justify-between items-center"><span className="text-slate-600 dark:text-slate-400 font-bold">Role Policy:</span><span className="font-extrabold text-slate-900 dark:text-white">{deepDiveUser.role}</span></div>
+                <div className="flex justify-between items-center"><span className="text-slate-600 dark:text-slate-400 font-bold">Default Currency:</span><span className="font-mono font-extrabold text-slate-900 dark:text-white">{deepDiveUser.default_currency || 'NGN'}</span></div>
+              </div>
             </div>
 
-            {/* Tab 1: Overview (HIGH CONTRAST FIX FOR INVISIBLE GREY TEXT) */}
-            {drawerActiveTab === 'overview' && (
-              <div className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-500">TOTAL MANAGED BALANCE</span>
-                    <p className="text-xl font-black font-mono text-[#00A896]">{formatCurrency(currentDeepDiveTelemetry.totalAllocated, deepDiveUser.default_currency || 'NGN')}</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-500">ACTIVE BUCKETS</span>
-                    <p className="text-xl font-black font-mono text-[#0E2A47] dark:text-teal-400">{currentDeepDiveTelemetry.userBuckets.length} Buckets</p>
-                  </div>
-                </div>
-
-                {/* Profile Information Block - CRISP SLATE & WHITE LABELS */}
-                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-900/40">
-                  <span className="font-black text-slate-900 dark:text-white block uppercase text-[10px] tracking-wider">PROFILE INFORMATION</span>
-                  <div className="space-y-2.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 dark:text-slate-400 font-bold">Account ID:</span>
-                      <span className="font-mono font-extrabold text-slate-900 dark:text-white truncate max-w-[200px]">{deepDiveUser.id}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 dark:text-slate-400 font-bold">Role Policy:</span>
-                      <span className="font-extrabold text-slate-900 dark:text-white">{deepDiveUser.role}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 dark:text-slate-400 font-bold">Default Currency:</span>
-                      <span className="font-mono font-extrabold text-slate-900 dark:text-white">{deepDiveUser.default_currency || 'NGN'}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 dark:text-slate-400 font-bold">Account Health:</span>
-                      <span className="font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">100% Verified</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tab 2: Buckets */}
-            {drawerActiveTab === 'buckets' && (
-              <div className="space-y-3">
-                <span className="text-xs font-black uppercase text-slate-500">User Configured Buckets ({currentDeepDiveTelemetry.userBuckets.length})</span>
-                {currentDeepDiveTelemetry.userBuckets.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-6 text-center">No custom buckets created yet by this user.</p>
-                ) : (
-                  currentDeepDiveTelemetry.userBuckets.map(b => (
-                    <div key={b.id} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-                      <div>
-                        <p className="font-black text-slate-900 dark:text-white">{b.name}</p>
-                        <p className="text-[10px] text-slate-500 font-bold">{b.destination_account || 'Default Account'} • {b.allocation_percentage}%</p>
-                      </div>
-                      <span className="font-mono font-black text-[#00A896]">{formatCurrency(b.balance, deepDiveUser.default_currency || 'NGN')}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* Tab 3: Transactions */}
-            {drawerActiveTab === 'transactions' && (
-              <div className="space-y-3">
-                <span className="text-xs font-black uppercase text-slate-500">Activity Log ({currentDeepDiveTelemetry.userTxns.length})</span>
-                {currentDeepDiveTelemetry.userTxns.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-6 text-center font-bold">No transaction records found for this user.</p>
-                ) : (
-                  currentDeepDiveTelemetry.userTxns.map(t => (
-                    <div key={t.id} className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white">{t.description}</p>
-                        <span className="text-[10px] text-slate-500">{new Date(t.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <span className={`font-black ${t.direction === 'CREDIT' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {t.direction === 'CREDIT' ? '+' : '-'}{formatCurrency(t.amount, deepDiveUser.default_currency || 'NGN')}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* Quick Action Button */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-              <button
-                onClick={() => handleDeleteUser(deepDiveUser.id, deepDiveUser.name)}
-                className="w-full py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-rose-500/20"
-              >
-                <Trash2 className="w-4 h-4" /> Delete User Account
-              </button>
-            </div>
-
+            <button onClick={() => handleDeleteUser(deepDiveUser.id, deepDiveUser.name)} className="w-full py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-rose-500/20">
+              <Trash2 className="w-4 h-4" /> Delete Account
+            </button>
           </div>
         </div>
       )}
@@ -904,6 +1122,7 @@ export function AdminCommandCenter({
             <div className="space-y-1 text-xs">
               <button onClick={() => { setActiveTab('dashboard'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-[#00A896]/10 hover:text-[#00A896] font-bold cursor-pointer">Jump to Dashboard Telemetry</button>
               <button onClick={() => { setActiveTab('users'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-[#00A896]/10 hover:text-[#00A896] font-bold cursor-pointer">Jump to User Directory</button>
+              <button onClick={() => { setActiveTab('roles'); setShowCommandPalette(false); }} className="w-full text-left p-2 rounded-lg hover:bg-[#00A896]/10 hover:text-[#00A896] font-bold cursor-pointer">Jump to Roles & Permissions</button>
             </div>
           </div>
         </div>

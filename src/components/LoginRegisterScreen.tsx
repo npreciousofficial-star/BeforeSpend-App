@@ -48,6 +48,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [role, setRole] = useState('Salaried Employee / Professional');
   const [currency, setCurrency] = useState('NGN');
   const [showPassword, setShowPassword] = useState(false);
@@ -447,6 +448,22 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. Chidi Okechukwu"
+                      className="w-full pl-11 pr-4 py-3.5 text-base bg-transparent text-gray-900 dark:text-zinc-50 placeholder-gray-400 focus:outline-none rounded-2xl"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone Number Field */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-550 dark:text-zinc-400 uppercase tracking-wider">Phone Number</label>
+                  <div className="relative flex items-center rounded-2xl border border-gray-300/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/8 transition-all">
+                    <ShieldAlert className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      id="register-phone"
+                      type="tel"
+                      value={phoneNumber || ''}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="+234 801 234 5678"
                       className="w-full pl-11 pr-4 py-3.5 text-base bg-transparent text-gray-900 dark:text-zinc-50 placeholder-gray-400 focus:outline-none rounded-2xl"
                     />
                   </div>

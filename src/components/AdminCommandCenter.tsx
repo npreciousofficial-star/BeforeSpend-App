@@ -1,9 +1,15 @@
 /**
  * AdminCommandCenter.tsx
  * Enterprise ERP Admin Command Center
- * - All Modules Rendered (User Directory, Roles & Permissions, Buckets & Allocations, Support Inquiries, Dashboard)
- * - Removed "Admin" badge beside the logo in the top-left sidebar
- * - 100% Custom Popover Dropdowns & Mobile Card Reflow
+ * Features:
+ * - 100% Custom Popover Dropdowns (Zero native browser <select> elements)
+ * - Mobile Card Reflow (Zero squeezed table text on mobile)
+ * - End-to-End User Directory Module (Deep-Dive Behavioral Intelligence Drawer)
+ * - End-to-End Roles & Permissions Module (Role Cards, Permission Matrix & Custom Role Modal)
+ * - End-to-End Buckets & Allocations Module (Telemetry, Bucket Inspection Drawer & Creator)
+ * - End-to-End Support Inquiries Module (Telemetry, Ticket Responder Drawer & Creator)
+ * - Real Supabase Database Synchronization
+ * - BeforeSpend Brand System (#00A896 Electric Teal, #0E2A47 Navy, No Emojis)
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -213,6 +219,34 @@ const INITIAL_ROLES: SystemRole[] = [
       audit: { create: false, read: true, update: false, delete: false },
       settings: { create: false, read: true, update: false, delete: false },
     }
+  },
+  {
+    id: 'employee',
+    name: 'Salaried Employee / Professional',
+    description: 'Standard end-user profile with automated income allocation and bucket locking features.',
+    userCount: 1420,
+    permissions: {
+      users: { create: false, read: false, update: false, delete: false },
+      buckets: { create: true, read: true, update: true, delete: false },
+      ledger: { create: false, read: true, update: false, delete: false },
+      broadcasts: { create: false, read: true, update: false, delete: false },
+      audit: { create: false, read: false, update: false, delete: false },
+      settings: { create: false, read: false, update: false, delete: false },
+    }
+  },
+  {
+    id: 'freelancer',
+    name: 'Freelancer & Contractor',
+    description: 'Multi-currency profile tailored for variable invoice inflows and tax set-aside buckets.',
+    userCount: 890,
+    permissions: {
+      users: { create: false, read: false, update: false, delete: false },
+      buckets: { create: true, read: true, update: true, delete: false },
+      ledger: { create: false, read: true, update: false, delete: false },
+      broadcasts: { create: false, read: true, update: false, delete: false },
+      audit: { create: false, read: false, update: false, delete: false },
+      settings: { create: false, read: false, update: false, delete: false },
+    }
   }
 ];
 
@@ -261,6 +295,22 @@ const INITIAL_TICKETS: SupportTicket[] = [
       { id: 'm1', sender: 'user', senderName: 'Amina Bello', text: 'Hello team, how do I lock my emergency savings bucket so it does not accept manual withdrawals?', timestamp: '2026-07-22 11:15' },
       { id: 'm2', sender: 'agent', senderName: 'Support Agent', text: 'Hello Amina! You can set a Bucket Lock Policy under Bucket Settings.', timestamp: '2026-07-22 12:40' }
     ]
+  },
+  {
+    id: 'TICK-8488',
+    userId: 'usr_109',
+    userName: 'Tunde Bakare',
+    userEmail: 'tunde@example.com',
+    subject: 'Request to Change Primary Default Currency to USD',
+    category: 'Account Access',
+    priority: 'Low',
+    status: 'Resolved',
+    createdAt: '2026-07-21 09:00',
+    updatedAt: '2026-07-21 10:20',
+    messages: [
+      { id: 'm1', sender: 'user', senderName: 'Tunde Bakare', text: 'Please help update my default currency from NGN to USD.', timestamp: '2026-07-21 09:00' },
+      { id: 'm2', sender: 'agent', senderName: 'Support Agent', text: 'Your default currency has been updated to USD ($).', timestamp: '2026-07-21 10:20' }
+    ]
   }
 ];
 
@@ -283,15 +333,12 @@ export function AdminCommandCenter({
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
 
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('ALL');
   const [filterCurrency, setFilterCurrency] = useState('ALL');
-  const [dateFrom, setDateFrom] = useState('2026-06-14');
-  const [dateTo, setDateTo] = useState('2026-07-13');
 
   // Roles Module State
   const [roles, setRoles] = useState<SystemRole[]>(INITIAL_ROLES);
@@ -308,6 +355,13 @@ export function AdminCommandCenter({
   const [ticketReplyText, setTicketReplyText] = useState('');
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
 
+  // New Ticket Form
+  const [newTicketUserEmail, setNewTicketUserEmail] = useState('');
+  const [newTicketSubject, setNewTicketSubject] = useState('');
+  const [newTicketCategory, setNewTicketCategory] = useState('Billing & Allocations');
+  const [newTicketPriority, setNewTicketPriority] = useState('Medium');
+  const [newTicketMessage, setNewTicketMessage] = useState('');
+
   // Buckets Module State
   const [selectedBucketDrawer, setSelectedBucketDrawer] = useState<any | null>(null);
   const [showAddBucketModal, setShowAddBucketModal] = useState(false);
@@ -315,7 +369,7 @@ export function AdminCommandCenter({
   const [newBucketPercentage, setNewBucketPercentage] = useState(20);
   const [newBucketAccount, setNewBucketAccount] = useState('GTBank Salary Account');
 
-  // Deep-Dive User Drawer
+  // Deep-Dive User Behavioral Intelligence Drawer State
   const [deepDiveUser, setDeepDiveUser] = useState<any | null>(null);
   const [drawerActiveTab, setDrawerActiveTab] = useState<'overview' | 'buckets' | 'transactions'>('overview');
 
@@ -449,27 +503,121 @@ export function AdminCommandCenter({
     triggerToast('Role permission updated');
   };
 
-  // Filtered Users Directory
+  // Create Custom Role Handler
+  const handleCreateRoleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRoleName) return;
+
+    const newR: SystemRole = {
+      id: 'role_' + Date.now(),
+      name: newRoleName.trim(),
+      description: newRoleDesc.trim() || 'Custom platform access role policy.',
+      userCount: 0,
+      permissions: {
+        users: { create: false, read: true, update: false, delete: false },
+        buckets: { create: false, read: true, update: false, delete: false },
+        ledger: { create: false, read: true, update: false, delete: false },
+        broadcasts: { create: false, read: false, update: false, delete: false },
+        audit: { create: false, read: false, update: false, delete: false },
+        settings: { create: false, read: false, update: false, delete: false },
+      }
+    };
+
+    setRoles([...roles, newR]);
+    setSelectedRole(newR);
+    setShowCreateRoleModal(false);
+    setNewRoleName('');
+    setNewRoleDesc('');
+    triggerToast(`Custom role "${newR.name}" created`);
+  };
+
+  // Support Reply Handler
+  const handleSendTicketReply = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTicket || !ticketReplyText.trim()) return;
+
+    const newMsg = {
+      id: 'm_' + Date.now(),
+      sender: 'agent' as const,
+      senderName: userProfile.name || 'Support Specialist',
+      text: ticketReplyText.trim(),
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16)
+    };
+
+    const updated = {
+      ...selectedTicket,
+      status: 'In Progress' as const,
+      updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      messages: [...selectedTicket.messages, newMsg]
+    };
+
+    setTickets(prev => prev.map(t => t.id === selectedTicket.id ? updated : t));
+    setSelectedTicket(updated);
+    setTicketReplyText('');
+    triggerToast('Reply dispatched to user');
+  };
+
+  // Update Ticket Status
+  const handleUpdateTicketStatus = (ticketId: string, newStatus: string) => {
+    setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: newStatus, updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16) } : t));
+    if (selectedTicket?.id === ticketId) {
+      setSelectedTicket(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+    triggerToast(`Ticket status updated to ${newStatus}`);
+  };
+
+  // Create Ticket Handler
+  const handleCreateTicketSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTicketUserEmail || !newTicketSubject || !newTicketMessage) return;
+
+    const newT: SupportTicket = {
+      id: 'TICK-' + Math.floor(1000 + Math.random() * 9000),
+      userId: 'usr_new',
+      userName: newTicketUserEmail.split('@')[0],
+      userEmail: newTicketUserEmail.toLowerCase().trim(),
+      subject: newTicketSubject.trim(),
+      category: newTicketCategory,
+      priority: newTicketPriority,
+      status: 'Open',
+      createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      messages: [
+        {
+          id: 'm1',
+          sender: 'user',
+          senderName: newTicketUserEmail.split('@')[0],
+          text: newTicketMessage.trim(),
+          timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16)
+        }
+      ]
+    };
+
+    setTickets([newT, ...tickets]);
+    setShowNewTicketModal(false);
+    setNewTicketUserEmail('');
+    setNewTicketSubject('');
+    setNewTicketMessage('');
+    triggerToast(`Support ticket ${newT.id} created`);
+  };
+
+  // Filtered Lists
   const filteredProfiles = profiles.filter(p => {
     const matchesSearch = !searchQuery || 
       p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
       p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.id?.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesRole = filterRole === 'ALL' || p.role === filterRole;
     const matchesCurrency = filterCurrency === 'ALL' || p.default_currency === filterCurrency;
-
     return matchesSearch && matchesRole && matchesCurrency;
   });
 
-  // Filtered Buckets Directory
   const filteredBuckets = buckets.filter(b => {
     return !searchQuery || 
       b.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
       b.destination_account?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  // Filtered Support Tickets
   const filteredTickets = tickets.filter(t => {
     const matchesSearch = !searchQuery || 
       t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -489,7 +637,6 @@ export function AdminCommandCenter({
     const userBuckets = buckets.filter(b => b.user_id === user.id);
     const userTxns = transactions.filter(t => t.user_id === user.id);
     const totalAllocated = userBuckets.reduce((sum, b) => sum + (Number(b.balance) || 0), 0);
-
     return { userBuckets, userTxns, totalAllocated };
   };
 
@@ -505,7 +652,7 @@ export function AdminCommandCenter({
         isSidebarCollapsed ? 'w-16' : 'w-60'
       }`}>
         
-        {/* Brand Header (No "Admin" badge next to logo) */}
+        {/* Brand Header (Zero "Admin" badge) */}
         <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between flex-shrink-0">
           {isSidebarCollapsed ? (
             <div className="w-8 h-8 rounded-xl bg-[#00A896] flex items-center justify-center font-black text-white text-xs mx-auto shadow-md">
@@ -699,13 +846,13 @@ export function AdminCommandCenter({
                 {activeTab === 'roles' && 'Configure granular permission matrices, define custom admin role policies, and manage user access.'}
                 {activeTab === 'categories' && 'Manage allocation ratio rules, destination bank accounts, and target bucket balances.'}
                 {activeTab === 'support' && 'Manage user support inquiries, resolve allocation issues, and respond to account tickets.'}
-                {activeTab === 'dashboard' && 'Dock-to-stock, pick accuracy, on-time ship, exception aging, and throughput — against §8 benchmarks.'}
+                {activeTab === 'dashboard' && 'Platform operational summary.'}
               </p>
             </div>
           </div>
 
           {/* ===================================================================== */}
-          {/* TAB 1: USER DIRECTORY MODULE */}
+          {/* MODULE 1: USER DIRECTORY */}
           {/* ===================================================================== */}
           {activeTab === 'users' && (
             <div className="space-y-6">
@@ -732,6 +879,46 @@ export function AdminCommandCenter({
                   <button onClick={() => setShowAddUserModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all">
                     <UserPlus className="w-4 h-4" /> Add User
                   </button>
+                </div>
+              </div>
+
+              {/* Filters Toolbar with CUSTOM POPOVER SELECTS */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search name, email, or user ID..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+                    />
+                  </div>
+
+                  <CustomSelect
+                    value={filterRole}
+                    onChange={val => setFilterRole(val)}
+                    options={[
+                      { value: 'ALL', label: 'All Roles' },
+                      { value: 'Salaried Employee / Professional', label: 'Salaried Employee' },
+                      { value: 'Freelancer & Contractor', label: 'Freelancer & Contractor' },
+                      { value: 'Business Owner / Entrepreneur', label: 'Business Owner' },
+                      { value: 'Student & Personal Budgeter', label: 'Student Budgeter' },
+                    ]}
+                  />
+
+                  <CustomSelect
+                    value={filterCurrency}
+                    onChange={val => setFilterCurrency(val)}
+                    options={[
+                      { value: 'ALL', label: 'All Currencies' },
+                      { value: 'NGN', label: 'NGN (₦)' },
+                      { value: 'USD', label: 'USD ($)' },
+                      { value: 'GBP', label: 'GBP (£)' },
+                      { value: 'EUR', label: 'EUR (€)' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -808,12 +995,23 @@ export function AdminCommandCenter({
           )}
 
           {/* ===================================================================== */}
-          {/* TAB 2: ROLES & PERMISSIONS MODULE */}
+          {/* MODULE 2: ROLES & ACCESS CONTROL */}
           {/* ===================================================================== */}
           {activeTab === 'roles' && (
             <div className="space-y-6">
 
-              {/* Role Cards Selector Grid */}
+              {/* Header Action Button */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-black text-base text-slate-900 dark:text-white">System Access Roles</h3>
+                  <p className="text-xs text-slate-500 font-semibold">Select a role to inspect or update module permission policies.</p>
+                </div>
+                <button onClick={() => setShowCreateRoleModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all">
+                  <Plus className="w-4 h-4" /> Create Custom Role
+                </button>
+              </div>
+
+              {/* Role Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {roles.map(r => {
                   const isSelected = selectedRole.id === r.id;
@@ -902,7 +1100,7 @@ export function AdminCommandCenter({
           )}
 
           {/* ===================================================================== */}
-          {/* TAB 3: BUCKETS & ALLOCATIONS MODULE */}
+          {/* MODULE 3: BUCKETS & ALLOCATIONS */}
           {/* ===================================================================== */}
           {activeTab === 'categories' && (
             <div className="space-y-6">
@@ -990,7 +1188,7 @@ export function AdminCommandCenter({
           )}
 
           {/* ===================================================================== */}
-          {/* TAB 4: SUPPORT INQUIRIES MODULE */}
+          {/* MODULE 4: SUPPORT INQUIRIES */}
           {/* ===================================================================== */}
           {activeTab === 'support' && (
             <div className="space-y-6">
@@ -1017,6 +1215,46 @@ export function AdminCommandCenter({
                   <button onClick={() => setShowNewTicketModal(true)} className="px-4 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all">
                     <MessageSquarePlus className="w-4 h-4" /> New Ticket
                   </button>
+                </div>
+              </div>
+
+              {/* Support Filters with CUSTOM POPOVER SELECTS */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-800 shadow-2xs space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search subject, email, ticket ID..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+                    />
+                  </div>
+
+                  <CustomSelect
+                    value={ticketFilterStatus}
+                    onChange={val => setTicketFilterStatus(val)}
+                    options={[
+                      { value: 'ALL', label: 'All Statuses' },
+                      { value: 'Open', label: 'Open' },
+                      { value: 'In Progress', label: 'In Progress' },
+                      { value: 'Resolved', label: 'Resolved' },
+                      { value: 'Closed', label: 'Closed' },
+                    ]}
+                  />
+
+                  <CustomSelect
+                    value={ticketFilterPriority}
+                    onChange={val => setTicketFilterPriority(val)}
+                    options={[
+                      { value: 'ALL', label: 'All Priorities' },
+                      { value: 'Low', label: 'Low' },
+                      { value: 'Medium', label: 'Medium' },
+                      { value: 'High', label: 'High' },
+                      { value: 'Urgent', label: 'Urgent' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -1093,7 +1331,7 @@ export function AdminCommandCenter({
           )}
 
           {/* ===================================================================== */}
-          {/* TAB 5: DASHBOARD OVERVIEW */}
+          {/* MODULE 5: DASHBOARD */}
           {/* ===================================================================== */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
@@ -1119,6 +1357,135 @@ export function AdminCommandCenter({
 
         </main>
       </div>
+
+      {/* ========================================================================= */}
+      {/* DEEP-DIVE USER BEHAVIORAL INTELLIGENCE DRAWER */}
+      {/* ========================================================================= */}
+      {deepDiveUser && (
+        <div className="fixed inset-0 z-[110] flex justify-end">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setDeepDiveUser(null)} />
+          <div className="relative w-full max-w-xl bg-white dark:bg-[#0D1B34] h-full shadow-2xl z-50 p-6 overflow-y-auto space-y-6 flex flex-col">
+            
+            {/* User Header */}
+            <div className="flex justify-between items-start pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <Avatar name={deepDiveUser.name} className="w-12 h-12 rounded-full border border-slate-300 dark:border-slate-700" />
+                <div>
+                  <h3 className="font-black text-lg text-slate-900 dark:text-white">{deepDiveUser.name}</h3>
+                  <p className="text-xs font-mono text-slate-500 font-semibold">{deepDiveUser.email}</p>
+                  {deepDiveUser.phoneNumber && (
+                    <p className="text-xs font-mono text-[#00A896] font-bold">{deepDiveUser.phoneNumber}</p>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => setDeepDiveUser(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 text-xs font-extrabold gap-4">
+              <button
+                onClick={() => setDrawerActiveTab('overview')}
+                className={`pb-2 border-b-2 transition-colors cursor-pointer ${
+                  drawerActiveTab === 'overview' ? 'border-[#00A896] text-[#00A896]' : 'border-transparent text-slate-500'
+                }`}
+              >
+                Overview &amp; Managed Balance
+              </button>
+              <button
+                onClick={() => setDrawerActiveTab('buckets')}
+                className={`pb-2 border-b-2 transition-colors cursor-pointer ${
+                  drawerActiveTab === 'buckets' ? 'border-[#00A896] text-[#00A896]' : 'border-transparent text-slate-500'
+                }`}
+              >
+                Active Buckets ({currentDeepDiveTelemetry?.userBuckets.length || 0})
+              </button>
+              <button
+                onClick={() => setDrawerActiveTab('transactions')}
+                className={`pb-2 border-b-2 transition-colors cursor-pointer ${
+                  drawerActiveTab === 'transactions' ? 'border-[#00A896] text-[#00A896]' : 'border-transparent text-slate-500'
+                }`}
+              >
+                Transaction Log ({currentDeepDiveTelemetry?.userTxns.length || 0})
+              </button>
+            </div>
+
+            {/* Tab 1: Overview */}
+            {drawerActiveTab === 'overview' && (
+              <div className="space-y-4 text-xs">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-slate-500">Total Allocated Balance</span>
+                  <p className="text-2xl font-black font-mono text-[#00A896]">
+                    {formatCurrency(currentDeepDiveTelemetry?.totalAllocated || 0, deepDiveUser.default_currency || 'NGN')}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="font-extrabold text-slate-700 dark:text-slate-300">Account Details</span>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Role Policy:</span>
+                      <span className="font-bold">{deepDiveUser.role}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Default Currency:</span>
+                      <span className="font-bold font-mono">{deepDiveUser.default_currency || 'NGN'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">User ID:</span>
+                      <span className="font-mono text-[10px] text-slate-400">{deepDiveUser.id}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    onClick={() => handleDeleteUser(deepDiveUser.id, deepDiveUser.name)}
+                    className="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white font-extrabold text-xs transition-colors cursor-pointer"
+                  >
+                    Delete Account Permanently
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: Buckets */}
+            {drawerActiveTab === 'buckets' && (
+              <div className="space-y-3 text-xs">
+                {currentDeepDiveTelemetry?.userBuckets.map((b: any) => (
+                  <div key={b.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5">
+                    <div className="flex justify-between font-black">
+                      <span>{b.name}</span>
+                      <span className="font-mono text-[#00A896]">{formatCurrency(b.balance || 0, deepDiveUser.default_currency || 'NGN')}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>Account: {b.destination_account || 'Default'}</span>
+                      <span className="font-mono font-bold">{b.allocation_percentage}% Ratio</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tab 3: Transactions */}
+            {drawerActiveTab === 'transactions' && (
+              <div className="space-y-3 text-xs">
+                {currentDeepDiveTelemetry?.userTxns.map((t: any) => (
+                  <div key={t.id} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="font-extrabold text-slate-900 dark:text-white">{t.description || 'Transaction'}</p>
+                      <p className="text-[10px] font-mono text-slate-500">{t.created_at || 'Recent'}</p>
+                    </div>
+                    <span className="font-mono font-black text-[#00A896]">{formatCurrency(t.amount || 0, deepDiveUser.default_currency || 'NGN')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* CREATE USER MODAL */}
       {showAddUserModal && (
@@ -1158,6 +1525,36 @@ export function AdminCommandCenter({
         </div>
       )}
 
+      {/* CREATE CUSTOM ROLE MODAL */}
+      {showCreateRoleModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <form onSubmit={handleCreateRoleSubmit} className="bg-white dark:bg-[#0E1A2E] rounded-2xl border border-slate-300 dark:border-slate-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Create Custom Role Policy</h3>
+              <button type="button" onClick={() => setShowCreateRoleModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role Title</label>
+                <input type="text" required value={newRoleName} onChange={e => setNewRoleName(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="e.g. Audit Manager" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role Description</label>
+                <textarea rows={3} value={newRoleDesc} onChange={e => setNewRoleDesc(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="Scope of permissions..." />
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button type="button" onClick={() => setShowCreateRoleModal(false)} className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs">Cancel</button>
+              <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md">Create Role</button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* CREATE BUCKET MODAL */}
       {showAddBucketModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
@@ -1185,6 +1582,109 @@ export function AdminCommandCenter({
               <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md">Create Bucket</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* NEW TICKET MODAL */}
+      {showNewTicketModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <form onSubmit={handleCreateTicketSubmit} className="bg-white dark:bg-[#0E1A2E] rounded-2xl border border-slate-300 dark:border-slate-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Log Support Inquiry Ticket</h3>
+              <button type="button" onClick={() => setShowNewTicketModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">User Email</label>
+                <input type="email" required value={newTicketUserEmail} onChange={e => setNewTicketUserEmail(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="user@example.com" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Inquiry Subject</label>
+                <input type="text" required value={newTicketSubject} onChange={e => setNewTicketSubject(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="Brief issue description..." />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Inquiry Details</label>
+                <textarea required rows={3} value={newTicketMessage} onChange={e => setNewTicketMessage(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white" placeholder="Full message details..." />
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button type="button" onClick={() => setShowNewTicketModal(false)} className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs">Cancel</button>
+              <button type="submit" className="px-5 py-2 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs shadow-md">Create Ticket</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TICKET RESPONDER DRAWER */}
+      {selectedTicket && (
+        <div className="fixed inset-0 z-[110] flex justify-end">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setSelectedTicket(null)} />
+          <div className="relative w-full max-w-xl bg-white dark:bg-[#0D1B34] h-full shadow-2xl z-50 p-6 overflow-y-auto space-y-6 flex flex-col">
+            
+            <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-[#00A896]">{selectedTicket.id}</span>
+                <h3 className="font-black text-base text-slate-900 dark:text-white">{selectedTicket.subject}</h3>
+                <p className="text-xs text-slate-500 font-semibold">{selectedTicket.userName} ({selectedTicket.userEmail})</p>
+              </div>
+              <button onClick={() => setSelectedTicket(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Status Control Bar */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+              <span className="font-extrabold text-slate-600 dark:text-slate-400">Update Status:</span>
+              <div className="flex gap-1">
+                {(['Open', 'In Progress', 'Resolved', 'Closed'] as const).map(st => (
+                  <button
+                    key={st}
+                    onClick={() => handleUpdateTicketStatus(selectedTicket.id, st)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all ${
+                      selectedTicket.status === st ? 'bg-[#00A896] text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Message Thread */}
+            <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+              {selectedTicket.messages.map(m => (
+                <div key={m.id} className={`p-4 rounded-2xl text-xs space-y-1.5 ${
+                  m.sender === 'agent' ? 'bg-[#00A896]/10 text-slate-900 dark:text-slate-100 border border-[#00A896]/20 ml-6' : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mr-6'
+                }`}>
+                  <div className="flex justify-between font-black">
+                    <span>{m.senderName}</span>
+                    <span className="text-[10px] font-mono text-slate-500">{m.timestamp}</span>
+                  </div>
+                  <p className="font-medium leading-relaxed">{m.text}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Reply Form */}
+            <form onSubmit={handleSendTicketReply} className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <textarea
+                required
+                rows={3}
+                value={ticketReplyText}
+                onChange={e => setTicketReplyText(e.target.value)}
+                placeholder="Type resolution reply to user..."
+                className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-[#00A896]"
+              />
+              <button type="submit" className="w-full py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md">
+                <Send className="w-4 h-4" /> Dispatch Resolution Reply
+              </button>
+            </form>
+
+          </div>
         </div>
       )}
 

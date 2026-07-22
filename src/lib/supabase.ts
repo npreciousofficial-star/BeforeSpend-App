@@ -94,6 +94,7 @@ export async function registerUserAccountToSupabase(user: {
   passwordHash: string;
   role: string;
   defaultCurrency: string;
+  phoneNumber?: string;
 }): Promise<string | null> {
   const validUuid = ensureUuid(user.id);
   try {
@@ -101,11 +102,13 @@ export async function registerUserAccountToSupabase(user: {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.email,
       password: user.passwordHash && user.passwordHash.length >= 6 ? user.passwordHash : 'SecurePassword123!',
+      phone: user.phoneNumber || undefined,
       options: {
         data: {
           name: user.name,
           role: user.role,
           default_currency: user.defaultCurrency,
+          phone_number: user.phoneNumber,
         }
       }
     });
@@ -129,6 +132,7 @@ export async function registerUserAccountToSupabase(user: {
       role: user.role || 'Personal Budgeter',
       avatar: 'preset-emerald',
       default_currency: user.defaultCurrency || 'NGN',
+      phone_number: user.phoneNumber || null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'email' });
 

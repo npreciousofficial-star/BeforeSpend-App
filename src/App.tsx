@@ -1077,7 +1077,9 @@ export function AuthenticatedApp({
           calculateLocalStorageQuota={calculateLocalStorageQuota}
           formatCurrency={formatCurrency}
           isDarkMode={isDarkMode}
-          toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+          toggleDarkMode={toggleDarkMode}
+          notifications={notifications}
+          setNotifications={setNotifications}
         />
       )}
 

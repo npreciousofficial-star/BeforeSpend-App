@@ -50,6 +50,8 @@ interface AdminCommandCenterProps {
   formatCurrency: (amount: number, currency: string) => string;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  notifications: any[];
+  setNotifications: (v: any[]) => void;
 }
 
 // Helper to derive initial tab from URL path
@@ -404,7 +406,8 @@ export function AdminCommandCenter({
   rawDbJson, setRawDbJson, handleExportDb, handleImportDb,
   showImportDbModal, setShowImportDbModal,
   calculateLocalStorageQuota, formatCurrency,
-  isDarkMode, toggleDarkMode
+  isDarkMode, toggleDarkMode,
+  notifications, setNotifications
 }: AdminCommandCenterProps) {
   // Navigation State with URL Path History Persistence
   const [activeTab, setActiveTab] = useState<string>(getTabFromLocation);
@@ -493,6 +496,8 @@ export function AdminCommandCenter({
 
   // Add User Modal State
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPhone, setNewUserPhone] = useState('');
@@ -1050,23 +1055,143 @@ export function AdminCommandCenter({
           </div>
 
           {/* Right Action Icons & User Telemetry */}
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer" title="Notifications">
-              <Bell className="w-4.5 h-4.5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00A896] ring-2 ring-white dark:ring-[#0D1B34]" />
-            </button>
+          <div className="flex items-center gap-3 relative">
+            
+            {/* Notification Bell with Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowNotificationsDropdown(!showNotificationsDropdown);
+                  setShowProfileDropdown(false);
+                }}
+                className="relative p-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title="Notifications"
+              >
+                <Bell className="w-4.5 h-4.5" />
+                {notifications && notifications.some(n => !n.read) && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00A896] ring-2 ring-white dark:ring-[#0D1B34]" />
+                )}
+              </button>
 
-            <button onClick={toggleDarkMode} className="p-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer" title="Toggle Mode">
+              {showNotificationsDropdown && (
+                <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200 dark:border-slate-800 shadow-2xl z-50 p-4 space-y-3 text-xs">
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <span className="font-black text-slate-900 dark:text-white">System Alerts ({notifications?.filter(n => !n.read).length || 0})</span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setNotifications((notifications || []).map(n => ({ ...n, read: true })));
+                          triggerToast('All notifications marked as read.');
+                        }}
+                        className="text-[#00A896] hover:underline font-bold text-[10px]"
+                      >
+                        Read All
+                      </button>
+                      <button
+                        onClick={() => {
+                          setNotifications([]);
+                          triggerToast('Notifications cleared.');
+                        }}
+                        className="text-rose-500 hover:underline font-bold text-[10px]"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto space-y-2 scrollbar-none">
+                    {!notifications || notifications.length === 0 ? (
+                      <p className="text-slate-500 font-bold italic py-4 text-center">No system notifications.</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => {
+                            setNotifications(notifications.map(item => item.id === n.id ? { ...item, read: true } : item));
+                            setShowNotificationsDropdown(false);
+                          }}
+                          className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                            n.read 
+                              ? 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-900 text-slate-600 dark:text-slate-400' 
+                              : 'bg-[#00A896]/5 border-[#00A896]/10 text-slate-950 dark:text-white font-extrabold'
+                          }`}
+                        >
+                          <p className="font-black text-[11px]">{n.title}</p>
+                          <p className="text-[10px] mt-0.5 text-slate-600 dark:text-slate-400 font-semibold">{n.message}</p>
+                          <span className="text-[9px] text-slate-400 mt-1 block font-mono">{new Date(n.time).toLocaleTimeString()}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Theme Toggle */}
+            <button onClick={toggleDarkMode} className="p-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Toggle Mode">
               {isDarkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-slate-700" />}
             </button>
 
-            <div className="flex items-center gap-2.5 cursor-pointer pl-2 border-l border-slate-200 dark:border-slate-800">
-              <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-700" />
-              <div className="hidden xl:block text-left">
-                <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{userProfile.name}</p>
-                <p className="text-[10px] font-mono font-bold text-[#00A896]">Root Admin</p>
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <div
+                onClick={() => {
+                  setShowProfileDropdown(!showProfileDropdown);
+                  setShowNotificationsDropdown(false);
+                }}
+                className="flex items-center gap-2.5 cursor-pointer pl-2 border-l border-slate-200 dark:border-slate-800 py-1 hover:opacity-85"
+              >
+                <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-700 shadow-2xs" />
+                <div className="hidden xl:block text-left">
+                  <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{userProfile.name}</p>
+                  <p className="text-[10px] font-mono font-bold text-[#00A896]">{userProfile.role || 'Root Admin'}</p>
+                </div>
               </div>
+
+              {showProfileDropdown && (
+                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#0D1B34] border border-slate-200 dark:border-slate-800 shadow-2xl z-50 p-4 space-y-3.5 text-xs text-slate-800 dark:text-slate-200">
+                  <div className="pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                    <p className="font-black text-slate-950 dark:text-white">{userProfile.name}</p>
+                    <p className="text-[10px] font-mono font-bold text-slate-500">{userProfile.email}</p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <button
+                      onClick={() => {
+                        setFeatureFlags(prev => ({ ...prev, emergency_withdrawal_override: !prev.emergency_withdrawal_override }));
+                        triggerToast('Emergency override state toggled.');
+                        setShowProfileDropdown(false);
+                      }}
+                      className="w-full text-left py-1.5 px-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between font-bold cursor-pointer transition-colors"
+                    >
+                      <span>Emergency Override</span>
+                      <span className={`w-2 h-2 rounded-full ${featureFlags.emergency_withdrawal_override ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.localStorage.clear();
+                        triggerToast('Application cache cleared. Refreshing...');
+                        setTimeout(() => window.location.reload(), 1200);
+                      }}
+                      className="w-full text-left py-1.5 px-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold cursor-pointer transition-colors"
+                    >
+                      Clear App Cache
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setShowProfileDropdown(false);
+                      onLogout();
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-500/20"
+                  >
+                    <LogOut className="w-3.5 h-3.5" /> Logout Platform
+                  </button>
+                </div>
+              )}
             </div>
+
           </div>
 
         </header>
@@ -2708,6 +2833,116 @@ export function AdminCommandCenter({
 
         </main>
       </div>
+
+      {/* ADD USER MODAL DIALOG */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowAddUserModal(false)} />
+          <div className="relative bg-white dark:bg-[#0D1B34] border border-slate-300 dark:border-slate-850 rounded-3xl shadow-2xl p-6 w-full max-w-md space-y-4 z-50 text-xs">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Register Budgeter Profile</h3>
+              <button onClick={() => setShowAddUserModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddUserSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newUserName}
+                  onChange={e => setNewUserName(e.target.value)}
+                  placeholder="e.g. Chidi Okafor"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold placeholder:text-slate-400 focus:outline-none focus:border-[#00A896]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={newUserEmail}
+                  onChange={e => setNewUserEmail(e.target.value)}
+                  placeholder="e.g. chidi@example.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-955 text-slate-900 dark:text-white font-bold placeholder:text-slate-400 focus:outline-none focus:border-[#00A896]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Phone Number</label>
+                <input
+                  type="text"
+                  value={newUserPhone}
+                  onChange={e => setNewUserPhone(e.target.value)}
+                  placeholder="e.g. +234 80 1234 5678"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-955 text-slate-900 dark:text-white font-bold placeholder:text-slate-400 focus:outline-none focus:border-[#00A896]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Secure Passcode</label>
+                <input
+                  type="password"
+                  required
+                  value={newUserPassword}
+                  onChange={e => setNewUserPassword(e.target.value)}
+                  placeholder="Minimum 6 characters"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-955 text-slate-900 dark:text-white font-bold placeholder:text-slate-400 focus:outline-none focus:border-[#00A896]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Default Currency</label>
+                  <CustomSelect
+                    value={newUserCurrency}
+                    onChange={val => setNewUserCurrency(val)}
+                    options={[
+                      { value: 'NGN', label: 'NGN (₦)' },
+                      { value: 'USD', label: 'USD ($)' },
+                      { value: 'GBP', label: 'GBP (£)' },
+                      { value: 'EUR', label: 'EUR (€)' }
+                    ]}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider">Policy Role</label>
+                  <CustomSelect
+                    value={newUserRole}
+                    onChange={val => setNewUserRole(val)}
+                    options={[
+                      { value: 'Salaried Employee / Professional', label: 'Salaried Employee' },
+                      { value: 'Freelancer & Contractor', label: 'Freelancer' },
+                      { value: 'Business Owner / Entrepreneur', label: 'Entrepreneur' },
+                      { value: 'Student & Personal Budgeter', label: 'Student' }
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-350 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-extrabold shadow-md transition-all cursor-pointer"
+                >
+                  Register Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* DEEP-DIVE USER BEHAVIORAL INTELLIGENCE DRAWER */}
       {deepDiveUser && (

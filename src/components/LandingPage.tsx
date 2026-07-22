@@ -86,7 +86,7 @@ export function LandingPage({
     }
   }
 
-  const isAdmin = userProfile.role === 'Platform Administrator' || userProfile.email.toLowerCase() === 'admin@beforespend.app';
+  const isAdmin = userProfile.role === 'Platform Administrator' || userProfile.email.toLowerCase() === 'admin@beforespend.app' || userProfile.email.toLowerCase() === 'admin@beforespend.xyz';
 
   // Live Calculator state
   const [sandboxIncome, setSandboxIncome] = useState<number>(500000);
@@ -708,7 +708,7 @@ export function LandingPage({
                     <span>100% Pre-allocated Security</span>
                   </div>
                   <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 leading-relaxed font-medium">
-                    Every naira of your {formatCurrency(sandboxIncome, sandboxCurrency)} inflow is assigned to a specific bucket before it leaves your hands.
+                    Every {sandboxCurrency === 'USD' ? 'dollar' : sandboxCurrency === 'EUR' ? 'euro' : sandboxCurrency === 'GBP' ? 'pound' : sandboxCurrency === 'CAD' ? 'dollar' : sandboxCurrency === 'AUD' ? 'dollar' : 'naira'} of your {formatCurrency(sandboxIncome, sandboxCurrency)} inflow is assigned to a specific bucket before it leaves your hands.
                   </p>
                 </div>
               </div>

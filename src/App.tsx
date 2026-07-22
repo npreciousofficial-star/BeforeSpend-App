@@ -9,7 +9,7 @@ import { DEFAULT_BUCKETS, BUCKET_TEMPLATES } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency } from './lib/utils';
 import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastMessage, AppNotification, Transaction } from './types';
 import { 
-  syncProfileToSupabase, syncBucketsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase,
+  syncProfileToSupabase, syncBucketsToSupabase, syncTransactionsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase,
   loadProfileFromSupabase, loadBucketsFromSupabase, loadTransactionsFromSupabase, loadPaymentsFromSupabase, loadMilestonesFromSupabase, loadRemindersFromSupabase,
   loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase,
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
@@ -167,6 +167,7 @@ export function AuthenticatedApp({
   const [activeTab, setActiveTab] = useLocalStorage<string>(`${userPrefix}beforespend_active_tab`, 'split');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false); // guards sync from firing before load completes
   
   // Settings bucket states
   const [editingBucket, setEditingBucket] = useState<Bucket | null>(null);
@@ -318,26 +319,29 @@ export function AuthenticatedApp({
         }
 
         console.log('Supabase user data loaded successfully!');
+        setDataLoaded(true);
       } catch (err) {
         console.warn('Failed to load user data from Supabase:', err);
+        setDataLoaded(true); // allow sync even on partial load failure
       }
     }
 
     loadData();
   }, [currentUserId]);
 
-  // Supabase background sync for cloud persistent storage
+  // Supabase background sync for cloud persistent storage (only after initial data load)
   useEffect(() => {
-    if (!currentUserId || currentUserId.startsWith('00000000-')) {
-      return; // Skip sync for guests (null/empty) and local demo/mock users
+    if (!currentUserId || currentUserId.startsWith('00000000-') || !dataLoaded) {
+      return; // Skip sync for guests and until load completes (prevents race condition)
     }
     syncProfileToSupabase(userProfile, currentUserId);
     syncBucketsToSupabase(buckets, currentUserId);
+    syncTransactionsToSupabase(transactions, currentUserId);
     syncPaymentsToSupabase(history, currentUserId);
     syncMilestonesToSupabase(milestones, currentUserId);
     syncRemindersToSupabase(reminders, currentUserId);
     syncNotificationsToSupabase(notifications, currentUserId);
-  }, [userProfile, buckets, history, milestones, reminders, notifications, currentUserId]);
+  }, [userProfile, buckets, transactions, history, milestones, reminders, notifications, currentUserId, dataLoaded]);
 
   // Dynamic system notifications logic
   useEffect(() => {
@@ -497,10 +501,22 @@ export function AuthenticatedApp({
     }, 100);
   };
 
-  // Delete/reverse split history item
+  // Delete/reverse split history item — also removes associated CREDIT ledger entries
   const handleDeleteHistory = (id: string) => {
+    const entry = history.find((h) => h.id === id);
     setHistory((prev) => prev.filter((h) => h.id !== id));
-    addToast('Payment transaction reversed & removed!', 'info');
+    if (entry && entry.splits?.length > 0) {
+      const bucketIdsInEntry = new Set(entry.splits.map((s: any) => s.bucketId));
+      setTransactions((prev) =>
+        prev.filter(
+          (t) =>
+            !(t.direction === 'CREDIT' &&
+              t.type === 'INCOME_SPLIT' &&
+              bucketIdsInEntry.has(t.bucketId))
+        )
+      );
+    }
+    addToast('Payment reversed and ledger entries removed.', 'info');
   };
 
   const handleClearHistory = (revertBalances?: boolean) => {
@@ -566,10 +582,22 @@ export function AuthenticatedApp({
     }
   };
 
-  // Delete expense (restores balance)
+  // Delete expense — also removes the corresponding DEBIT ledger transaction to truly restore balance
   const handleDeleteExpense = (id: string) => {
+    const expense = expenses.find((e) => e.id === id);
     setExpenses((prev) => prev.filter((e) => e.id !== id));
-    addToast('Expense deleted. Balances restored!', 'info');
+    if (expense) {
+      setTransactions((prev) =>
+        prev.filter(
+          (t) =>
+            !(t.direction === 'DEBIT' &&
+              t.bucketId === expense.bucketId &&
+              t.amount === expense.amount &&
+              t.description === expense.description)
+        )
+      );
+    }
+    addToast('Expense deleted. Balance restored.', 'info');
   };
 
   const handleClearExpenses = () => {
@@ -807,6 +835,7 @@ export function AuthenticatedApp({
       role: editProfileRole,
       defaultCurrency: editProfileCurrency,
       avatar: editProfileAvatar,
+      phoneNumber: userProfile.phoneNumber, // preserve phone number — never silently drop it
     });
     addToast('Profile configuration saved!', 'success');
   };
@@ -3160,7 +3189,8 @@ export default function App() {
           onLogin={(userId) => {
             setCurrentUserId(userId);
             setAuthView('app');
-            const isUserAdmin = userId.includes('admin') || window.localStorage.getItem('beforespend_user_profile')?.includes('Platform Administrator');
+            const profileStr = window.localStorage.getItem(`user_${userId}_beforespend_profile`);
+            const isUserAdmin = profileStr?.includes('Platform Administrator') || profileStr?.includes('admin@beforespend.app') || profileStr?.includes('admin@beforespend.xyz');
             const targetPath = isUserAdmin ? '/admin' : '/dashboard';
             window.history.pushState({}, '', targetPath);
             setCurrentPath(targetPath);

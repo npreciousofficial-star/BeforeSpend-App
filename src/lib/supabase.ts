@@ -293,6 +293,45 @@ export async function syncPaymentsToSupabase(payments: PaymentEntry[], userId: s
 }
 
 /**
+ * Sync transactions (immutable double-entry ledger) to Supabase.
+ * This is the most critical sync — without it, bucket balances are lost on cache clear.
+ */
+export async function syncTransactionsToSupabase(transactions: Transaction[], userId: string) {
+  try {
+    const validUuid = ensureUuid(userId);
+    if (!transactions || transactions.length === 0) return;
+
+    const records = transactions.map(t => ({
+      id: t.id,
+      user_id: validUuid,
+      bucket_id: t.bucketId || null,
+      type: t.type || 'EXPENSE',
+      amount: Number(t.amount) || 0,
+      direction: t.direction || 'DEBIT',
+      description: t.description || '',
+      receipt_url: t.receiptUrl || null,
+      source_type: t.sourceType || 'MANUAL_ENTRY',
+      deduplication_hash: t.deduplicationHash || null,
+      created_at: t.createdAt || new Date().toISOString(),
+    }));
+
+    // Upsert in batches of 50 to avoid payload size limits
+    const batchSize = 50;
+    for (let i = 0; i < records.length; i += batchSize) {
+      const batch = records.slice(i, i + batchSize);
+      const { error } = await supabase.from('transactions').upsert(batch, {
+        onConflict: 'id',
+        ignoreDuplicates: false
+      });
+      if (error) console.warn('Supabase transactions sync error:', error.message);
+    }
+  } catch (err) {
+    console.warn('Supabase syncTransactions failed:', err);
+  }
+}
+
+
+/**
  * Sync milestones to Supabase
  */
 export async function syncMilestonesToSupabase(milestones: Milestone[], userId: string) {
@@ -302,6 +341,7 @@ export async function syncMilestonesToSupabase(milestones: Milestone[], userId: 
       user_id: validUuid,
       name: m.name,
       target_amount: m.targetAmount,
+      bucket_id: m.bucketId || null, // fixed: was being dropped, causing milestones to lose bucket link
       created_date: m.createdDate || new Date().toISOString()
     }));
 

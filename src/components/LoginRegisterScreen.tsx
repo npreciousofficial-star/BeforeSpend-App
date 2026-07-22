@@ -261,10 +261,21 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
     setShowGoogleModal(false);
   };
 
-  const handleForgotPassword = (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail.trim()) return;
-    setForgotSuccessMsg(`A password reset link has been sent to ${forgotEmail}. Please check your inbox.`);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      if (error) {
+        setForgotSuccessMsg(`Error: ${error.message}. Please try again.`);
+      } else {
+        setForgotSuccessMsg(`A password reset link has been sent to ${forgotEmail}. Please check your inbox and spam folder.`);
+      }
+    } catch (err) {
+      setForgotSuccessMsg('Unable to send reset email. Please try again later.');
+    }
   };
 
   // Safe Close for dropdowns

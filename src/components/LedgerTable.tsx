@@ -264,6 +264,8 @@ export function LedgerTable({
                 <tbody className="divide-y divide-gray-100 dark:divide-zinc-850 text-xs">
                   {filteredTransactions.map(txn => {
                     const isCredit = txn.direction === 'CREDIT';
+                    const targetBucket = buckets.find(b => b.id === txn.bucketId || b.name === txn.bucketId || b.name === txn.bucketName);
+                    const categoryLabel = targetBucket?.name || (txn.bucketName && txn.bucketName !== 'Unallocated' ? txn.bucketName : (txn.type === 'INCOME_SPLIT' ? 'Split Allocation' : 'General Budget'));
                     const formattedDate = new Date(txn.createdAt).toLocaleString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -280,19 +282,19 @@ export function LedgerTable({
                         <td className="py-3.5 px-4 font-mono text-gray-400 text-[11px] whitespace-nowrap">
                           {formattedDate}
                         </td>
-                        <td className="py-3.5 px-4 font-semibold text-gray-900 dark:text-zinc-100">
+                        <td className="py-3.5 px-4 font-bold text-[#0E2A47] dark:text-zinc-100">
                           <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isCredit ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isCredit ? 'bg-[#00A896]' : 'bg-rose-500'}`} />
                             <span>{txn.description}</span>
                             {txn.receiptUrl && (
-                              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[9px] font-bold flex items-center gap-0.5 flex-shrink-0">
+                              <span className="px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 text-[9px] font-bold flex items-center gap-0.5 flex-shrink-0">
                                 <Receipt className="w-3 h-3" /> Receipt
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-zinc-400 whitespace-nowrap">
-                          {txn.bucketName || 'Unallocated'}
+                        <td className="py-3.5 px-4 font-bold text-[#0E2A47] dark:text-zinc-200 whitespace-nowrap">
+                          {categoryLabel}
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
@@ -311,7 +313,7 @@ export function LedgerTable({
                           </div>
                         </td>
                         <td className="py-3.5 px-4 text-right font-mono font-bold whitespace-nowrap">
-                          <span className={isCredit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                          <span className={isCredit ? 'text-[#006654] dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                             {isCredit ? '+' : '-'}{formatCurrency(txn.amount, currency)}
                           </span>
                         </td>

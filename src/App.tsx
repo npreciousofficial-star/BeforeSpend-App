@@ -238,6 +238,10 @@ export function AuthenticatedApp({
   const [editProfileCurrency, setEditProfileCurrency] = useState(userProfile.defaultCurrency);
   const [editProfileAvatar, setEditProfileAvatar] = useState(userProfile.avatar || 'preset-chidi');
 
+  // Custom Blueprint Confirmation Modal State
+  const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
+  const [pendingTemplateToLoad, setPendingTemplateToLoad] = useState<typeof BUCKET_TEMPLATES[0] | null>(null);
+
   // 1.1 Notification System State
   const [notifications, setNotifications] = useLocalStorage<AppNotification[]>(
     `${userPrefix}beforespend_notifications`,
@@ -803,14 +807,18 @@ export function AuthenticatedApp({
     addToast('Bucket deleted successfully.', 'info');
   };
 
-  // Reset buckets to template
+  // Open custom modal before loading template
   const handleLoadTemplate = (template: typeof BUCKET_TEMPLATES[0]) => {
-    const confirmTemplate = window.confirm(
-      `Loading template "${template.name}" will completely replace your current budget buckets. Running balances will reset to 0. Do you wish to proceed?`
-    );
-    if (!confirmTemplate) return;
+    setPendingTemplateToLoad(template);
+    setShowBlueprintConfirmModal(true);
+  };
 
-    const loaded: Bucket[] = template.buckets.map((b, idx) => ({
+  // Safe Template Application — preserves ledger transactions history while re-architecting buckets
+  const executeApplyTemplate = () => {
+    if (!pendingTemplateToLoad) return;
+    const tmpl = pendingTemplateToLoad;
+
+    const loaded: Bucket[] = tmpl.buckets.map((b, idx) => ({
       id: `t-${idx}-${generateId()}`,
       name: b.name,
       percentage: b.percentage,
@@ -821,19 +829,16 @@ export function AuthenticatedApp({
     }));
 
     setBuckets(loaded);
-    setHistory([]);
-    setExpenses([]);
-    addToast(`Loaded ${template.name} template!`, 'success');
+    setUserProfile((prev) => ({ ...prev, selectedBlueprint: tmpl.name }));
+    setShowBlueprintConfirmModal(false);
+    setPendingTemplateToLoad(null);
+
+    addToast(`Successfully applied "${tmpl.name}" blueprint! Your historical transactions remain intact.`, 'success');
   };
 
   const handleResetToDefaultBuckets = () => {
-    const confirmReset = window.confirm('Reset all buckets back to default freelance setup? This will clear history and expenses.');
-    if (!confirmReset) return;
-
-    setBuckets(DEFAULT_BUCKETS);
-    setHistory([]);
-    setExpenses([]);
-    addToast('Reset to default configurations completed.', 'success');
+    setPendingTemplateToLoad(BUCKET_TEMPLATES[0]);
+    setShowBlueprintConfirmModal(true);
   };
 
   // User Profile save
@@ -3104,6 +3109,51 @@ export function AuthenticatedApp({
           onBatchImport={handleBatchImport}
           onClose={() => setShowStatementParserModal(false)}
         />
+      )}
+
+      {/* MODAL: CUSTOM BLUEPRINT CONFIRMATION */}
+      {showBlueprintConfirmModal && (
+        <div id="blueprint-confirm-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-150 dark:border-zinc-900">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">
+                  Apply {pendingTemplateToLoad?.name || 'Industry'} Blueprint?
+                </h3>
+                <p className="text-[11px] text-gray-400 font-medium">Budget Structure Re-architecture</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-600 dark:text-zinc-300 leading-relaxed">
+              Applying the <strong className="text-[#0E2A47] dark:text-zinc-100">{pendingTemplateToLoad?.name || 'Selected Blueprint'}</strong> template will re-align your budget categories to this framework. 
+              <br /><br />
+              <span className="text-[#006654] font-bold">✓ Data Protection Notice:</span> Your historical transactions and past splits will remain 100% safe and un-wiped.
+            </p>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBlueprintConfirmModal(false);
+                  setPendingTemplateToLoad(null);
+                }}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-250 text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 text-xs font-bold transition-all cursor-pointer"
+              >
+                Keep Current Buckets
+              </button>
+              <button
+                type="button"
+                onClick={executeApplyTemplate}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0E2A47] hover:bg-[#00A896] text-white text-xs font-black shadow-md transition-all cursor-pointer"
+              >
+                Confirm & Apply Blueprint
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

@@ -375,29 +375,29 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
 
           {/* Bar Charts Render */}
           <div className="space-y-4">
-            <div className="h-44 flex items-end justify-between gap-3 pt-4 border-b border-gray-150 dark:border-zinc-900">
+            <div className="h-48 flex items-end justify-between gap-2 sm:gap-3 pt-6 pb-2 border-b border-gray-150 dark:border-zinc-900 bg-gray-50/50 dark:bg-zinc-900/30 p-3 sm:p-4 rounded-xl">
               {monthlyData.map((data, index) => {
-                const splitsHeight = `${(data.splits / maxVal) * 100}%`;
-                const expenseHeight = `${(data.expenses / maxVal) * 100}%`;
+                const splitsPct = data.splits > 0 ? Math.max(10, (data.splits / maxVal) * 100) : 0;
+                const expensePct = data.expenses > 0 ? Math.max(10, (data.expenses / maxVal) * 100) : 0;
 
                 return (
-                  <div key={index} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                    <div className="flex gap-1.5 items-end justify-center w-full h-[85%]">
+                  <div key={index} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                    <div className="flex gap-1 sm:gap-2 items-end justify-center w-full h-[82%]">
                       {/* Splits Bar */}
                       <div 
-                        style={{ height: splitsHeight }}
-                        className="w-3 sm:w-4 bg-emerald-500 dark:bg-emerald-600 rounded-t-sm transition-all duration-500 hover:opacity-85"
+                        style={{ height: `${splitsPct}%` }}
+                        className="w-3.5 sm:w-6 bg-[#00A896] dark:bg-teal-500 rounded-t-md shadow-xs transition-all duration-500 hover:opacity-90 cursor-pointer"
                         title={`Splits: ${formatCurrency(data.splits, currency)}`}
                       />
                       {/* Expense Bar */}
                       <div 
-                        style={{ height: expenseHeight }}
-                        className="w-3 sm:w-4 bg-rose-500 dark:bg-rose-600 rounded-t-sm transition-all duration-500 hover:opacity-85"
+                        style={{ height: `${expensePct}%` }}
+                        className="w-3.5 sm:w-6 bg-rose-500 dark:bg-rose-600 rounded-t-md shadow-xs transition-all duration-500 hover:opacity-90 cursor-pointer"
                         title={`Expenses: ${formatCurrency(data.expenses, currency)}`}
                       />
                     </div>
                     {/* Month Label */}
-                    <span className="text-[10px] font-bold text-gray-400">
+                    <span className="text-[10px] sm:text-xs font-black text-[#0E2A47] dark:text-zinc-300">
                       {data.name}
                     </span>
                   </div>
@@ -406,8 +406,8 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
             </div>
 
             <div className="text-[11px] text-gray-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 px-1 pt-1">
-              <span>*Hover over bars to see breakdown details.</span>
-              <span className="font-semibold text-emerald-500">Peak Month Volume: {formatCurrency(maxVal, currency)}</span>
+              <span>*Hover over bars to inspect monthly breakdown figures.</span>
+              <span className="font-bold text-[#006654]">Peak Month Volume: {formatCurrency(maxVal, currency)}</span>
             </div>
           </div>
         </div>

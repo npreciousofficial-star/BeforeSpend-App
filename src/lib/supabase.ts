@@ -399,10 +399,10 @@ export async function loadProfileFromSupabase(userId: string): Promise<UserProfi
       .from('profiles')
       .select('*')
       .eq('id', validUuid)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      console.warn('Error loading profile from Supabase:', error.message);
+    if (error || !data) {
+      if (error) console.warn('Info loading profile from Supabase:', error.message);
       return null;
     }
 

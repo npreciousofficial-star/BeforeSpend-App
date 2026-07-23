@@ -56,7 +56,25 @@ export function SplitCalculator({
     }
   }, [defaultCurrency]);
 
-  const numericAmount = parseFloat(amount) || 0;
+  // Format input string with commas as typed e.g. 1,000,000.00
+  const formatRawValue = (val: string): string => {
+    if (!val) return '';
+    // Strip all non-digit and non-decimal characters
+    const cleaned = val.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (parts.length > 1) {
+      return `${integerPart}.${parts[1].slice(0, 2)}`;
+    }
+    return integerPart;
+  };
+
+  const handleAmountInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatRawValue(e.target.value);
+    setAmount(formatted);
+  };
+
+  const numericAmount = parseFloat(amount.replace(/,/g, '')) || 0;
 
   // Convert the entered amount from input currency to user's default currency
   const convertedAmount = convertCurrency(numericAmount, currency, defaultCurrency, exchangeRates);
@@ -211,13 +229,13 @@ export function SplitCalculator({
       <div className="lg:col-span-5 space-y-5">
         <div id="calculator-input-card" className="p-6 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 shadow-xl backdrop-blur-xl space-y-5">
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-black text-[#0E2A47] dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Wallet className="w-4 h-4 text-[#00A896]" />
+            <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-2 mb-2">
+              <label className="text-xs font-black text-[#0E2A47] dark:text-zinc-200 uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap min-w-max">
+                <Wallet className="w-4 h-4 text-[#00A896] flex-shrink-0" />
                 Payment Received
               </label>
               {/* Currency Selector */}
-              <div className="flex gap-1 bg-gray-100 dark:bg-zinc-900 p-1 rounded-xl border border-gray-200 dark:border-zinc-800">
+              <div className="flex gap-1 bg-gray-100 dark:bg-zinc-900 p-1 rounded-xl border border-gray-200 dark:border-zinc-800 flex-shrink-0">
                 {['NGN', 'USD', 'GBP', 'EUR', 'CAD'].map((curr) => (
                   <button
                     key={curr}
@@ -237,25 +255,23 @@ export function SplitCalculator({
 
             {/* Major Input Box */}
             <div className="relative rounded-2xl border border-gray-300/80 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-[#00A896]/30 focus-within:border-[#00A896] overflow-hidden bg-gradient-to-br from-gray-50/50 to-teal-50/20 dark:from-zinc-900/40 dark:to-zinc-900/10 flex items-center pr-4 transition-all">
-              <span className="pl-5 text-[#0E2A47] dark:text-zinc-200 font-extrabold text-3xl select-none">
+              <span className="pl-5 text-[#0E2A47] dark:text-zinc-200 font-extrabold text-3xl select-none flex-shrink-0">
                 {currency === 'NGN' ? '₦' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : 'C$'}
               </span>
               <input
                 id="calculator-main-input"
-                type="number"
-                min="0"
-                step="any"
+                type="text"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={handleAmountInputChange}
                 placeholder="0.00"
-                className="w-full pl-3 pr-4 py-4 text-3xl font-black bg-transparent border-none text-gray-900 dark:text-zinc-50 placeholder-gray-300 dark:placeholder-zinc-700 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full pl-3 pr-4 py-4 text-3xl font-black bg-transparent border-none text-gray-900 dark:text-zinc-50 placeholder-gray-300 dark:placeholder-zinc-700 focus:outline-none tracking-tight"
               />
             </div>
 
             {/* Quick Amounts */}
             <div className="mt-3">
               <QuickAmounts 
-                onSelect={(amt) => setAmount(amt.toString())}
+                onSelect={(amt) => setAmount(formatRawValue(amt.toString()))}
                 inputCurrency={currency}
                 defaultCurrency={defaultCurrency}
                 exchangeRates={exchangeRates}

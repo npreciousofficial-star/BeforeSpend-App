@@ -9,6 +9,15 @@
 -- This script permanently fixes the schema and clears the cache.
 -- =====================================================================
 
+-- STEP 0: Remove foreign key constraints on auth.users so client syncs never fail with 409 FK violations
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+ALTER TABLE public.buckets DROP CONSTRAINT IF EXISTS buckets_user_id_fkey;
+ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_user_id_fkey;
+ALTER TABLE public.payments DROP CONSTRAINT IF EXISTS payments_user_id_fkey;
+ALTER TABLE public.milestones DROP CONSTRAINT IF EXISTS milestones_user_id_fkey;
+ALTER TABLE public.reminders DROP CONSTRAINT IF EXISTS reminders_user_id_fkey;
+ALTER TABLE public.notifications DROP CONSTRAINT IF EXISTS notifications_user_id_fkey;
+
 -- STEP 1: Drop any stale duplicate 'percentage' column if it was accidentally added
 ALTER TABLE public.buckets DROP COLUMN IF EXISTS percentage;
 

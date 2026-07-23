@@ -100,50 +100,50 @@ export function BucketCard({ bucket, currency, onEdit, hideBalance = false }: Bu
   return (
     <div
       id={`bucket-card-${bucket.id}`}
-      className={`relative p-5 rounded-2xl border transition-all duration-300 hover:shadow-md bg-white dark:bg-zinc-950 dark:border-zinc-800`}
+      className="group relative p-5 sm:p-6 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 shadow-xs hover:shadow-md hover:border-[#00A896]/40 transition-all duration-300 backdrop-blur-xl"
     >
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-center gap-2.5">
-          <span className={`w-3.5 h-3.5 rounded-full ${theme.dot}`} />
-          <h3 className="font-semibold text-gray-900 dark:text-zinc-50 text-base leading-tight">
+      <div className="flex justify-between items-start mb-3 gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className={`w-3.5 h-3.5 rounded-full flex-shrink-0 ${theme.dot} shadow-xs`} />
+          <h3 className="font-bold text-[#0E2A47] dark:text-zinc-50 text-base leading-snug truncate">
             {bucket.name}
           </h3>
         </div>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${theme.pill}`}>
+        <span className={`text-xs font-black px-2.5 py-0.5 rounded-full flex-shrink-0 ${theme.pill}`}>
           {bucket.percentage}%
         </span>
       </div>
 
       <div className="space-y-3">
         <div className="flex flex-col">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider">
               Current Balance
             </span>
             {bucket.lowBalanceThreshold !== undefined && bucket.lowBalanceThreshold > 0 && bucket.balance < bucket.lowBalanceThreshold && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex-shrink-0">
                 <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                Below Threshold ({formatCurrency(bucket.lowBalanceThreshold, currency)})
+                Below Threshold
               </span>
             )}
           </div>
           <span
             id={`bucket-balance-${bucket.id}`}
-            className={`text-2xl font-black tracking-tight transition-all duration-300 ${
-              isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+            className={`text-2xl sm:text-3xl font-black tracking-tight transition-all duration-300 mt-0.5 ${
+              isPositive ? 'text-[#00A896] dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             } ${hideBalance ? 'blur-md select-none' : ''}`}
           >
             <AnimatedNumber value={bucket.balance} currency={currency} />
           </span>
         </div>
 
-        <div className="pt-2 border-t border-gray-100 dark:border-zinc-900 flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400">
-          <div className="flex items-center gap-1.5 font-medium">
-            <Landmark className="w-3.5 h-3.5 opacity-70" />
-            <span>{bucket.destinationAccount}</span>
+        <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-900/80 flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 gap-2">
+          <div className="flex items-center gap-1.5 font-medium truncate">
+            <Landmark className="w-3.5 h-3.5 text-[#00A896] opacity-80 flex-shrink-0" />
+            <span className="truncate">{bucket.destinationAccount}</span>
           </div>
           {bucket.note && (
-            <span className="max-w-[150px] truncate opacity-70" title={bucket.note}>
+            <span className="max-w-[160px] truncate text-gray-400 dark:text-zinc-500 text-[11px]" title={bucket.note}>
               {bucket.note}
             </span>
           )}
@@ -154,7 +154,7 @@ export function BucketCard({ bucket, currency, onEdit, hideBalance = false }: Bu
         <button
           id={`edit-bucket-${bucket.id}`}
           onClick={() => onEdit(bucket)}
-          className="absolute top-2 right-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
+          className="absolute top-3 right-3 text-xs font-bold text-gray-400 hover:text-[#00A896] dark:hover:text-teal-400 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-gray-100/80 dark:bg-zinc-900/80 px-2 py-1 rounded-lg"
         >
           Edit
         </button>

@@ -2754,8 +2754,8 @@ export function AuthenticatedApp({
 
         </main>
 
-        {/* FOOTER - Matching off-white page background without borders */}
-        <footer className="mt-auto py-5 px-6 sm:px-10 border-none text-right text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
+        {/* FOOTER - Matching off-white page background without borders or bottom gap */}
+        <footer className="mt-auto py-2 pb-20 md:pb-4 px-4 sm:px-10 border-none text-center sm:text-right text-[11px] font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
           <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
         </footer>
 

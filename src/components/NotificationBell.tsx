@@ -126,19 +126,19 @@ export function NotificationBell({ notifications, setNotifications, onNavigate, 
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-2 rounded-xl border bg-white dark:bg-zinc-900 cursor-pointer transition-all flex items-center justify-center relative select-none ${
+        className={`w-10 h-10 rounded-2xl border cursor-pointer transition-all flex items-center justify-center relative select-none shadow-2xs ${
           isOpen 
-            ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' 
-            : 'border-gray-200 dark:border-zinc-800 hover:border-emerald-500/50 text-gray-500 dark:text-zinc-400'
+            ? 'border-[#00A896] bg-teal-50/50 dark:bg-teal-950/30 text-[#00A896] shadow-sm' 
+            : 'border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300'
         }`}
         title="Notifications"
         aria-label="View notifications"
       >
-        <Bell className={`w-4 h-4 ${unreadCount > 0 ? 'animate-bounce' : ''}`} />
+        <Bell className={`w-4.5 h-4.5 ${unreadCount > 0 ? 'text-[#00A896]' : ''}`} />
         
         {/* Red Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-rose-500 text-white font-black text-[9px] flex items-center justify-center px-1 border-2 border-white dark:border-zinc-950 animate-pulse">
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-4.5 rounded-full bg-rose-500 text-white font-black text-[9px] flex items-center justify-center px-1 border-2 border-white dark:border-zinc-950 shadow-xs">
             {unreadCount}
           </span>
         )}

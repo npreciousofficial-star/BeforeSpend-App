@@ -214,10 +214,10 @@ export function LandingPage({
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onToggleTheme}
-              className="p-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-gray-600 dark:text-zinc-300 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="w-10 h-10 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:border-[#00A896]/50 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer transition-all shadow-2xs hover:shadow-xs flex items-center justify-center"
               title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-[#00A896]" />}
+              {isDark ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-[#00A896]" />}
             </button>
 
             {isLoggedIn ? (
@@ -226,7 +226,7 @@ export function LandingPage({
                 <div className="relative">
                   <button
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    className="w-8.5 h-8.5 rounded-full overflow-hidden focus:outline-none cursor-pointer border border-gray-200 dark:border-zinc-800 hover:border-[#00A896] transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-10 h-10 rounded-full overflow-hidden focus:outline-none cursor-pointer ring-2 ring-[#00A896]/30 hover:ring-[#00A896] transition-all flex items-center justify-center shrink-0 shadow-sm hover:shadow-md"
                     title="Account Details"
                   >
                     <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
@@ -355,18 +355,18 @@ export function LandingPage({
             <div className="pt-3 border-t border-gray-100 dark:border-zinc-900 flex flex-col gap-2.5">
               {isLoggedIn ? (
                 <>
-                  <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50/80 dark:bg-zinc-900/50 rounded-xl border border-gray-150 dark:border-zinc-800/80">
-                    <div className="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-800">
+                  <div className="flex items-center gap-3.5 p-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200/80 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#00A896]/30 shrink-0 shadow-xs">
                       <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
                     </div>
                     <div className="overflow-hidden flex-1">
-                      <p className="text-xs font-bold text-gray-900 dark:text-zinc-100 truncate">{userProfile.name}</p>
-                      <p className="text-[10px] text-gray-400 font-medium truncate">{userProfile.email}</p>
+                      <p className="text-xs font-black text-gray-900 dark:text-zinc-50 truncate">{userProfile.name}</p>
+                      <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-mono truncate">{userProfile.email}</p>
                     </div>
                     {onLogout && (
                       <button
                         onClick={() => { setMobileMenuOpen(false); onLogout(); }}
-                        className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors cursor-pointer"
+                        className="p-2.5 text-rose-600 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20 rounded-xl transition-colors cursor-pointer border border-rose-500/20"
                         title="Sign Out"
                       >
                         <LogOut className="w-4 h-4" />
@@ -375,7 +375,7 @@ export function LandingPage({
                   </div>
                   <button
                     onClick={() => { setMobileMenuOpen(false); onGoToDashboard?.(); }}
-                    className="w-full py-3 rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-black text-xs text-center min-h-[44px] cursor-pointer flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#00A896] via-teal-600 to-[#00A896] hover:from-[#0E2A47] hover:to-[#0E2A47] text-white font-black text-xs text-center min-h-[46px] cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#00A896]/20 transition-all duration-300 transform active:scale-98"
                   >
                     <span>Go to Workspace Dashboard</span>
                     <ArrowRight className="w-4 h-4" />

@@ -378,8 +378,14 @@ export function AuthenticatedApp({
           setEditProfileCurrency(profile.defaultCurrency || 'NGN');
           setEditProfilePhone(profile.phoneNumber || '');
 
-          // Trigger onboarding modal ONLY for Google OAuth signups who haven't completed profile and haven't dismissed it
-          if (isGoogleAuth && !isAlreadyOnboarded && (!profile.phoneNumber || profile.phoneNumber.trim() === '')) {
+          // Check database profile onboarding completion status
+          const isDatabaseOnboarded = Boolean(
+            profile.onboardingCompleted || 
+            (profile.phoneNumber && profile.phoneNumber.trim() !== '')
+          );
+
+          // Trigger onboarding modal ONLY if neither local storage nor database has recorded onboarding completion
+          if (isGoogleAuth && !isAlreadyOnboarded && !isDatabaseOnboarded) {
             setShowOnboardingModal(true);
           }
         } else {
@@ -1025,6 +1031,7 @@ export function AuthenticatedApp({
       defaultCurrency: editProfileCurrency,
       avatar,
       phoneNumber: editProfilePhone || userProfile.phoneNumber,
+      onboardingCompleted: true,
     };
 
     setUserProfile(updatedProfile);

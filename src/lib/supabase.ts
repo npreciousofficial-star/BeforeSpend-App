@@ -258,6 +258,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       avatar: avatarUrl || 'preset-emerald',
       default_currency: profile.defaultCurrency || 'NGN',
       phone_number: profile.phoneNumber || null,
+      onboarding_completed: profile.onboardingCompleted ?? true,
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
 
@@ -501,6 +502,7 @@ export async function loadProfileFromSupabase(userId: string): Promise<UserProfi
       avatar: data.avatar || 'preset-emerald',
       defaultCurrency: data.default_currency || 'NGN',
       phoneNumber: data.phone_number || undefined,
+      onboardingCompleted: data.onboarding_completed ?? Boolean(data.phone_number && data.phone_number.trim() !== '' && data.role),
     };
   } catch (err) {
     console.warn('loadProfileFromSupabase failed:', err);

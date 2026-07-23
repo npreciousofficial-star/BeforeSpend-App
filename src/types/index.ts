@@ -103,6 +103,7 @@ export interface UserProfile {
   avatar?: string; // base64 or preset identifier
   defaultCurrency: string; // 'NGN' | 'USD' | 'EUR' | 'GBP'
   phoneNumber?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface ExchangeRate {

@@ -1522,7 +1522,7 @@ export function AuthenticatedApp({
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 w-full px-4 md:px-8 lg:px-10 py-6 space-y-6 md:overflow-y-auto pb-24 md:pb-6">
+      <div className="flex-1 flex flex-col min-w-0 w-full px-4 md:px-8 lg:px-10 py-6 space-y-6 md:overflow-y-auto pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-6">
         
         {/* Mobile Header Banner showing balance */}
         <div className="md:hidden p-4 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white shadow-xs flex justify-between items-center">

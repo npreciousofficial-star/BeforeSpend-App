@@ -199,8 +199,8 @@ export function LandingPage({
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 font-sans transition-colors duration-200 overflow-x-hidden antialiased">
       
       {/* 1. SIMPLE STICKY NAVBAR */}
-      <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800/80 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800/80 transition-colors pt-[calc(0.5rem+env(safe-area-inset-top,0px))]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[3.75rem] py-1.5 flex items-center justify-between">
           
           {/* Simple Clean Brand Logo */}
           <BeforeSpendLogo size="md" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />

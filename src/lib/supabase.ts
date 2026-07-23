@@ -464,16 +464,30 @@ export async function syncRemindersToSupabase(reminders: Reminder[], userId: str
 }
 
 /**
+ * Fast network timeout promise wrapper to prevent slow cloud queries from blocking UI
+ */
+function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 3500): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Supabase query timeout (${timeoutMs}ms)`)), timeoutMs)
+    )
+  ]);
+}
+
+/**
  * Load user profile from Supabase
  */
 export async function loadProfileFromSupabase(userId: string): Promise<UserProfile | null> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', validUuid)
-      .maybeSingle();
+    const { data, error } = await withTimeout(
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', validUuid)
+        .maybeSingle()
+    );
 
     if (error || !data) {
       if (error) console.warn('Info loading profile from Supabase:', error.message);
@@ -500,10 +514,12 @@ export async function loadProfileFromSupabase(userId: string): Promise<UserProfi
 export async function loadBucketsFromSupabase(userId: string): Promise<Bucket[] | null> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('buckets')
-      .select('*')
-      .eq('user_id', validUuid);
+    const { data, error } = await withTimeout(
+      supabase
+        .from('buckets')
+        .select('*')
+        .eq('user_id', validUuid)
+    );
 
     if (error) {
       console.warn('Error loading buckets from Supabase:', error.message);
@@ -533,11 +549,13 @@ export async function loadBucketsFromSupabase(userId: string): Promise<Bucket[] 
 export async function loadTransactionsFromSupabase(userId: string): Promise<Transaction[] | null> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', validUuid)
-      .order('created_at', { ascending: false });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', validUuid)
+        .order('created_at', { ascending: false })
+    );
 
     if (error) {
       console.warn('Error loading transactions from Supabase:', error.message);
@@ -569,11 +587,13 @@ export async function loadTransactionsFromSupabase(userId: string): Promise<Tran
 export async function loadPaymentsFromSupabase(userId: string): Promise<PaymentEntry[] | null> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('user_id', validUuid)
-      .order('date', { ascending: false });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('payments')
+        .select('*')
+        .eq('user_id', validUuid)
+        .order('date', { ascending: false })
+    );
 
     if (error) {
       console.warn('Error loading payments from Supabase:', error.message);
@@ -602,11 +622,13 @@ export async function loadPaymentsFromSupabase(userId: string): Promise<PaymentE
 export async function loadMilestonesFromSupabase(userId: string): Promise<Milestone[] | null> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('milestones')
-      .select('*')
-      .eq('user_id', validUuid)
-      .order('created_date', { ascending: false });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('milestones')
+        .select('*')
+        .eq('user_id', validUuid)
+        .order('created_date', { ascending: false })
+    );
 
     if (error) {
       console.warn('Error loading milestones from Supabase:', error.message);
@@ -632,11 +654,13 @@ export async function loadMilestonesFromSupabase(userId: string): Promise<Milest
 export async function loadRemindersFromSupabase(userId: string): Promise<Reminder[] | null> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('reminders')
-      .select('*')
-      .eq('user_id', validUuid)
-      .order('due_date', { ascending: true });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('reminders')
+        .select('*')
+        .eq('user_id', validUuid)
+        .order('due_date', { ascending: true })
+    );
 
     if (error) {
       console.warn('Error loading reminders from Supabase:', error.message);
@@ -901,11 +925,13 @@ export async function adminBroadcastNotificationToAll(title: string, message: st
 export async function loadNotificationsFromSupabase(userId: string): Promise<AppNotification[]> {
   try {
     const validUuid = ensureUuid(userId);
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', validUuid)
-      .order('time', { ascending: false });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', validUuid)
+        .order('time', { ascending: false })
+    );
 
     if (error) {
       console.warn('Error loading notifications from Supabase:', error.message);

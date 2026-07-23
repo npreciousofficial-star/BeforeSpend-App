@@ -1467,43 +1467,45 @@ export function AuthenticatedApp({
       </header>
 
       {/* MOBILE BOTTOM NAVIGATION (md and below) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-gray-250 dark:border-zinc-850 z-40 flex items-center justify-around py-1.5 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-lg">
-        {[
-          { id: 'buckets', label: 'Home', icon: Layers },
-          { id: 'split', label: 'Splits', icon: Wallet },
-          { id: 'expenses', label: 'Expenses', icon: TrendingDown },
-          { id: 'history', label: 'History', icon: History },
-          { id: 'hub', label: 'More', icon: LayoutGrid },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isHubTabActive = ['milestones', 'reminders', 'analytics', 'settings', 'admin', 'calculators', 'hub'].includes(activeTab);
-          const isActive = tab.id === 'hub' ? isHubTabActive : activeTab === tab.id;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                if (tab.id === 'hub') {
-                  setActiveTab('hub');
-                } else {
-                  setActiveTab(tab.id);
-                }
-              }}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
-                isActive 
-                  ? 'text-[#00A896] dark:text-[#00A896] font-bold' 
-                  : 'text-gray-400 dark:text-zinc-500'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="text-[9px] font-black tracking-wider uppercase">{tab.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 shadow-xl">
+        <nav className="flex items-center justify-around py-1.5 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md">
+          {[
+            { id: 'buckets', label: 'Home', icon: Layers },
+            { id: 'split', label: 'Splits', icon: Wallet },
+            { id: 'expenses', label: 'Expenses', icon: TrendingDown },
+            { id: 'history', label: 'History', icon: History },
+            { id: 'hub', label: 'More', icon: LayoutGrid },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isHubTabActive = ['milestones', 'reminders', 'analytics', 'settings', 'admin', 'calculators', 'hub'].includes(activeTab);
+            const isActive = tab.id === 'hub' ? isHubTabActive : activeTab === tab.id;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  if (tab.id === 'hub') {
+                    setActiveTab('hub');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
+                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+                  isActive
+                    ? 'text-[#00A896] font-black'
+                    : 'text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'
+                }`}
+              >
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+                <span className="text-[10px] uppercase font-bold tracking-tight">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 w-full px-4 md:px-8 lg:px-10 py-6 space-y-6 md:overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 w-full px-4 md:px-8 lg:px-10 py-6 space-y-6 md:overflow-y-auto pb-24 md:pb-6">
         
         {/* Mobile Header Banner showing balance */}
         <div className="md:hidden p-4 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white shadow-xs flex justify-between items-center">

@@ -31,7 +31,7 @@ export function InstallGuideModal({ isOpen, onClose }: InstallGuideModalProps) {
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden shrink-0 shadow-xs">
-              <img src="/pwa-icon.png" alt="BeforeSpend Icon" className="w-full h-full object-cover" />
+              <img src="/favicon.png" alt="BeforeSpend Icon" className="w-full h-full object-cover" />
             </div>
             <div>
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50 tracking-tight">

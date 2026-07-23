@@ -80,7 +80,7 @@ export function PwaTopBanner() {
           </button>
 
           <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-gray-100 dark:border-zinc-800 shadow-2xs">
-            <img src="/pwa-icon.png" alt="BeforeSpend Icon" className="w-full h-full object-cover" />
+            <img src="/favicon.png" alt="BeforeSpend Icon" className="w-full h-full object-cover" />
           </div>
 
           <div className="min-w-0">
@@ -113,7 +113,7 @@ export function PwaTopBanner() {
           </button>
 
           <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-gray-100 dark:border-zinc-800 shadow-2xs">
-            <img src="/pwa-icon.png" alt="BeforeSpend Icon" className="w-full h-full object-cover" />
+            <img src="/favicon.png" alt="BeforeSpend Icon" className="w-full h-full object-cover" />
           </div>
 
           <div className="min-w-0">

@@ -18,8 +18,8 @@ export const AVATAR_PRESETS = [
 export function Avatar({ avatar, name, className = 'w-8 h-8 text-xs' }: AvatarProps) {
   const initials = name ? name.trim().split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
 
-  // If base64 captured camera upload
-  if (avatar && avatar.startsWith('data:image/')) {
+  // Custom upload (base64) or hosted URL from Supabase storage
+  if (avatar && (avatar.startsWith('data:image/') || avatar.startsWith('http://') || avatar.startsWith('https://'))) {
     return (
       <img
         src={avatar}

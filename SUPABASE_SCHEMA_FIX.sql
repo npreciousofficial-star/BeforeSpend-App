@@ -106,6 +106,26 @@ INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 VALUES ('statements', 'statements', true, 20971520, ARRAY['text/csv','application/pdf','text/plain'])
 ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 20971520;
 
+-- STEP 9: Storage RLS policies (required for avatar/receipt uploads)
+DO $$
+BEGIN
+  EXECUTE 'ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY';
+EXCEPTION
+  WHEN others THEN NULL;
+END $$;
+
+DROP POLICY IF EXISTS "Public Manage Avatars" ON storage.objects;
+CREATE POLICY "Public Manage Avatars" ON storage.objects
+  FOR ALL USING (bucket_id = 'avatars') WITH CHECK (bucket_id = 'avatars');
+
+DROP POLICY IF EXISTS "Public Manage Receipts" ON storage.objects;
+CREATE POLICY "Public Manage Receipts" ON storage.objects
+  FOR ALL USING (bucket_id = 'receipts') WITH CHECK (bucket_id = 'receipts');
+
+DROP POLICY IF EXISTS "Public Manage Statements" ON storage.objects;
+CREATE POLICY "Public Manage Statements" ON storage.objects
+  FOR ALL USING (bucket_id = 'statements') WITH CHECK (bucket_id = 'statements');
+
 -- =====================================================================
 -- Done. Schema is now fully correct and PostgREST cache refreshed.
 -- All bucket sync errors should be resolved.

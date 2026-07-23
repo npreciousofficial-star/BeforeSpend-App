@@ -14,7 +14,8 @@ import {
   loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase,
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
-  adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase
+  adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase,
+  uploadToSupabaseStorage, ensureUuid
 } from './lib/supabase';
 
 // Components
@@ -291,6 +292,7 @@ export function AuthenticatedApp({
         const profile = await loadProfileFromSupabase(currentUserId);
         if (profile) {
           setUserProfile(profile);
+          setEditProfileAvatar(profile.avatar || 'preset-chidi');
         }
 
         // 2. Load Buckets
@@ -347,7 +349,15 @@ export function AuthenticatedApp({
     }
 
     async function runSequentialSync() {
-      await syncProfileToSupabase(userProfile, currentUserId);
+      const resolvedAvatar = await syncProfileToSupabase(userProfile, currentUserId);
+      if (
+        resolvedAvatar &&
+        userProfile.avatar?.startsWith('data:image/') &&
+        resolvedAvatar !== userProfile.avatar
+      ) {
+        setUserProfile((prev) => ({ ...prev, avatar: resolvedAvatar }));
+        setEditProfileAvatar(resolvedAvatar);
+      }
       await syncBucketsToSupabase(buckets, currentUserId);
       // Sequentially sync dependent tables after buckets exist in database
       await syncTransactionsToSupabase(transactions, currentUserId);
@@ -851,16 +861,39 @@ export function AuthenticatedApp({
   };
 
   // User Profile save
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUserProfile({
+
+    let avatar = editProfileAvatar;
+    if (avatar?.startsWith('data:image/') && currentUserId && !currentUserId.startsWith('00000000-')) {
+      const uploadedUrl = await uploadToSupabaseStorage(
+        'avatars',
+        `${ensureUuid(currentUserId)}/avatar.png`,
+        avatar
+      );
+      if (uploadedUrl) {
+        avatar = uploadedUrl;
+      } else {
+        addToast('Avatar upload failed — other profile changes were saved locally.', 'warning');
+      }
+    }
+
+    const updatedProfile: UserProfile = {
       name: editProfileName,
       email: editProfileEmail,
       role: editProfileRole,
       defaultCurrency: editProfileCurrency,
-      avatar: editProfileAvatar,
-      phoneNumber: userProfile.phoneNumber, // preserve phone number — never silently drop it
-    });
+      avatar,
+      phoneNumber: userProfile.phoneNumber,
+    };
+
+    setUserProfile(updatedProfile);
+    setEditProfileAvatar(avatar);
+
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      await syncProfileToSupabase(updatedProfile, currentUserId);
+    }
+
     addToast('Profile configuration saved!', 'success');
   };
 

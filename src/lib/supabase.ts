@@ -203,7 +203,7 @@ export function copyLocalStorageData(oldId: string, newId: string) {
 /**
  * Sync user profile to Supabase 'profiles' table
  */
-export async function syncProfileToSupabase(profile: UserProfile, userId: string) {
+export async function syncProfileToSupabase(profile: UserProfile, userId: string): Promise<string | undefined> {
   try {
     const validUuid = ensureUuid(userId);
     let avatarUrl = profile.avatar;
@@ -230,8 +230,11 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
         console.warn('Supabase profile sync error:', error.message);
       }
     }
+
+    return avatarUrl;
   } catch (err) {
     console.warn('Supabase syncProfile failed:', err);
+    return profile.avatar;
   }
 }
 

@@ -340,6 +340,16 @@ export function AuthenticatedApp({
           // ignore offline fallback
         }
 
+        let isGoogleAuth = false;
+        try {
+          const { data: authData } = await supabase.auth.getUser();
+          const provider = authData?.user?.app_metadata?.provider;
+          const identities = authData?.user?.identities || [];
+          isGoogleAuth = provider === 'google' || identities.some((i: any) => i.provider === 'google') || Boolean(googleAvatar);
+        } catch (e) {
+          isGoogleAuth = false;
+        }
+
         if (profile) {
           const finalAvatar = (googleAvatar && (!profile.avatar || profile.avatar.startsWith('preset-')))
             ? googleAvatar
@@ -354,8 +364,8 @@ export function AuthenticatedApp({
           setEditProfileCurrency(profile.defaultCurrency);
           setEditProfilePhone(profile.phoneNumber || '');
 
-          // Trigger onboarding modal if phone number is missing (e.g. Google OAuth signups)
-          if (!profile.phoneNumber || profile.phoneNumber.trim() === '') {
+          // Trigger onboarding modal ONLY for Google OAuth signups who haven't completed phone/role profile
+          if (isGoogleAuth && (!profile.phoneNumber || profile.phoneNumber.trim() === '')) {
             setShowOnboardingModal(true);
           }
         } else {

@@ -618,6 +618,7 @@ export function AuthenticatedApp({
     convertedAmount: number;
     splits: any[];
     receiptImage?: string;
+    note?: string;
   }) => {
     const newEntry: PaymentEntry = {
       id: generateId(),
@@ -627,6 +628,7 @@ export function AuthenticatedApp({
       convertedAmount: payment.convertedAmount,
       splits: payment.splits,
       receiptImage: payment.receiptImage,
+      note: payment.note,
     };
 
     const updatedHistory = [newEntry, ...history];
@@ -642,7 +644,9 @@ export function AuthenticatedApp({
         type: 'INCOME_SPLIT' as const,
         amount: s.amount,
         direction: 'CREDIT' as const,
-        description: `Income Allocation Split (${payment.currency} ${payment.amount})`,
+        description: payment.note 
+          ? `${payment.note} — Income Split (${payment.currency} ${payment.amount})`
+          : `Income Allocation Split (${payment.currency} ${payment.amount})`,
         receiptUrl: payment.receiptImage,
         sourceType: 'MANUAL_ENTRY' as const,
         createdAt: now

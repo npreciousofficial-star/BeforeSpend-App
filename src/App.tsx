@@ -2010,6 +2010,17 @@ export function AuthenticatedApp({
                     </div>
 
                     <div>
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        placeholder="+234 800 000 0000"
+                        value={editProfilePhone}
+                        onChange={(e) => setEditProfilePhone(e.target.value)}
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 placeholder-gray-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
                       <CustomSelect
                         id="profile-currency-select"
                         label="Default Base Currency"
@@ -2882,9 +2893,9 @@ export function AuthenticatedApp({
             </div>
 
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                handleSaveProfile(e);
+                await handleSaveProfile(e);
                 setShowOnboardingModal(false);
                 addToast('Welcome! Your workspace preferences have been saved.', 'success');
               }}

@@ -262,7 +262,13 @@ export async function syncBucketsToSupabase(buckets: Bucket[], userId: string) {
       onConflict: 'user_id,name',
       ignoreDuplicates: false
     });
-    if (error) console.warn('Supabase buckets sync error:', error.message);
+    if (error) {
+      if (error.message.includes('foreign key constraint')) {
+        console.info('Supabase buckets FK notice: Run SUPABASE_SCHEMA_FIX.sql to enable unconstrained bucket sync.');
+      } else {
+        console.warn('Supabase buckets sync error:', error.message);
+      }
+    }
   } catch (err) {
     console.warn('Supabase syncBuckets failed:', err);
   }
@@ -293,7 +299,13 @@ export async function syncPaymentsToSupabase(payments: PaymentEntry[], userId: s
         splits: p.splits || []
       });
 
-      if (error) console.warn('Supabase payment sync error:', error.message);
+      if (error) {
+        if (error.message.includes('foreign key constraint')) {
+          console.info('Supabase payments FK notice: Run SUPABASE_SCHEMA_FIX.sql to enable unconstrained payments sync.');
+        } else {
+          console.warn('Supabase payment sync error:', error.message);
+        }
+      }
     }
   } catch (err) {
     console.warn('Supabase syncPayments failed:', err);
@@ -333,12 +345,12 @@ export async function syncTransactionsToSupabase(transactions: Transaction[], us
       });
       
       if (error) {
-        console.warn('Supabase transactions sync error:', error.message);
-        // If foreign key constraint on bucket_id fails, fallback to null bucket_id
         if (error.message.includes('foreign key constraint') || error.message.includes('transactions_bucket_id_fkey')) {
-          console.log('Retrying transaction batch sync with null bucket_id fallbacks...');
+          console.info('Supabase transactions FK notice: Run SUPABASE_SCHEMA_FIX.sql to enable unconstrained transactions sync.');
           const fallbackBatch = batch.map(r => ({ ...r, bucket_id: null }));
           await supabase.from('transactions').upsert(fallbackBatch, { onConflict: 'id' });
+        } else {
+          console.warn('Supabase transactions sync error:', error.message);
         }
       }
     }
@@ -364,7 +376,13 @@ export async function syncMilestonesToSupabase(milestones: Milestone[], userId: 
     }));
 
     const { error } = await supabase.from('milestones').upsert(records);
-    if (error) console.warn('Supabase milestones sync error:', error.message);
+    if (error) {
+      if (error.message.includes('foreign key constraint')) {
+        console.info('Supabase milestones FK notice: Run SUPABASE_SCHEMA_FIX.sql.');
+      } else {
+        console.warn('Supabase milestones sync error:', error.message);
+      }
+    }
   } catch (err) {
     console.warn('Supabase syncMilestones failed:', err);
   }

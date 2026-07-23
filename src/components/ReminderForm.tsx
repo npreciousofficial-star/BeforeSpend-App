@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { generateId } from '../lib/utils';
+import { CustomSelect } from './CustomSelect';
 import { Bell, RefreshCw, Sparkles, Plus } from 'lucide-react';
 
 interface ReminderFormProps {
@@ -222,18 +223,16 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
         {isRecurring && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">
-                Billing Cycle
-              </label>
-              <select
+              <CustomSelect
                 id="reminder-period-select"
+                label="Billing Cycle"
                 value={period}
-                onChange={(e) => setPeriod(e.target.value as 'monthly' | 'yearly')}
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#00A896]/20 focus:border-[#00A896] transition-all cursor-pointer"
-              >
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
+                onChange={(val) => setPeriod(val as 'monthly' | 'yearly')}
+                options={[
+                  { value: 'monthly', label: 'Monthly', sublabel: 'Recurs every month' },
+                  { value: 'yearly', label: 'Yearly', sublabel: 'Recurs every year' },
+                ]}
+              />
             </div>
 
             <div>

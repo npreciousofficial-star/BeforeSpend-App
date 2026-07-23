@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, Bucket } from '../types';
 import { formatCurrency } from '../lib/utils';
+import { CustomSelect } from './CustomSelect';
 import { ArrowUpRight, ArrowDownRight, Scale, FileText, Search, ShieldCheck, Receipt } from 'lucide-react';
 
 interface LedgerTableProps {
@@ -106,16 +107,18 @@ export function LedgerTable({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full md:w-auto">
-          <select
-            value={selectedBucketFilter}
-            onChange={(e) => setSelectedBucketFilter(e.target.value)}
-            className="flex-1 sm:flex-initial px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 min-h-[38px] cursor-pointer"
-          >
-            <option value="ALL">All Buckets</option>
-            {buckets.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+          <div className="w-full sm:w-52">
+            <CustomSelect
+              id="ledger-bucket-filter"
+              value={selectedBucketFilter}
+              onChange={setSelectedBucketFilter}
+              placeholder="All Buckets"
+              options={[
+                { value: 'ALL', label: 'All Buckets' },
+                ...buckets.map(b => ({ value: b.id, label: b.name }))
+              ]}
+            />
+          </div>
 
           <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-900 p-1 rounded-xl text-xs font-bold overflow-x-auto w-full sm:w-auto">
             <button

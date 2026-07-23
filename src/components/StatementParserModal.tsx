@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bucket, Transaction, StatementRow } from '../types';
 import { formatCurrency, generateId } from '../lib/utils';
+import { CustomSelect } from './CustomSelect';
 import { Upload, FileText, CheckCircle2, AlertTriangle, ShieldCheck, ArrowDownRight, ArrowUpRight, X, RefreshCw, Table, SlidersHorizontal, ArrowRight } from 'lucide-react';
 
 interface StatementParserModalProps {
@@ -327,67 +328,61 @@ export function StatementParserModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               {/* Date Column */}
               <div className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl space-y-1">
-                <label className="font-bold text-gray-700 dark:text-zinc-300 block">
-                  Date Column <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={columnMap.dateCol}
-                  onChange={(e) => setColumnMap({ ...columnMap, dateCol: parseInt(e.target.value) })}
-                  className="w-full p-2 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 rounded-lg text-xs font-medium"
-                >
-                  {csvHeaders.map((h, i) => (
-                    <option key={i} value={i}>Column {i + 1}: {h}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  id="statement-date-col-select"
+                  label="Date Column *"
+                  value={columnMap.dateCol.toString()}
+                  onChange={(val) => setColumnMap({ ...columnMap, dateCol: parseInt(val) })}
+                  options={csvHeaders.map((h, i) => ({
+                    value: i.toString(),
+                    label: `Column ${i + 1}: ${h}`,
+                  }))}
+                />
               </div>
 
               {/* Description Column */}
               <div className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl space-y-1">
-                <label className="font-bold text-gray-700 dark:text-zinc-300 block">
-                  Description / Narration <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={columnMap.descCol}
-                  onChange={(e) => setColumnMap({ ...columnMap, descCol: parseInt(e.target.value) })}
-                  className="w-full p-2 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 rounded-lg text-xs font-medium"
-                >
-                  {csvHeaders.map((h, i) => (
-                    <option key={i} value={i}>Column {i + 1}: {h}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  id="statement-desc-col-select"
+                  label="Description / Narration *"
+                  value={columnMap.descCol.toString()}
+                  onChange={(val) => setColumnMap({ ...columnMap, descCol: parseInt(val) })}
+                  options={csvHeaders.map((h, i) => ({
+                    value: i.toString(),
+                    label: `Column ${i + 1}: ${h}`,
+                  }))}
+                />
               </div>
 
               {/* Amount Column */}
               <div className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl space-y-1">
-                <label className="font-bold text-gray-700 dark:text-zinc-300 block">
-                  Amount Column <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={columnMap.amountCol}
-                  onChange={(e) => setColumnMap({ ...columnMap, amountCol: parseInt(e.target.value) })}
-                  className="w-full p-2 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 rounded-lg text-xs font-medium"
-                >
-                  {csvHeaders.map((h, i) => (
-                    <option key={i} value={i}>Column {i + 1}: {h}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  id="statement-amount-col-select"
+                  label="Amount Column *"
+                  value={columnMap.amountCol.toString()}
+                  onChange={(val) => setColumnMap({ ...columnMap, amountCol: parseInt(val) })}
+                  options={csvHeaders.map((h, i) => ({
+                    value: i.toString(),
+                    label: `Column ${i + 1}: ${h}`,
+                  }))}
+                />
               </div>
 
               {/* Direction Column (Optional) */}
               <div className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl space-y-1">
-                <label className="font-bold text-gray-700 dark:text-zinc-300 block">
-                  Type / Direction Column <span className="text-gray-400 font-normal">(Optional)</span>
-                </label>
-                <select
-                  value={columnMap.directionCol}
-                  onChange={(e) => setColumnMap({ ...columnMap, directionCol: parseInt(e.target.value) })}
-                  className="w-full p-2 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 rounded-lg text-xs font-medium"
-                >
-                  <option value={-1}>None (Auto-detect from sign / keywords)</option>
-                  {csvHeaders.map((h, i) => (
-                    <option key={i} value={i}>Column {i + 1}: {h}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  id="statement-direction-col-select"
+                  label="Type / Direction Column (Optional)"
+                  value={columnMap.directionCol.toString()}
+                  onChange={(val) => setColumnMap({ ...columnMap, directionCol: parseInt(val) })}
+                  options={[
+                    { value: '-1', label: 'None (Auto-detect from sign / keywords)' },
+                    ...csvHeaders.map((h, i) => ({
+                      value: i.toString(),
+                      label: `Column ${i + 1}: ${h}`,
+                    }))
+                  ]}
+                />
               </div>
             </div>
 
@@ -566,17 +561,15 @@ export function StatementParserModal({
                       <label className="text-[10px] font-bold uppercase text-gray-400 flex-shrink-0">
                         Bucket:
                       </label>
-                      <select
-                        value={row.selectedBucketId || ''}
-                        onChange={(e) => updateRowBucket(row.id, e.target.value)}
-                        className="flex-1 px-2 py-1 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs font-semibold text-gray-800 dark:text-zinc-200"
-                      >
-                        {buckets.map(b => (
-                          <option key={b.id} value={b.id}>
-                            {b.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex-1 min-w-[140px]">
+                        <CustomSelect
+                          id={`statement-row-bucket-mobile-${row.id}`}
+                          value={row.selectedBucketId || ''}
+                          onChange={(val) => updateRowBucket(row.id, val)}
+                          placeholder="Select bucket..."
+                          options={buckets.map(b => ({ value: b.id, label: b.name }))}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -643,18 +636,14 @@ export function StatementParserModal({
                         <td className="p-3 text-right font-mono font-bold text-gray-900 dark:text-zinc-100 whitespace-nowrap">
                           {formatCurrency(row.amount, currency)}
                         </td>
-                        <td className="p-3 whitespace-nowrap">
-                          <select
+                        <td className="p-3 whitespace-nowrap min-w-[140px]">
+                          <CustomSelect
+                            id={`statement-row-bucket-desktop-${row.id}`}
                             value={row.selectedBucketId || ''}
-                            onChange={(e) => updateRowBucket(row.id, e.target.value)}
-                            className="px-2 py-1 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[11px] font-medium"
-                          >
-                            {buckets.map(b => (
-                              <option key={b.id} value={b.id}>
-                                {b.name}
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(val) => updateRowBucket(row.id, val)}
+                            placeholder="Select bucket..."
+                            options={buckets.map(b => ({ value: b.id, label: b.name }))}
+                          />
                         </td>
                       </tr>
                     ))}

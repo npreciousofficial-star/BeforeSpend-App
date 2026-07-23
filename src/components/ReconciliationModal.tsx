@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bucket, Transaction } from '../types';
 import { formatCurrency, generateId } from '../lib/utils';
+import { CustomSelect } from './CustomSelect';
 import { ArrowUpRight, ArrowDownRight, Scale, CheckCircle2, ShieldCheck, X } from 'lucide-react';
 
 interface ReconciliationModalProps {
@@ -95,13 +96,11 @@ export function ReconciliationModal({
         <form onSubmit={handleApplyReconciliation} className="space-y-4">
           {/* Bucket Select */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-              Select Target Bucket
-            </label>
-            <select
+            <CustomSelect
+              id="reconciliation-bucket-select"
+              label="Select Target Bucket"
               value={selectedBucketId}
-              onChange={(e) => {
-                const bId = e.target.value;
+              onChange={(bId) => {
                 setSelectedBucketId(bId);
                 const b = buckets.find(item => item.id === bId);
                 if (b) {
@@ -111,14 +110,12 @@ export function ReconciliationModal({
                   setTargetBalanceInput(bCalculated.toString());
                 }
               }}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
-            >
-              {buckets.map(b => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.destinationAccount})
-                </option>
-              ))}
-            </select>
+              options={buckets.map(b => ({
+                value: b.id,
+                label: b.name,
+                sublabel: b.destinationAccount,
+              }))}
+            />
           </div>
 
           {/* Current Ledger Balance Display */}

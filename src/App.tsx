@@ -21,6 +21,7 @@ import {
 import { ToastContainer } from './components/Toast';
 import { SkeletonBucketCard } from './components/Preloader';
 import { AnimatedNumber } from './components/AnimatedNumber';
+import { CustomSelect } from './components/CustomSelect';
 import { SplitCalculator } from './components/SplitCalculator';
 import { FinanceCalculators } from './components/FinanceCalculators';
 import { BucketCard } from './components/BucketCard';
@@ -1718,18 +1719,19 @@ export function AuthenticatedApp({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Default Base Currency</label>
-                      <select
+                      <CustomSelect
+                        id="profile-currency-select"
+                        label="Default Base Currency"
                         value={editProfileCurrency}
-                        onChange={(e) => setEditProfileCurrency(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none cursor-pointer"
-                      >
-                        <option value="NGN">Naira (₦ NGN)</option>
-                        <option value="USD">US Dollar ($ USD)</option>
-                        <option value="GBP">Pound Sterling (£ GBP)</option>
-                        <option value="EUR">Euro (€ EUR)</option>
-                        <option value="CAD">Canadian Dollar (C$ CAD)</option>
-                      </select>
+                        onChange={setEditProfileCurrency}
+                        options={[
+                          { value: 'NGN', label: 'Naira (₦ NGN)', sublabel: 'Nigerian Naira' },
+                          { value: 'USD', label: 'US Dollar ($ USD)', sublabel: 'United States Dollar' },
+                          { value: 'GBP', label: 'Pound Sterling (£ GBP)', sublabel: 'British Pound' },
+                          { value: 'EUR', label: 'Euro (€ EUR)', sublabel: 'European Union Euro' },
+                          { value: 'CAD', label: 'Canadian Dollar (C$ CAD)', sublabel: 'Canadian Dollar' },
+                        ]}
+                      />
                     </div>
 
                     <button
@@ -2760,8 +2762,8 @@ export function AuthenticatedApp({
 
         </main>
 
-        {/* FOOTER - Matching off-white page background without borders or bottom gap */}
-        <footer className="mt-auto py-2 pb-20 md:pb-4 px-4 sm:px-10 border-none text-center sm:text-right text-[11px] font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
+        {/* FOOTER - Snug fit above mobile navigation bar */}
+        <footer className="py-2 pb-14 sm:pb-3 px-4 sm:px-10 border-none text-center sm:text-right text-[11px] font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
           <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
         </footer>
 
@@ -2830,22 +2832,22 @@ export function AuthenticatedApp({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Color Palette Theme</label>
-                <select
+                <CustomSelect
                   id="new-bucket-color-select"
+                  label="Color Palette Theme"
                   value={newBucketColor}
-                  onChange={(e) => setNewBucketColor(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none cursor-pointer"
-                >
-                  <option value="emerald">Emerald Green</option>
-                  <option value="blue">Blue Sky</option>
-                  <option value="amber">Amber Orange</option>
-                  <option value="red">Rose Red</option>
-                  <option value="purple">Purple Amethyst</option>
-                  <option value="teal">Teal Cyan</option>
-                  <option value="indigo">Indigo Slate</option>
-                  <option value="pink">Pink Punch</option>
-                </select>
+                  onChange={setNewBucketColor}
+                  options={[
+                    { value: 'emerald', label: 'Emerald Green' },
+                    { value: 'blue', label: 'Blue Sky' },
+                    { value: 'amber', label: 'Amber Orange' },
+                    { value: 'red', label: 'Rose Red' },
+                    { value: 'purple', label: 'Purple Amethyst' },
+                    { value: 'teal', label: 'Teal Cyan' },
+                    { value: 'indigo', label: 'Indigo Slate' },
+                    { value: 'pink', label: 'Pink Punch' },
+                  ]}
+                />
               </div>
 
               <div>

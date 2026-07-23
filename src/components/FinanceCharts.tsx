@@ -6,6 +6,7 @@
 import React, { useRef, useState } from 'react';
 import { Bucket, PaymentEntry, Expense } from '../types';
 import { formatCurrency } from '../lib/utils';
+import { BeforeSpendLogo } from './BeforeSpendLogo';
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Award, Download, FileCheck, Loader2, Zap, Gauge, Activity } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -527,96 +528,109 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
           ref={pdfReportRef}
           className="w-[800px] p-8 bg-white text-slate-900 font-sans space-y-6"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-emerald-500 pb-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
-                BeforeSpend Statement
-              </h1>
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-mono">
-                Confident Before You Spend • Official Financial Summary
-              </p>
+          {/* Branded Header Banner */}
+          <div className="bg-gradient-to-r from-[#0E2A47] via-[#0A223B] to-[#00A896] text-white p-6 rounded-2xl shadow-md flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center p-2 border border-white/20">
+                <BeforeSpendLogo size="md" animate={false} />
+              </div>
+              <div className="space-y-0.5">
+                <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                  Before<span className="text-[#00A896]">Spend</span> Statement
+                </h1>
+                <p className="text-[10px] text-teal-200 uppercase tracking-widest font-mono">
+                  Confident Before You Spend • Official Financial Summary
+                </p>
+              </div>
             </div>
-            <div className="text-right text-xs text-slate-500 font-mono">
-              <div>Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-              <div>Currency: {currency}</div>
+            <div className="text-right text-xs font-mono text-teal-100 space-y-0.5 bg-black/20 p-3 rounded-xl border border-white/10">
+              <div className="font-bold">Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div>Base Currency: <span className="text-white font-bold">{currency}</span></div>
             </div>
           </div>
 
           {/* Executive Overview Cards */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Net Wealth (Buckets)</span>
-              <div className="text-lg font-black text-emerald-600 mt-1">{formatCurrency(totalInBuckets, currency)}</div>
+            <div className="p-4 bg-gradient-to-br from-teal-50/50 to-emerald-50/20 border-t-4 border-[#00A896] border-x border-b border-gray-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-extrabold text-[#0E2A47] uppercase tracking-wider block">Net Budgeted Assets</span>
+              <div className="text-xl font-black text-[#006654]">{formatCurrency(totalInBuckets, currency)}</div>
             </div>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Total Lifetime Income</span>
-              <div className="text-lg font-black text-blue-600 mt-1">{formatCurrency(totalReceived, currency)}</div>
+            <div className="p-4 bg-gradient-to-br from-blue-50/50 to-indigo-50/20 border-t-4 border-[#0E2A47] border-x border-b border-gray-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-extrabold text-[#0E2A47] uppercase tracking-wider block">Total Income Inflows</span>
+              <div className="text-xl font-black text-[#0E2A47]">{formatCurrency(totalReceived, currency)}</div>
             </div>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Total Lifetime Expenses</span>
-              <div className="text-lg font-black text-rose-600 mt-1">{formatCurrency(totalSpent, currency)}</div>
+            <div className="p-4 bg-gradient-to-br from-rose-50/50 to-red-50/20 border-t-4 border-rose-500 border-x border-b border-gray-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-extrabold text-rose-900 uppercase tracking-wider block">Total Logged Expenses</span>
+              <div className="text-xl font-black text-rose-600">{formatCurrency(totalSpent, currency)}</div>
             </div>
           </div>
 
           {/* Bucket Allocations Table */}
-          <div className="space-y-2">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Bucket Balances & Allocations</h2>
-            <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-              <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between border-b-2 border-[#00A896] pb-1.5">
+              <h2 className="text-xs font-black text-[#0E2A47] uppercase tracking-wider">Bucket Balances & Allocations</h2>
+              <span className="text-[10px] font-bold text-gray-400">{buckets.length} Active Categories</span>
+            </div>
+            <table className="w-full text-left text-xs border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+              <thead className="bg-[#0E2A47] text-white font-bold">
                 <tr>
-                  <th className="p-2.5">Bucket Name</th>
-                  <th className="p-2.5 text-center">Split %</th>
-                  <th className="p-2.5 text-right">Balance</th>
-                  <th className="p-2.5">Target Bank Account</th>
+                  <th className="p-3">Bucket Name</th>
+                  <th className="p-3 text-center">Split Allocation</th>
+                  <th className="p-3 text-right">Current Balance</th>
+                  <th className="p-3">Target Bank Account</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
-                {buckets.map((b) => (
-                  <tr key={b.id}>
-                    <td className="p-2.5 font-semibold text-slate-800">{b.name}</td>
-                    <td className="p-2.5 text-center">{b.percentage}%</td>
-                    <td className="p-2.5 text-right font-bold text-emerald-700">{formatCurrency(b.balance, currency)}</td>
-                    <td className="p-2.5 text-slate-500 font-semibold">{b.destinationAccount || 'Default Bank'}</td>
+              <tbody className="divide-y divide-gray-100">
+                {buckets.map((b, idx) => (
+                  <tr key={b.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                    <td className="p-3 font-bold text-[#0E2A47] flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00A896] inline-block" />
+                      {b.name}
+                    </td>
+                    <td className="p-3 text-center font-extrabold text-gray-700">{b.percentage}%</td>
+                    <td className="p-3 text-right font-black text-[#006654]">{formatCurrency(b.balance, currency)}</td>
+                    <td className="p-3 text-gray-600 font-semibold">{b.destinationAccount || 'Default Bank'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-        {/* 6-Month Trend Overview */}
-        <div className="space-y-2">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Recent 6-Month Summary</h2>
-          <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-            <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
-              <tr>
-                <th className="p-2.5">Month</th>
-                <th className="p-2.5 text-right">Inflow Splits</th>
-                <th className="p-2.5 text-right">Outflow Expenses</th>
-                <th className="p-2.5 text-right">Net Savings</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {monthlyData.map((m, idx) => (
-                <tr key={idx}>
-                  <td className="p-2.5 font-semibold text-slate-800">{m.name}</td>
-                  <td className="p-2.5 text-right text-emerald-600 font-bold">{formatCurrency(m.splits, currency)}</td>
-                  <td className="p-2.5 text-right text-rose-600 font-bold">{formatCurrency(m.expenses, currency)}</td>
-                  <td className="p-2.5 text-right font-black text-slate-900">{formatCurrency(m.splits - m.expenses, currency)}</td>
+          {/* 6-Month Trend Overview */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between border-b-2 border-[#0E2A47] pb-1.5">
+              <h2 className="text-xs font-black text-[#0E2A47] uppercase tracking-wider">Recent 6-Month Financial Velocity</h2>
+              <span className="text-[10px] font-bold text-gray-400">Historical Trend</span>
+            </div>
+            <table className="w-full text-left text-xs border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+              <thead className="bg-gray-100 text-[#0E2A47] font-extrabold border-b border-gray-200">
+                <tr>
+                  <th className="p-3">Month</th>
+                  <th className="p-3 text-right">Inflow Splits</th>
+                  <th className="p-3 text-right">Outflow Expenses</th>
+                  <th className="p-3 text-right">Net Savings</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {monthlyData.map((m, idx) => (
+                  <tr key={m.name} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                    <td className="p-3 font-bold text-slate-800">{m.name}</td>
+                    <td className="p-3 text-right font-semibold text-[#0E2A47]">{formatCurrency(m.splits, currency)}</td>
+                    <td className="p-3 text-right font-semibold text-rose-600">{formatCurrency(m.expenses, currency)}</td>
+                    <td className="p-3 text-right font-black text-[#006654]">{formatCurrency(m.splits - m.expenses, currency)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Footer */}
-        <div className="pt-6 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-400 font-mono">
-          <div>Generated by BeforeSpend System</div>
-          <div>Page 1 of 1</div>
+          {/* Report Footer */}
+          <div className="pt-4 border-t border-gray-200 flex items-center justify-between text-[10px] text-gray-400 font-mono">
+            <div>Generated by BeforeSpend Financial Operating System • DirectPadi Ltd.</div>
+            <div>Page 1 of 1</div>
+          </div>
         </div>
       </div>
-    </div>
 
     </div>
   );

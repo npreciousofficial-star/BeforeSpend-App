@@ -6,6 +6,7 @@
 import React, { useState, useRef } from 'react';
 import { Bucket } from '../types';
 import { generateId } from '../lib/utils';
+import { CustomSelect } from './CustomSelect';
 import { 
   TrendingDown, 
   Plus, 
@@ -182,22 +183,19 @@ export function ExpenseForm({ buckets, currency, onAdd, addToast }: ExpenseFormP
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">
-              Deduct From Bucket
-            </label>
-            <select
+            <CustomSelect
               id="expense-bucket-select"
+              label="Deduct From Bucket"
               value={bucketId}
-              onChange={(e) => setBucketId(e.target.value)}
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500 transition-all cursor-pointer"
-            >
-              <option value="">Select bucket...</option>
-              {buckets.map((b) => (
-                <option key={b.id} value={b.id} disabled={b.balance <= 0}>
-                  {b.name} (Bal: {currency === 'NGN' ? '₦' : currency}{b.balance.toLocaleString()})
-                </option>
-              ))}
-            </select>
+              onChange={setBucketId}
+              placeholder="Select bucket..."
+              options={buckets.map((b) => ({
+                value: b.id,
+                label: b.name,
+                sublabel: `Bal: ${currency === 'NGN' ? '₦' : currency}${b.balance.toLocaleString()}`,
+                disabled: b.balance <= 0,
+              }))}
+            />
           </div>
         </div>
 

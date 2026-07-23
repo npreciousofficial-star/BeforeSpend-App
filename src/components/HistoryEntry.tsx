@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { PaymentEntry } from '../types';
 import { formatCurrency } from '../lib/utils';
+import { CustomSelect } from './CustomSelect';
 import { 
   Trash2, 
   Search, 
@@ -118,22 +119,22 @@ export function HistoryEntryList({
             />
           </div>
 
-          {/* Currency Filter */}
-          <div className="relative w-full sm:w-48">
-            <DollarSign className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <select
+          {/* Currency Filter with CustomSelect */}
+          <div className="w-full sm:w-56">
+            <CustomSelect
               id="history-currency-filter"
               value={currencyFilter}
-              onChange={(e) => setCurrencyFilter(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer appearance-none"
-            >
-              <option value="all">All Currencies</option>
-              <option value="NGN">NGN (₦)</option>
-              <option value="USD">USD ($)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="CAD">CAD (C$)</option>
-            </select>
+              onChange={setCurrencyFilter}
+              placeholder="All Currencies"
+              options={[
+                { value: 'all', label: 'All Currencies' },
+                { value: 'NGN', label: 'NGN (₦)', sublabel: 'Nigerian Naira' },
+                { value: 'USD', label: 'USD ($)', sublabel: 'US Dollar' },
+                { value: 'GBP', label: 'GBP (£)', sublabel: 'British Pound' },
+                { value: 'EUR', label: 'EUR (€)', sublabel: 'Euro' },
+                { value: 'CAD', label: 'CAD (C$)', sublabel: 'Canadian Dollar' },
+              ]}
+            />
           </div>
         </div>
 

@@ -19,7 +19,7 @@ import {
 
 // Components
 import { ToastContainer } from './components/Toast';
-import { GooglePreloader } from './components/Preloader';
+import { SkeletonBucketCard } from './components/Preloader';
 import { AnimatedNumber } from './components/AnimatedNumber';
 import { SplitCalculator } from './components/SplitCalculator';
 import { FinanceCalculators } from './components/FinanceCalculators';
@@ -1495,27 +1495,33 @@ export function AuthenticatedApp({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {buckets.map((bucket) => (
-                  <div key={bucket.id} className="relative group">
-                    <BucketCard 
-                      bucket={bucket}
-                      currency={userProfile.defaultCurrency}
-                      hideBalance={hideBalance}
-                    />
-                    
-                    {/* Hover delete button for Custom Buckets */}
-                    {bucket.id.startsWith('custom-') && (
-                      <button
-                        id={`delete-custom-bucket-${bucket.id}`}
-                        onClick={() => handleDeleteBucket(bucket.id)}
-                        className="absolute bottom-4 right-4 p-1 rounded bg-zinc-100 hover:bg-rose-50 hover:text-rose-600 text-gray-400 dark:bg-zinc-900 dark:hover:bg-rose-950/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                        title="Delete custom bucket"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                {!dataLoaded ? (
+                  Array.from({ length: 6 }).map((_, idx) => (
+                    <SkeletonBucketCard key={idx} />
+                  ))
+                ) : (
+                  buckets.map((bucket) => (
+                    <div key={bucket.id} className="relative group">
+                      <BucketCard 
+                        bucket={bucket}
+                        currency={userProfile.defaultCurrency}
+                        hideBalance={hideBalance}
+                      />
+                      
+                      {/* Hover delete button for Custom Buckets */}
+                      {bucket.id.startsWith('custom-') && (
+                        <button
+                          id={`delete-custom-bucket-${bucket.id}`}
+                          onClick={() => handleDeleteBucket(bucket.id)}
+                          className="absolute bottom-4 right-4 p-1 rounded bg-zinc-100 hover:bg-rose-50 hover:text-rose-600 text-gray-400 dark:bg-zinc-900 dark:hover:bg-rose-950/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          title="Delete custom bucket"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -3096,10 +3102,6 @@ export function AuthenticatedApp({
           onBatchImport={handleBatchImport}
           onClose={() => setShowStatementParserModal(false)}
         />
-      )}
-      {/* Google-Style Preloader while retrieving data from Supabase */}
-      {!dataLoaded && (
-        <GooglePreloader message="Retrieving your financial ledger & balances..." />
       )}
 
     </div>

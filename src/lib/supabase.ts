@@ -223,7 +223,13 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       updated_at: new Date().toISOString()
     }, { onConflict: 'email' });
 
-    if (error) console.warn('Supabase profile sync error:', error.message);
+    if (error) {
+      if (error.message.includes('foreign key constraint')) {
+        console.info('Supabase FK notice: Run SUPABASE_SCHEMA_FIX.sql in Supabase SQL editor to enable unconstrained multi-user profile sync.');
+      } else {
+        console.warn('Supabase profile sync error:', error.message);
+      }
+    }
   } catch (err) {
     console.warn('Supabase syncProfile failed:', err);
   }

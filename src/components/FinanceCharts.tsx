@@ -38,6 +38,22 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
+        onclone: (clonedDoc) => {
+          const allElems = clonedDoc.querySelectorAll('*');
+          allElems.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            const style = window.getComputedStyle(htmlEl);
+            if (style.color && style.color.includes('oklch')) {
+              htmlEl.style.color = '#0E2A47';
+            }
+            if (style.backgroundColor && style.backgroundColor.includes('oklch')) {
+              htmlEl.style.backgroundColor = '#FFFFFF';
+            }
+            if (style.borderColor && style.borderColor.includes('oklch')) {
+              htmlEl.style.borderColor = '#E5E7EB';
+            }
+          });
+        }
       });
 
       const imgData = canvas.toDataURL('image/png');

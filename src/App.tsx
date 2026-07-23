@@ -19,7 +19,7 @@ import {
 
 // Components
 import { ToastContainer } from './components/Toast';
-import { SkeletonBucketCard } from './components/Preloader';
+import { SkeletonBucketCard, SkeletonContentBlock, SkeletonTableRows, SkeletonChartCard, SkeletonFormCard } from './components/Preloader';
 import { AnimatedNumber } from './components/AnimatedNumber';
 import { CustomSelect } from './components/CustomSelect';
 import { SplitCalculator } from './components/SplitCalculator';
@@ -80,7 +80,9 @@ import {
   Globe,
   Users,
   Edit3,
-  Send
+  Send,
+  Menu,
+  PanelLeftOpen
 } from 'lucide-react';
 
 const PAGE_TITLES: Record<string, { title: string; subtext: string }> = {
@@ -171,6 +173,7 @@ export function AuthenticatedApp({
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false); // guards sync from firing before load completes
+  const [sidebarOpen, setSidebarOpen] = useState(true); // desktop sidebar visibility toggle
   
   // Settings bucket states
   const [editingBucket, setEditingBucket] = useState<Bucket | null>(null);
@@ -360,51 +363,54 @@ export function AuthenticatedApp({
   // Dynamic system notifications logic
   useEffect(() => {
     const totalAlloc = buckets.reduce((sum, b) => sum + b.percentage, 0);
-    const hasMismatchNotification = notifications.some(n => n.id === 'n-mismatch');
 
-    let updated = [...notifications];
-    let changed = false;
+    // Use functional updater to always read latest notifications state,
+    // avoiding stale closure that would overwrite read/unread status.
+    setNotifications(prev => {
+      let updated = [...prev];
+      let changed = false;
 
-    if (totalAlloc !== 100 && !hasMismatchNotification) {
-      updated.unshift({
-        id: 'n-mismatch',
-        title: 'Budget Allocation Mismatch!',
-        message: `Your active buckets sum to ${totalAlloc}% instead of exactly 100%. Automatic splits will be inaccurate until updated in settings.`,
-        time: new Date().toISOString(),
-        type: 'warning',
-        read: false
-      });
-      changed = true;
-    } else if (totalAlloc === 100 && hasMismatchNotification) {
-      updated = updated.filter(n => n.id !== 'n-mismatch');
-      changed = true;
-    }
+      const hasMismatchNotification = updated.some(n => n.id === 'n-mismatch');
 
-    // Low balance warnings per bucket
-    buckets.forEach((bucket) => {
-      const notifId = `n-low-balance-${bucket.id}`;
-      const existingNotif = updated.find(n => n.id === notifId);
-      const isBelowThreshold = bucket.lowBalanceThreshold !== undefined && bucket.lowBalanceThreshold > 0 && bucket.balance < bucket.lowBalanceThreshold;
-
-      if (isBelowThreshold && !existingNotif) {
+      if (totalAlloc !== 100 && !hasMismatchNotification) {
         updated.unshift({
-          id: notifId,
-          title: `Low Balance: ${bucket.name}`,
-          message: `${bucket.name} balance (${formatCurrency(bucket.balance, userProfile.defaultCurrency)}) has fallen below your set threshold of ${formatCurrency(bucket.lowBalanceThreshold!, userProfile.defaultCurrency)}.`,
+          id: 'n-mismatch',
+          title: 'Budget Allocation Mismatch!',
+          message: `Your active buckets sum to ${totalAlloc}% instead of exactly 100%. Automatic splits will be inaccurate until updated in settings.`,
           time: new Date().toISOString(),
           type: 'warning',
           read: false
         });
         changed = true;
-      } else if (!isBelowThreshold && existingNotif) {
-        updated = updated.filter(n => n.id !== notifId);
+      } else if (totalAlloc === 100 && hasMismatchNotification) {
+        updated = updated.filter(n => n.id !== 'n-mismatch');
         changed = true;
       }
-    });
 
-    if (changed) {
-      setNotifications(updated);
-    }
+      // Low balance warnings per bucket
+      buckets.forEach((bucket) => {
+        const notifId = `n-low-balance-${bucket.id}`;
+        const existingNotif = updated.find(n => n.id === notifId);
+        const isBelowThreshold = bucket.lowBalanceThreshold !== undefined && bucket.lowBalanceThreshold > 0 && bucket.balance < bucket.lowBalanceThreshold;
+
+        if (isBelowThreshold && !existingNotif) {
+          updated.unshift({
+            id: notifId,
+            title: `Low Balance: ${bucket.name}`,
+            message: `${bucket.name} balance (${formatCurrency(bucket.balance, userProfile.defaultCurrency)}) has fallen below your set threshold of ${formatCurrency(bucket.lowBalanceThreshold!, userProfile.defaultCurrency)}.`,
+            time: new Date().toISOString(),
+            type: 'warning',
+            read: false
+          });
+          changed = true;
+        } else if (!isBelowThreshold && existingNotif) {
+          updated = updated.filter(n => n.id !== notifId);
+          changed = true;
+        }
+      });
+
+      return changed ? updated : prev;
+    });
   }, [buckets, userProfile.defaultCurrency]);
 
   // Trigger dark mode effects
@@ -1102,56 +1108,94 @@ export function AuthenticatedApp({
       )}
 
       {/* DESKTOP SIDEBAR (md and up) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 p-6 space-y-6 flex-shrink-0 sticky top-0 h-screen">
-        {/* Brand Logo */}
-        <div 
-          onClick={onGoToLanding} 
-          className="cursor-pointer hover:opacity-85 transition-opacity" 
-          title="View Homepage / About"
-        >
-          <BeforeSpendLogo size="md" />
+      {sidebarOpen && (
+      <aside className="hidden md:flex flex-col w-64 bg-[#0E2A47] dark:bg-[#0A1628] border-r border-[#0E2A47]/20 dark:border-[#0A1628] p-5 space-y-5 flex-shrink-0 sticky top-0 h-screen overflow-y-auto scrollbar-none">
+        {/* Top: Logo + Close Button */}
+        <div className="flex items-center justify-between">
+          <div 
+            onClick={onGoToLanding} 
+            className="cursor-pointer hover:opacity-85 transition-opacity" 
+            title="View Homepage / About"
+          >
+            <BeforeSpendLogo size="md" variant="white" />
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            title="Collapse sidebar"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* User Profile Block */}
-        <div className="p-3 bg-slate-50 dark:bg-zinc-950 border border-gray-200/80 dark:border-zinc-800 rounded-2xl space-y-2.5 shadow-2xs">
+        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 dark:border-zinc-800">
+            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-white/20">
               <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black text-gray-900 dark:text-zinc-100 truncate">{userProfile.name}</p>
+              <p className="text-xs font-black text-white truncate">{userProfile.name}</p>
               <p className="text-[9px] text-[#00A896] font-bold truncate">{userProfile.role}</p>
             </div>
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-gray-150 dark:border-zinc-850 text-[10px] text-gray-500">
-            <span className="flex items-center gap-1 font-bold">
-              Total Managed
-              <button 
-                onClick={() => setHideBalance(!hideBalance)}
-                className="text-gray-400 hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors p-0.5 rounded cursor-pointer"
-                title={hideBalance ? "Reveal balances" : "Hide balances"}
-              >
-                {hideBalance ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              </button>
-            </span>
-            <span className={`font-black text-[#00A896] transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
-              <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
-            </span>
-          </div>
         </div>
 
-        {/* Desktop Sidebar Navigation links */}
-        <nav className="flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-none">
+        {/* Total Managed Balance Card */}
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#00A896]/20 to-[#00A896]/5 border border-[#00A896]/20 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Total Managed</span>
+            <button 
+              onClick={() => setHideBalance(!hideBalance)}
+              className="text-slate-400 hover:text-[#00A896] transition-colors p-0.5 rounded cursor-pointer"
+              title={hideBalance ? "Reveal balances" : "Hide balances"}
+            >
+              {hideBalance ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            </button>
+          </div>
+          <p className={`text-lg font-black text-[#00A896] transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
+            <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
+          </p>
+        </div>
+
+        {/* Primary Navigation — Daily use items */}
+        <nav className="flex-1 space-y-0.5 overflow-y-auto scrollbar-none">
+          <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold px-3 pb-1">Main</p>
           {[
             { id: 'buckets', label: 'Dashboard & Categories', icon: Layers },
-            { id: 'ledger', label: 'Transactions & Statements', icon: Scale },
             { id: 'split', label: 'Income Splitter', icon: Wallet },
-            { id: 'calculators', label: 'Money Calculators', icon: Calculator },
             { id: 'expenses', label: 'Expense Tracker', icon: TrendingDown },
+            { id: 'ledger', label: 'Transactions & Statements', icon: Scale },
             { id: 'history', label: 'Payment History', icon: History },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer text-left ${
+                  isActive
+                    ? 'bg-white/10 text-white border-l-4 border-[#00A896]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+
+          {/* Divider */}
+          <div className="!my-3 border-t border-white/10" />
+          
+          {/* Secondary Navigation — Less frequent items */}
+          <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold px-3 pb-1">Tools & Settings</p>
+          {[
             { id: 'milestones', label: 'Savings Goals', icon: Target },
             { id: 'reminders', label: 'Bills & Reminders', icon: Bell },
             { id: 'analytics', label: 'Spending Insights', icon: BarChart3 },
+            { id: 'calculators', label: 'Money Calculators', icon: Calculator },
             { id: 'settings', label: 'Account Settings', icon: Settings },
             { id: 'admin', label: 'Backups & Data', icon: Database },
             { id: 'home_landing', label: 'Homepage / About', icon: Globe },
@@ -1170,8 +1214,8 @@ export function AuthenticatedApp({
                 }}
                 className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer text-left ${
                   isActive
-                    ? 'bg-[#00A896]/10 text-[#0E2A47] dark:text-[#00A896] border-l-4 border-[#00A896]'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-slate-50 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850/50'
+                    ? 'bg-white/10 text-white border-l-4 border-[#00A896]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
@@ -1185,7 +1229,7 @@ export function AuthenticatedApp({
         {isAdmin && (
           <button
             onClick={() => setShowAdminCenter(true)}
-            className="w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center gap-2.5 cursor-pointer text-left bg-[#00A896]/10 text-[#00A896] border border-[#00A896]/20 hover:bg-[#00A896]/20 mb-2"
+            className="w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center gap-2.5 cursor-pointer text-left bg-[#00A896]/15 text-[#00A896] border border-[#00A896]/25 hover:bg-[#00A896]/25 mb-1"
           >
             <ShieldAlert className="w-4 h-4 flex-shrink-0" />
             <span>Admin Console</span>
@@ -1193,24 +1237,26 @@ export function AuthenticatedApp({
         )}
 
         {/* Bottom Theme and Logout Action buttons */}
-        <div className="pt-4 border-t border-gray-150 dark:border-zinc-800 flex gap-2">
+        <div className="pt-3 border-t border-white/10 flex gap-2">
           <button
             onClick={toggleDarkMode}
-            className="flex-1 py-2 px-3 rounded-lg border border-gray-250 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-850 text-gray-500 dark:text-zinc-400 hover:text-[#00A896] transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-[10px] font-bold"
+            className="flex-1 py-2 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-slate-300 hover:text-[#00A896] transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-[10px] font-bold"
             title="Toggle Light/Dark Theme"
           >
-            {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-[#00A896]" />}
+            {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-[#00A896]" />}
             Theme
           </button>
           <button
             onClick={onLogout}
-            className="py-2 px-3 rounded-lg border border-gray-250 dark:border-zinc-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-gray-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer flex items-center justify-center"
+            className="py-2 px-3 rounded-lg border border-white/10 hover:bg-rose-500/10 text-slate-300 hover:text-rose-400 transition-colors cursor-pointer flex items-center justify-center"
             title="Sign Out"
           >
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </aside>
+      )}
+
 
       {/* MOBILE TOPBAR (md and below) */}
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 shadow-xs">
@@ -1287,7 +1333,7 @@ export function AuthenticatedApp({
       </nav>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto w-full px-4 md:px-8 py-6 space-y-6 md:overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 w-full px-4 md:px-8 lg:px-10 py-6 space-y-6 md:overflow-y-auto">
         
         {/* Mobile Header Banner showing balance */}
         <div className="md:hidden p-4 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white shadow-xs flex justify-between items-center">
@@ -1314,7 +1360,17 @@ export function AuthenticatedApp({
 
         {/* Dynamic Page Header & Desktop Action Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-zinc-850">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 flex items-center gap-3">
+            {/* Sidebar re-open toggle (visible when sidebar is collapsed) */}
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="hidden md:flex p-2 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-[#00A896]/50 bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 hover:text-[#00A896] cursor-pointer transition-colors"
+                title="Open sidebar"
+              >
+                <PanelLeftOpen className="w-4 h-4" />
+              </button>
+            )}
             {activeTab !== 'buckets' && PAGE_TITLES[activeTab] ? (
               <div className="space-y-1">
                 <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 tracking-tight">
@@ -1415,6 +1471,9 @@ export function AuthenticatedApp({
           {/* 0.1 IMMUTABLE DOUBLE-ENTRY LEDGER TAB */}
           {activeTab === 'ledger' && (
             <div id="view-ledger-tab" className="space-y-6">
+              {!dataLoaded ? (
+                <SkeletonTableRows />
+              ) : (
               <LedgerTable
                 transactions={transactions}
                 buckets={buckets}
@@ -1425,12 +1484,17 @@ export function AuthenticatedApp({
                 }}
                 onOpenStatementParser={() => setShowStatementParserModal(true)}
               />
+              )}
             </div>
           )}
 
           {/* 1. SPLIT CALCULATOR TAB */}
           {activeTab === 'split' && (
             <div id="view-split-tab" className="space-y-6">
+              {!dataLoaded ? (
+                <div className="space-y-4"><SkeletonContentBlock /><SkeletonContentBlock /></div>
+              ) : (
+              <>
               {currentTotalAllocPercentage !== 100 && (
                 <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 dark:border-amber-900/30 text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2.5">
                   <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -1446,21 +1510,34 @@ export function AuthenticatedApp({
                 onSavePayment={handleSavePayment}
                 addToast={addToast}
               />
+              </>
+              )}
             </div>
           )}
 
           {/* 1.1 FINANCIAL CALCULATORS TAB */}
           {activeTab === 'calculators' && (
             <div id="view-calculators-tab" className="space-y-6">
+              {!dataLoaded ? (
+                <SkeletonContentBlock />
+              ) : (
               <FinanceCalculators 
                 currency={userProfile.defaultCurrency}
               />
+              )}
             </div>
           )}
 
           {/* 2. EXPENSES TAB */}
           {activeTab === 'expenses' && (
             <div id="view-expenses-tab" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {!dataLoaded ? (
+                <>
+                  <div className="lg:col-span-4"><SkeletonFormCard /></div>
+                  <div className="lg:col-span-8 space-y-5"><SkeletonChartCard /><SkeletonContentBlock /></div>
+                </>
+              ) : (
+              <>
               <div className="lg:col-span-4">
                 <ExpenseForm 
                   buckets={buckets}
@@ -1484,6 +1561,8 @@ export function AuthenticatedApp({
                   addToast={addToast}
                 />
               </div>
+              </>
+              )}
             </div>
           )}
 
@@ -1538,6 +1617,13 @@ export function AuthenticatedApp({
           {/* 4. MILESTONES TAB */}
           {activeTab === 'milestones' && (
             <div id="view-milestones-tab" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {!dataLoaded ? (
+                <>
+                  <div className="lg:col-span-4"><SkeletonFormCard /></div>
+                  <div className="lg:col-span-8"><SkeletonContentBlock /></div>
+                </>
+              ) : (
+              <>
               <div className="lg:col-span-4">
                 <MilestoneForm 
                   buckets={buckets}
@@ -1569,12 +1655,21 @@ export function AuthenticatedApp({
                   )}
                 </div>
               </div>
+              </>
+              )}
             </div>
           )}
 
           {/* 5. REMINDERS & SUBS TAB */}
           {activeTab === 'reminders' && (
             <div id="view-reminders-tab" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {!dataLoaded ? (
+                <>
+                  <div className="lg:col-span-4"><SkeletonFormCard /></div>
+                  <div className="lg:col-span-8"><SkeletonContentBlock /></div>
+                </>
+              ) : (
+              <>
               <div className="lg:col-span-4">
                 <ReminderForm 
                   currency={userProfile.defaultCurrency}
@@ -1609,12 +1704,17 @@ export function AuthenticatedApp({
                   )}
                 </div>
               </div>
+              </>
+              )}
             </div>
           )}
 
           {/* 6. HISTORY TAB */}
           {activeTab === 'history' && (
             <div id="view-history-tab">
+              {!dataLoaded ? (
+                <SkeletonTableRows />
+              ) : (
               <HistoryEntryList 
                 history={history}
                 currency={userProfile.defaultCurrency}
@@ -1622,24 +1722,36 @@ export function AuthenticatedApp({
                 onClearAll={handleClearHistory}
                 addToast={addToast}
               />
+              )}
             </div>
           )}
 
           {/* 7. ANALYTICS / CHARTS TAB */}
           {activeTab === 'analytics' && (
             <div id="view-analytics-tab">
+              {!dataLoaded ? (
+                <div className="space-y-4"><SkeletonChartCard /><SkeletonChartCard /></div>
+              ) : (
               <FinanceCharts 
                 buckets={buckets}
                 history={history}
                 expenses={expenses}
                 currency={userProfile.defaultCurrency}
               />
+              )}
             </div>
           )}
 
           {/* 8. SETTINGS & TEMPLATES TAB */}
           {activeTab === 'settings' && (
             <div id="view-settings-tab" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {!dataLoaded ? (
+                <>
+                  <div className="lg:col-span-4"><SkeletonFormCard /></div>
+                  <div className="lg:col-span-8"><SkeletonContentBlock /></div>
+                </>
+              ) : (
+              <>
               
               {/* Profile Config Form */}
               <div className="lg:col-span-4 space-y-5">
@@ -1863,7 +1975,8 @@ export function AuthenticatedApp({
                 </div>
 
               </div>
-
+              </>
+              )}
             </div>
           )}
 
@@ -2735,7 +2848,7 @@ export function AuthenticatedApp({
         </main>
 
         {/* FOOTER - Snug fit above mobile navigation bar */}
-        <footer className="py-2 pb-14 sm:pb-3 px-4 sm:px-10 border-none text-center sm:text-right text-[11px] font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
+        <footer className="py-2 pb-4 md:pb-3 px-4 sm:px-10 border-none text-center sm:text-right text-[11px] font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
           <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
         </footer>
 

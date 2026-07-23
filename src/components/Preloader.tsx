@@ -62,3 +62,75 @@ export function SkeletonBucketCard() {
     </div>
   );
 }
+
+export function SkeletonContentBlock() {
+  return (
+    <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-gray-100 dark:border-zinc-800/80 shadow-sm animate-pulse space-y-4">
+      <div className="w-48 h-5 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+      <div className="space-y-3 pt-2">
+        <div className="w-full h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-3/4 h-3 bg-gray-100 dark:bg-zinc-800/60 rounded-md" />
+        <div className="w-1/2 h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonTableRows() {
+  return (
+    <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-gray-100 dark:border-zinc-800/80 shadow-sm animate-pulse">
+      <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-zinc-800/60">
+        <div className="w-1/4 h-4 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-1/4 h-4 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-1/4 h-4 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-1/5 h-4 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+      </div>
+      <div className="divide-y divide-gray-100 dark:divide-zinc-800/60">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex justify-between items-center py-4">
+            <div className="w-1/4 h-3 bg-gray-100 dark:bg-zinc-800/60 rounded-md" />
+            <div className="w-1/5 h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+            <div className="w-1/4 h-3 bg-gray-100 dark:bg-zinc-800/60 rounded-md" />
+            <div className="w-1/6 h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonChartCard() {
+  return (
+    <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-gray-100 dark:border-zinc-800/80 shadow-sm animate-pulse space-y-5">
+      <div className="w-40 h-4 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+      <div className="w-full h-48 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+      <div className="flex justify-center gap-4 pt-2">
+        <div className="w-16 h-2.5 bg-gray-100 dark:bg-zinc-800/60 rounded-full" />
+        <div className="w-16 h-2.5 bg-gray-200 dark:bg-zinc-800 rounded-full" />
+        <div className="w-16 h-2.5 bg-gray-100 dark:bg-zinc-800/60 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonFormCard() {
+  return (
+    <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-gray-100 dark:border-zinc-800/80 shadow-sm animate-pulse space-y-6">
+      <div className="space-y-2">
+        <div className="w-20 h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-full h-9 bg-gray-100 dark:bg-zinc-800/60 rounded-lg" />
+      </div>
+      <div className="space-y-2">
+        <div className="w-20 h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-full h-9 bg-gray-100 dark:bg-zinc-800/60 rounded-lg" />
+      </div>
+      <div className="space-y-2">
+        <div className="w-20 h-3 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+        <div className="w-full h-9 bg-gray-100 dark:bg-zinc-800/60 rounded-lg" />
+      </div>
+      <div className="pt-2">
+        <div className="w-32 h-10 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+      </div>
+    </div>
+  );
+}

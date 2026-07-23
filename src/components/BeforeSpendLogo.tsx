@@ -14,8 +14,8 @@ export const BeforeSpendLogo: React.FC<LogoProps> = ({
   onClick,
 }) => {
   const imgHeights = {
-    sm: 'h-8 sm:h-9',
-    md: 'h-10 sm:h-12',
+    sm: 'h-10 sm:h-11',
+    md: 'h-12 sm:h-14',
     lg: 'h-14 sm:h-16',
     xl: 'h-20 sm:h-24',
   };

@@ -15,7 +15,7 @@ import {
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
   adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase,
-  uploadToSupabaseStorage, ensureUuid
+  uploadToSupabaseStorage, ensureUuid, supabase
 } from './lib/supabase';
 
 // Components

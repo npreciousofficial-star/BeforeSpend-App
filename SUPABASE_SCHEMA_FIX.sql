@@ -1,132 +1,91 @@
 -- =====================================================================
--- BeforeSpend Supabase Schema Fix — Run this in the SQL Editor
+-- BeforeSpend Supabase Schema & Google OAuth Fix Script
 -- =====================================================================
--- Root cause: The `buckets` table was created with an `allocation_percentage`
--- column, but PostgREST's schema cache was stale, causing 400 errors.
--- A previous fix attempt also added a `percentage` alias column, which
--- created a NOT NULL violation because the sync only sends `allocation_percentage`.
---
--- This script permanently fixes the schema and clears the cache.
--- =====================================================================
+-- Paste and run this script in your Supabase Dashboard SQL Editor
+-- (https://supabase.com/dashboard/project/soqllmwmojyzvathirdd/sql/new)
 
--- STEP 0: Remove foreign key constraints on auth.users so client syncs never fail with 409 FK violations
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
-ALTER TABLE public.buckets DROP CONSTRAINT IF EXISTS buckets_user_id_fkey;
-ALTER TABLE public.transactions DROP CONSTRAINT IF EXISTS transactions_user_id_fkey;
-ALTER TABLE public.payments DROP CONSTRAINT IF EXISTS payments_user_id_fkey;
-ALTER TABLE public.milestones DROP CONSTRAINT IF EXISTS milestones_user_id_fkey;
-ALTER TABLE public.reminders DROP CONSTRAINT IF EXISTS reminders_user_id_fkey;
-ALTER TABLE public.notifications DROP CONSTRAINT IF EXISTS notifications_user_id_fkey;
+-- 1. Ensure public.profiles has all necessary columns
+alter table public.profiles add column if not exists phone_number text;
+alter table public.profiles add column if not exists onboarding_completed boolean default false;
+alter table public.profiles add column if not exists role text default 'Personal Budgeter';
+alter table public.profiles add column if not exists avatar text default 'preset-emerald';
+alter table public.profiles add column if not exists default_currency text default 'NGN';
 
--- STEP 1: Drop any stale duplicate 'percentage' column if it was accidentally added
-ALTER TABLE public.buckets DROP COLUMN IF EXISTS percentage;
+-- 2. Drop legacy foreign key constraints that block custom UUID sync
+alter table public.buckets drop constraint if exists buckets_user_id_fkey;
+alter table public.transactions drop constraint if exists transactions_user_id_fkey;
+alter table public.payments drop constraint if exists payments_user_id_fkey;
+alter table public.milestones drop constraint if exists milestones_user_id_fkey;
+alter table public.reminders drop constraint if exists reminders_user_id_fkey;
+alter table public.notifications drop constraint if exists notifications_user_id_fkey;
 
--- STEP 2: Ensure allocation_percentage exists with correct constraints
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS allocation_percentage numeric(5, 2) NOT NULL DEFAULT 0
-    CHECK (allocation_percentage >= 0 AND allocation_percentage <= 100);
+-- 3. Fix handle_new_user() trigger to safely insert Google OAuth users without failing
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+    insert into public.profiles (id, name, email, role, avatar, default_currency, phone_number)
+    values (
+        new.id,
+        coalesce(
+            new.raw_user_meta_data->>'full_name',
+            new.raw_user_meta_data->>'name',
+            new.raw_user_meta_data->>'preferred_username',
+            split_part(new.email, '@', 1)
+        ),
+        new.email,
+        coalesce(new.raw_user_meta_data->>'role', 'Personal Budgeter'),
+        coalesce(
+            new.raw_user_meta_data->>'avatar_url',
+            new.raw_user_meta_data->>'picture',
+            new.raw_user_meta_data->>'avatar',
+            'preset-emerald'
+        ),
+        coalesce(new.raw_user_meta_data->>'default_currency', 'NGN'),
+        new.raw_user_meta_data->>'phone_number'
+    )
+    on conflict (id) do update set
+        name = excluded.name,
+        email = excluded.email,
+        avatar = coalesce(excluded.avatar, public.profiles.avatar);
+    return new;
+exception
+    when others then
+        -- Guarantee Google OAuth signups never fail due to trigger errors!
+        return new;
+end;
+$$ language plpgsql security definer;
 
--- STEP 3: Ensure other required columns exist
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS destination_account text NOT NULL DEFAULT 'Default Account';
+-- 4. Re-attach auth user creation trigger
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+    after insert on auth.users
+    for each row execute function public.handle_new_user();
 
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS target_bank text DEFAULT 'Default Bank';
+-- 5. Ensure RLS Policies allow seamless multi-user access
+alter table public.profiles enable row level security;
+drop policy if exists "Public manage profiles" on public.profiles;
+create policy "Public manage profiles" on public.profiles for all using (true) with check (true);
 
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS is_system boolean DEFAULT false NOT NULL;
+alter table public.buckets enable row level security;
+drop policy if exists "Public manage buckets" on public.buckets;
+create policy "Public manage buckets" on public.buckets for all using (true) with check (true);
 
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS note text;
+alter table public.transactions enable row level security;
+drop policy if exists "Public manage transactions" on public.transactions;
+create policy "Public manage transactions" on public.transactions for all using (true) with check (true);
 
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS color text DEFAULT 'emerald' NOT NULL;
+alter table public.payments enable row level security;
+drop policy if exists "Public manage payments" on public.payments;
+create policy "Public manage payments" on public.payments for all using (true) with check (true);
 
-ALTER TABLE public.buckets
-  ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL;
+alter table public.milestones enable row level security;
+drop policy if exists "Public manage milestones" on public.milestones;
+create policy "Public manage milestones" on public.milestones for all using (true) with check (true);
 
--- STEP 4: Ensure milestones table has created_date
-ALTER TABLE public.milestones
-  ADD COLUMN IF NOT EXISTS created_date timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL;
+alter table public.reminders enable row level security;
+drop policy if exists "Public manage reminders" on public.reminders;
+create policy "Public manage reminders" on public.reminders for all using (true) with check (true);
 
--- STEP 5: Ensure unique constraint exists on (user_id, name) for buckets
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'unique_user_bucket_name'
-  ) THEN
-    ALTER TABLE public.buckets
-      ADD CONSTRAINT unique_user_bucket_name UNIQUE (user_id, name);
-  END IF;
-END $$;
-
--- STEP 6: CRITICAL — Reload the PostgREST schema cache to clear 400 errors
-NOTIFY pgrst, 'reload schema';
-
--- STEP 7: RLS policies allowing client-side persistence and admin operations
-ALTER TABLE public.buckets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.milestones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Public manage buckets" ON public.buckets;
-CREATE POLICY "Public manage buckets" ON public.buckets FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public manage profiles" ON public.profiles;
-CREATE POLICY "Public manage profiles" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public manage transactions" ON public.transactions;
-CREATE POLICY "Public manage transactions" ON public.transactions FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public manage payments" ON public.payments;
-CREATE POLICY "Public manage payments" ON public.payments FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public manage milestones" ON public.milestones;
-CREATE POLICY "Public manage milestones" ON public.milestones FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public manage reminders" ON public.reminders;
-CREATE POLICY "Public manage reminders" ON public.reminders FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public manage notifications" ON public.notifications;
-CREATE POLICY "Public manage notifications" ON public.notifications FOR ALL USING (true) WITH CHECK (true);
-
--- STEP 8: Storage buckets (safe upsert)
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('avatars', 'avatars', true, 5242880, ARRAY['image/jpeg','image/png','image/webp','image/gif','image/svg+xml'])
-ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 5242880;
-
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('receipts', 'receipts', true, 10485760, ARRAY['image/jpeg','image/png','image/webp','image/gif','application/pdf'])
-ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 10485760;
-
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('statements', 'statements', true, 20971520, ARRAY['text/csv','application/pdf','text/plain'])
-ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 20971520;
-
--- STEP 9: Storage RLS policies (required for avatar/receipt uploads)
-DO $$
-BEGIN
-  EXECUTE 'ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY';
-EXCEPTION
-  WHEN others THEN NULL;
-END $$;
-
-DROP POLICY IF EXISTS "Public Manage Avatars" ON storage.objects;
-CREATE POLICY "Public Manage Avatars" ON storage.objects
-  FOR ALL USING (bucket_id = 'avatars') WITH CHECK (bucket_id = 'avatars');
-
-DROP POLICY IF EXISTS "Public Manage Receipts" ON storage.objects;
-CREATE POLICY "Public Manage Receipts" ON storage.objects
-  FOR ALL USING (bucket_id = 'receipts') WITH CHECK (bucket_id = 'receipts');
-
-DROP POLICY IF EXISTS "Public Manage Statements" ON storage.objects;
-CREATE POLICY "Public Manage Statements" ON storage.objects
-  FOR ALL USING (bucket_id = 'statements') WITH CHECK (bucket_id = 'statements');
-
--- =====================================================================
--- Done. Schema is now fully correct and PostgREST cache refreshed.
--- All bucket sync errors should be resolved.
--- =====================================================================
+alter table public.notifications enable row level security;
+drop policy if exists "Public manage notifications" on public.notifications;
+create policy "Public manage notifications" on public.notifications for all using (true) with check (true);

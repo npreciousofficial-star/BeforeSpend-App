@@ -163,11 +163,11 @@ export function AuthenticatedApp({
   const [reminders, setReminders] = useLocalStorage<Reminder[]>(`${userPrefix}beforespend_reminders`, []);
 
   const [userProfile, setUserProfile] = useLocalStorage<UserProfile>(`${userPrefix}beforespend_profile`, {
-    name: 'Chidi Okechukwu',
-    email: 'chidi.design@gmail.com',
-    role: 'Freelance UI/UX Designer',
+    name: '',
+    email: '',
+    role: 'Personal Budgeter',
     defaultCurrency: 'NGN',
-    avatar: 'preset-chidi',
+    avatar: 'preset-emerald',
   });
   const [exchangeRates, setExchangeRates] = useLocalStorage<{ [key: string]: number }>(`${userPrefix}beforespend_exchange_rates`, DEFAULT_EXCHANGE_RATES);
   const [hideBalance, setHideBalance] = useLocalStorage<boolean>(`${userPrefix}beforespend_hide_balance`, false);
@@ -330,70 +330,80 @@ export function AuthenticatedApp({
         pingSupabaseDatabase();
         console.log('Fetching user data from Supabase database...');
         
-        // 1. Load Profile & automatically pull Google high-res avatar photo URL
+        // 1. Load Profile & automatically pull Google high-res profile metadata
         const profile = await loadProfileFromSupabase(currentUserId);
+        
         let googleAvatar: string | undefined;
-        try {
-          const { data: authData } = await supabase.auth.getUser();
-          googleAvatar = authData?.user?.user_metadata?.avatar_url || authData?.user?.user_metadata?.picture;
-        } catch (e) {
-          // ignore offline fallback
-        }
-
+        let googleName: string | undefined;
+        let googleEmail: string | undefined;
         let isGoogleAuth = false;
+
         try {
-          const { data: authData } = await supabase.auth.getUser();
-          const provider = authData?.user?.app_metadata?.provider;
-          const identities = authData?.user?.identities || [];
-          isGoogleAuth = provider === 'google' || identities.some((i: any) => i.provider === 'google') || Boolean(googleAvatar);
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session) {
+            const { data: authData } = await supabase.auth.getUser();
+            const authUser = authData?.user;
+            if (authUser) {
+              googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0];
+              googleEmail = authUser.email;
+              googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture;
+              const provider = authUser.app_metadata?.provider;
+              const identities = authUser.identities || [];
+              isGoogleAuth = provider === 'google' || identities.some((i: any) => i.provider === 'google') || Boolean(googleAvatar);
+            }
+          }
         } catch (e) {
           isGoogleAuth = false;
         }
 
-        if (profile) {
-          const finalAvatar = (googleAvatar && (!profile.avatar || profile.avatar.startsWith('preset-')))
-            ? googleAvatar
-            : (profile.avatar || googleAvatar || 'preset-chidi');
+        const isAlreadyOnboarded = localStorage.getItem(`user_${currentUserId}_onboarding_completed`) === 'true';
 
-          const updatedProfile = { ...profile, avatar: finalAvatar };
+        if (profile) {
+          const finalName = (googleName && (!profile.name || profile.name === 'Chidi Okechukwu' || profile.name === 'BeforeSpend User')) ? googleName : profile.name;
+          const finalEmail = (googleEmail && (!profile.email || profile.email === 'chidi.design@gmail.com')) ? googleEmail : profile.email;
+          const finalAvatar = (googleAvatar && (!profile.avatar || profile.avatar.startsWith('preset-'))) ? googleAvatar : (profile.avatar || googleAvatar || 'preset-emerald');
+
+          const updatedProfile = {
+            ...profile,
+            name: finalName,
+            email: finalEmail,
+            avatar: finalAvatar
+          };
+
           setUserProfile(updatedProfile);
           setEditProfileAvatar(finalAvatar);
-          setEditProfileName(profile.name);
-          setEditProfileEmail(profile.email);
-          setEditProfileRole(profile.role);
-          setEditProfileCurrency(profile.defaultCurrency);
+          setEditProfileName(finalName);
+          setEditProfileEmail(finalEmail);
+          setEditProfileRole(profile.role || 'Personal Budgeter');
+          setEditProfileCurrency(profile.defaultCurrency || 'NGN');
           setEditProfilePhone(profile.phoneNumber || '');
 
-          // Trigger onboarding modal ONLY for Google OAuth signups who haven't completed phone/role profile
-          if (isGoogleAuth && (!profile.phoneNumber || profile.phoneNumber.trim() === '')) {
+          // Trigger onboarding modal ONLY for Google OAuth signups who haven't completed profile and haven't dismissed it
+          if (isGoogleAuth && !isAlreadyOnboarded && (!profile.phoneNumber || profile.phoneNumber.trim() === '')) {
             setShowOnboardingModal(true);
           }
         } else {
-          try {
-            const { data: authData } = await supabase.auth.getUser();
-            const authUser = authData?.user;
-            if (authUser) {
-              const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User';
-              const avatarPhoto = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || 'preset-emerald';
-              
-              const newProfile: UserProfile = {
-                name: googleName,
-                email: authUser.email || '',
-                role: 'Personal Budgeter',
-                defaultCurrency: 'NGN',
-                avatar: avatarPhoto,
-              };
+          const defaultName = googleName || 'BeforeSpend User';
+          const defaultEmail = googleEmail || '';
+          const defaultAvatar = googleAvatar || 'preset-emerald';
 
-              setUserProfile(newProfile);
-              setEditProfileName(newProfile.name);
-              setEditProfileEmail(newProfile.email);
-              setEditProfileRole(newProfile.role);
-              setEditProfileCurrency(newProfile.defaultCurrency);
-              setEditProfilePhone('');
-              setShowOnboardingModal(true);
-            }
-          } catch (e) {
-            console.warn('Google profile metadata fallback warning:', e);
+          const newProfile: UserProfile = {
+            name: defaultName,
+            email: defaultEmail,
+            role: 'Personal Budgeter',
+            defaultCurrency: 'NGN',
+            avatar: defaultAvatar,
+          };
+
+          setUserProfile(newProfile);
+          setEditProfileName(defaultName);
+          setEditProfileEmail(defaultEmail);
+          setEditProfileRole(newProfile.role);
+          setEditProfileCurrency(newProfile.defaultCurrency);
+          setEditProfilePhone('');
+
+          if (isGoogleAuth && !isAlreadyOnboarded) {
+            setShowOnboardingModal(true);
           }
         }
 
@@ -2896,6 +2906,9 @@ export function AuthenticatedApp({
               onSubmit={async (e) => {
                 e.preventDefault();
                 await handleSaveProfile(e);
+                if (currentUserId) {
+                  localStorage.setItem(`user_${currentUserId}_onboarding_completed`, 'true');
+                }
                 setShowOnboardingModal(false);
                 addToast('Welcome! Your workspace preferences have been saved.', 'success');
               }}

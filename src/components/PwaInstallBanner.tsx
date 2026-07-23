@@ -101,12 +101,9 @@ export function PwaInstallBanner() {
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-12 h-12 rounded-2xl bg-[#00A896]/10 p-1.5 shrink-0 border border-[#00A896]/20 flex items-center justify-center overflow-hidden shadow-xs">
               <img
-                src="/logo.png"
+                src="/pwa-icon.png"
                 alt="BeforeSpend App Icon"
                 className="w-full h-full object-contain"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
               />
             </div>
 
@@ -115,9 +112,6 @@ export function PwaInstallBanner() {
                 <h4 className="font-extrabold text-xs text-gray-900 dark:text-zinc-50 truncate">
                   BeforeSpend App
                 </h4>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-[#00A896]/15 text-[#00A896]">
-                  PWA
-                </span>
               </div>
               <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate">
                 Install app for instant access & offline mode

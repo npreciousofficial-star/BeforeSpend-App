@@ -88,7 +88,7 @@ export function PwaTopBanner() {
 
         {/* App Icon */}
         <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-gray-100 dark:border-zinc-800 shadow-2xs">
-          <img src="/logo.png" alt="BeforeSpend Logo" className="w-full h-full object-cover" />
+          <img src="/pwa-icon.png" alt="BeforeSpend App Icon" className="w-full h-full object-cover" />
         </div>
 
         {/* Text stack */}

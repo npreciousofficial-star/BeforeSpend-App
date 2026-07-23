@@ -2833,13 +2833,27 @@ export function AuthenticatedApp({
             >
               <div>
                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">
-                  Full Name
+                  Full Name *
                 </label>
                 <input
                   type="text"
                   required
                   value={editProfileName}
                   onChange={(e) => setEditProfileName(e.target.value)}
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={userProfile.phoneNumber || ''}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  placeholder="+234 801 234 5678"
                   className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896]"
                 />
               </div>

@@ -468,6 +468,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
                     <input
                       id="register-phone"
                       type="tel"
+                      required
                       value={phoneNumber || ''}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="+234 801 234 5678"

@@ -90,7 +90,7 @@ export function CustomSelect({
 
       {/* Floating Options Menu */}
       {isOpen && (
-        <div className="absolute z-50 mt-1.5 w-full rounded-2xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden py-1 max-h-60 overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-100">
+        <div className="absolute z-50 mt-1.5 w-full rounded-2xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 shadow-2xl py-1 max-h-60 overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-100">
           {options.length === 0 ? (
             <div className="px-4 py-3 text-xs text-gray-400 text-center">No options available</div>
           ) : (

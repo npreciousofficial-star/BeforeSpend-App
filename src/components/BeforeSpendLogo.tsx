@@ -33,10 +33,8 @@ export const BeforeSpendLogo: React.FC<LogoProps> = ({
 
   return (
     <img
-      src="/logo.svg"
+      src="/logo.png"
       alt="BeforeSpend Logo"
-      loading="eager"
-      fetchPriority="high"
       onClick={onClick}
       className={`object-contain w-auto max-w-none shrink-0 select-none ${imgHeights[size]} ${filterClass} ${onClick ? 'cursor-pointer' : ''} ${className}`}
     />

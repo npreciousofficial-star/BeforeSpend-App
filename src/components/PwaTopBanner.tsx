@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
+import { InstallGuideModal } from './InstallGuideModal';
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
@@ -10,6 +12,7 @@ export function PwaTopBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState<boolean>(false);
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
+  const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
 
   useEffect(() => {
     // 1. Check standalone mode
@@ -27,10 +30,8 @@ export function PwaTopBanner() {
       return; // Permanently hide on refresh once dismissed
     }
 
-    // Show banner by default unless dismissed
     setShowBanner(true);
 
-    // 3. Listen for browser install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -53,12 +54,7 @@ export function PwaTopBanner() {
       }
       setDeferredPrompt(null);
     } else {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      if (/iphone|ipad|ipod/.test(userAgent)) {
-        alert('To install BeforeSpend on iOS: Tap Safari Share icon ⎋ and select "Add to Home Screen" ➕');
-      } else {
-        alert('To install BeforeSpend: Tap your browser menu (⋮) and select "Add to Home Screen" or "Install App".');
-      }
+      setShowGuideModal(true);
     }
   };
 
@@ -137,6 +133,8 @@ export function PwaTopBanner() {
           USE APP
         </button>
       </div>
+
+      <InstallGuideModal isOpen={showGuideModal} onClose={() => setShowGuideModal(false)} />
     </>
   );
 }

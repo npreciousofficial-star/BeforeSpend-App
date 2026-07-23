@@ -176,7 +176,7 @@ export function AuthenticatedApp({
   const [activeTab, setActiveTab] = useLocalStorage<string>(`${userPrefix}beforespend_active_tab`, 'split');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false); // guards sync from firing before load completes
+  const [dataLoaded, setDataLoaded] = useState(true); // guards sync from firing before load completes
   const [sidebarOpen, setSidebarOpen] = useState(true); // desktop sidebar visibility toggle
   
   // Settings bucket states

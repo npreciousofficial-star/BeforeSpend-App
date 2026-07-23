@@ -2082,7 +2082,7 @@ export function AuthenticatedApp({
                       id="settings-logout-button"
                       type="button"
                       onClick={onLogout}
-                      className="w-full py-2 px-4 rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-800 dark:text-zinc-350 dark:hover:bg-zinc-900 text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-2"
+                      className="w-full py-2 px-4 rounded-xl border border-gray-200/80 hover:bg-gray-50 text-gray-700 dark:border-zinc-800 dark:text-zinc-350 dark:hover:bg-zinc-900 text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-2"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       Sign Out of Account
@@ -2241,7 +2241,7 @@ export function AuthenticatedApp({
                               const val = parseFloat(e.target.value) || 1;
                               setExchangeRates({ ...exchangeRates, [currencyCode]: val });
                             }}
-                            className="w-24 px-2 py-1 text-xs text-right rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#00A896]"
+                            className="w-24 px-2 py-1 text-xs text-right rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#00A896]/30 focus:border-[#00A896] shadow-2xs transition-all"
                           />
                         </div>
                       ))}
@@ -2377,7 +2377,7 @@ export function AuthenticatedApp({
                           placeholder="Search database..."
                           value={adminSearchQuery}
                           onChange={(e) => setAdminSearchQuery(e.target.value)}
-                          className="w-full sm:w-60 px-3 py-1.5 text-xs rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] focus:bg-white"
+                          className="w-full sm:w-60 px-3 py-1.5 text-xs rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] hover:border-[#00A896]/50 shadow-2xs transition-all"
                         />
                       )}
                       <button
@@ -2769,7 +2769,7 @@ export function AuthenticatedApp({
                           value={adminBroadcastTitle}
                           onChange={(e) => setAdminBroadcastTitle(e.target.value)}
                           placeholder="e.g. Platform Scheduled Maintenance"
-                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] focus:bg-white"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] hover:border-[#00A896]/50 shadow-2xs transition-all"
                         />
                       </div>
 
@@ -2778,7 +2778,7 @@ export function AuthenticatedApp({
                         <select
                           value={adminBroadcastType}
                           onChange={(e) => setAdminBroadcastType(e.target.value as any)}
-                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] cursor-pointer"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] hover:border-[#00A896]/50 shadow-2xs transition-all cursor-pointer"
                         >
                           <option value="info">Info (Blue)</option>
                           <option value="success">Success (Green)</option>
@@ -2794,7 +2794,7 @@ export function AuthenticatedApp({
                           value={adminBroadcastMessage}
                           onChange={(e) => setAdminBroadcastMessage(e.target.value)}
                           placeholder="Write message content here..."
-                          className="w-full h-32 px-3.5 py-2 text-xs rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] focus:bg-white"
+                          className="w-full h-32 px-3.5 py-2 text-xs rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896] hover:border-[#00A896]/50 shadow-2xs transition-all"
                         />
                       </div>
 
@@ -2853,7 +2853,7 @@ export function AuthenticatedApp({
                                     const val = parseFloat(e.target.value) || 1;
                                     setExchangeRates({ ...exchangeRates, [currencyCode]: val });
                                   }}
-                                  className="w-24 px-2 py-1 text-xs text-right rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#00A896]"
+                                  className="w-24 px-2 py-1 text-xs text-right rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#00A896]/30 focus:border-[#00A896] shadow-2xs transition-all"
                                 />
                               </div>
                             ))}
@@ -2894,7 +2894,7 @@ export function AuthenticatedApp({
                             value={rawDbJson}
                             onChange={(e) => setRawDbJson(e.target.value)}
                             placeholder='Click "Export DB" to inspect raw JSON database dumps or paste a validated backup here...'
-                            className="w-full h-80 px-3 py-2 text-[11px] font-mono rounded-xl border border-gray-250 bg-gray-50/50 dark:bg-zinc-805 dark:border-zinc-800 dark:text-zinc-100 placeholder-gray-400 focus:outline-none"
+                            className="w-full h-80 px-3.5 py-3 text-[11px] font-mono rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 dark:text-zinc-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00A896]/30 focus:border-[#00A896] shadow-2xs transition-all"
                           />
                         </div>
                       </div>
@@ -3017,7 +3017,7 @@ export function AuthenticatedApp({
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
               <form
                 onSubmit={handleAdminSaveProfile}
-                className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
                   <h3 className="text-base font-black text-[#0E2A47] dark:text-zinc-50">Edit User Profile</h3>
@@ -3069,7 +3069,7 @@ export function AuthenticatedApp({
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
               <form
                 onSubmit={handleAdminSaveBucket}
-                className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
                   <h3 className="text-base font-black text-[#0E2A47] dark:text-zinc-50">Edit Budget Bucket</h3>
@@ -3123,7 +3123,7 @@ export function AuthenticatedApp({
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
               <form
                 onSubmit={handleAdminSaveTransaction}
-                className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
                   <h3 className="text-base font-black text-[#0E2A47] dark:text-zinc-50">Audit Transaction</h3>
@@ -3181,7 +3181,7 @@ export function AuthenticatedApp({
         <div id="add-bucket-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <form
             onSubmit={handleAddCustomBucket}
-            className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
+            className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
           >
             <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Create Custom Budget Bucket</h3>
@@ -3205,7 +3205,7 @@ export function AuthenticatedApp({
                   value={newBucketName}
                   onChange={(e) => setNewBucketName(e.target.value)}
                   placeholder="e.g. Workstation Gear, Child Care"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                 />
               </div>
 
@@ -3221,7 +3221,7 @@ export function AuthenticatedApp({
                     value={newBucketPercentage}
                     onChange={(e) => setNewBucketPercentage(parseInt(e.target.value) || 0)}
                     placeholder="0"
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                   />
                 </div>
                 <div>
@@ -3233,7 +3233,7 @@ export function AuthenticatedApp({
                     value={newBucketAccount}
                     onChange={(e) => setNewBucketAccount(e.target.value)}
                     placeholder="e.g. OPay, Kuda locked"
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                   />
                 </div>
               </div>
@@ -3265,7 +3265,7 @@ export function AuthenticatedApp({
                   value={newBucketNote}
                   onChange={(e) => setNewBucketNote(e.target.value)}
                   placeholder="Optional brief notes..."
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                 />
               </div>
 
@@ -3280,7 +3280,7 @@ export function AuthenticatedApp({
                   placeholder="e.g. 50000 (Optional)"
                   value={newBucketThreshold}
                   onChange={(e) => setNewBucketThreshold(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                 />
                 <p className="text-[10px] text-gray-400 mt-0.5">Triggers warning notification when bucket balance drops below this amount.</p>
               </div>
@@ -3312,7 +3312,7 @@ export function AuthenticatedApp({
         <div id="edit-bucket-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <form
             onSubmit={handleSaveEditedBucket}
-            className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
+            className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
           >
             <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Configure {editingBucket.name}</h3>
@@ -3338,7 +3338,7 @@ export function AuthenticatedApp({
                   required
                   value={tempBucketName}
                   onChange={(e) => setTempBucketName(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                 />
               </div>
 
@@ -3353,7 +3353,7 @@ export function AuthenticatedApp({
                     required
                     value={tempBucketPercentage}
                     onChange={(e) => setTempBucketPercentage(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                   />
                 </div>
                 <div>
@@ -3364,7 +3364,7 @@ export function AuthenticatedApp({
                     required
                     value={tempBucketAccount}
                     onChange={(e) => setTempBucketAccount(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                   />
                 </div>
               </div>
@@ -3375,7 +3375,7 @@ export function AuthenticatedApp({
                   id="edit-bucket-color-select"
                   value={tempBucketColor}
                   onChange={(e) => setTempBucketColor(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none cursor-pointer"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all cursor-pointer"
                 >
                   <option value="emerald">Emerald Green</option>
                   <option value="blue">Blue Sky</option>
@@ -3395,7 +3395,7 @@ export function AuthenticatedApp({
                   type="text"
                   value={tempBucketNote}
                   onChange={(e) => setTempBucketNote(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                 />
               </div>
 
@@ -3410,7 +3410,7 @@ export function AuthenticatedApp({
                   placeholder="e.g. 50000 (Optional)"
                   value={tempBucketThreshold}
                   onChange={(e) => setTempBucketThreshold(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-250 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all"
                 />
                 <p className="text-[10px] text-gray-400 mt-0.5">Triggers warning notification when bucket balance drops below this amount.</p>
               </div>
@@ -3443,7 +3443,7 @@ export function AuthenticatedApp({
       {/* MODAL 3: IMPORT DB SNAPSHOT */}
       {showImportDbModal && (
         <div id="import-db-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Import Database Snapshot</h3>
               <button

@@ -180,7 +180,7 @@ export function ExpenseList({
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-250 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 cursor-pointer dark:[color-scheme:dark] scheme-light dark:scheme-dark focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 dark:text-zinc-100 cursor-pointer dark:[color-scheme:dark] scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-[#00A896]/30 focus:border-[#00A896] shadow-2xs transition-all"
               />
             </div>
             <div>
@@ -189,7 +189,7 @@ export function ExpenseList({
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-250 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 cursor-pointer dark:[color-scheme:dark] scheme-light dark:scheme-dark focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 dark:text-zinc-100 cursor-pointer dark:[color-scheme:dark] scheme-light dark:scheme-dark focus:outline-none focus:ring-2 focus:ring-[#00A896]/30 focus:border-[#00A896] shadow-2xs transition-all"
               />
             </div>
           </div>

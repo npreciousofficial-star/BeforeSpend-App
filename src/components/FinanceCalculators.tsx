@@ -154,7 +154,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
               {/* Input 3: Interest Rate */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400">APY Interest (%)</label>
-                <div className="relative rounded-lg border border-gray-250 dark:border-zinc-800 focus-within:border-emerald-500 flex items-center bg-gray-50/50 dark:bg-zinc-900/50">
+                <div className="relative rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 focus-within:border-[#00A896] shadow-2xs transition-all flex items-center">
                   <Percent className="w-3.5 h-3.5 text-gray-400 ml-2.5 flex-shrink-0" />
                   <input
                     type="number"
@@ -170,7 +170,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
               {/* Input 4: Years */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400">Duration (Years)</label>
-                <div className="relative rounded-lg border border-gray-250 dark:border-zinc-800 focus-within:border-emerald-500 flex items-center bg-gray-50/50 dark:bg-zinc-900/50">
+                <div className="relative rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 focus-within:border-[#00A896] shadow-2xs transition-all flex items-center">
                   <Calendar className="w-3.5 h-3.5 text-gray-400 ml-2.5 flex-shrink-0" />
                   <input
                     type="number"
@@ -240,7 +240,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
               {/* Input 2: APR interest */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400">Annual Interest (APR %)</label>
-                <div className="relative rounded-lg border border-gray-250 dark:border-zinc-800 focus-within:border-emerald-500 flex items-center bg-gray-50/50 dark:bg-zinc-900/50">
+                <div className="relative rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 focus-within:border-[#00A896] shadow-2xs transition-all flex items-center">
                   <Percent className="w-3.5 h-3.5 text-gray-400 ml-2.5 flex-shrink-0" />
                   <input
                     type="number"
@@ -256,7 +256,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
               {/* Input 3: Tenure Months */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400">Tenure (Months)</label>
-                <div className="relative rounded-lg border border-gray-250 dark:border-zinc-800 focus-within:border-emerald-500 flex items-center bg-gray-50/50 dark:bg-zinc-900/50">
+                <div className="relative rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 focus-within:border-[#00A896] shadow-2xs transition-all flex items-center">
                   <Calendar className="w-3.5 h-3.5 text-gray-400 ml-2.5 flex-shrink-0" />
                   <input
                     type="number"

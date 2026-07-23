@@ -141,7 +141,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
                 type="button"
                 id="template-google-drive"
                 onClick={() => handleQuickTemplate('Google Drive Storage', 1500, 'Basic 100GB plan')}
-                className="text-[11px] font-medium px-2 py-1 rounded bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-250 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 cursor-pointer"
+                className="text-[11px] font-medium px-2.5 py-1 rounded-xl bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-200/80 dark:border-zinc-800 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all cursor-pointer shadow-2xs"
               >
                 Google Drive
               </button>
@@ -149,7 +149,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
                 type="button"
                 id="template-adobe-creative"
                 onClick={() => handleQuickTemplate('Adobe Creative Cloud', 48000, 'Designer Suite subscription')}
-                className="text-[11px] font-medium px-2 py-1 rounded bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-250 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 cursor-pointer"
+                className="text-[11px] font-medium px-2.5 py-1 rounded-xl bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-200/80 dark:border-zinc-800 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all cursor-pointer shadow-2xs"
               >
                 Adobe Suite
               </button>
@@ -157,7 +157,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
                 type="button"
                 id="template-figma-professional"
                 onClick={() => handleQuickTemplate('Figma Professional', 24000, 'UI design core team seat')}
-                className="text-[11px] font-medium px-2 py-1 rounded bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-250 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 cursor-pointer"
+                className="text-[11px] font-medium px-2.5 py-1 rounded-xl bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-200/80 dark:border-zinc-800 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all cursor-pointer shadow-2xs"
               >
                 Figma Pro
               </button>
@@ -165,7 +165,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
                 type="button"
                 id="template-netflix"
                 onClick={() => handleQuickTemplate('Netflix Standard', 5500, 'Streaming entertainment')}
-                className="text-[11px] font-medium px-2 py-1 rounded bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-250 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 cursor-pointer"
+                className="text-[11px] font-medium px-2.5 py-1 rounded-xl bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-200/80 dark:border-zinc-800 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all cursor-pointer shadow-2xs"
               >
                 Netflix
               </button>

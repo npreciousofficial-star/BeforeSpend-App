@@ -94,17 +94,7 @@ export function PrivacyPolicy({
 
       {/* 2. ELEGANT DOCUMENT TITLE BAR */}
       <div className="bg-[#0A192F] text-white py-12 px-4 sm:px-8 border-b border-[#1e293b]">
-        <div className="max-w-4xl mx-auto space-y-3 text-left">
-          
-          {/* Breadcrumb Navigation */}
-          <div className="flex items-center gap-2 text-xs font-semibold text-teal-400/90">
-            <button onClick={onBack} className="hover:underline cursor-pointer">Homepage</button>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-slate-300">Legal</span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-white font-bold">Privacy Policy</span>
-          </div>
-
+        <div className="max-w-4xl mx-auto space-y-2 text-left">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             Privacy Policy
           </h1>

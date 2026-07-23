@@ -243,6 +243,7 @@ export function AuthenticatedApp({
   const [editProfileRole, setEditProfileRole] = useState(userProfile.role);
   const [editProfileCurrency, setEditProfileCurrency] = useState(userProfile.defaultCurrency);
   const [editProfileAvatar, setEditProfileAvatar] = useState(userProfile.avatar || 'preset-chidi');
+  const [editProfilePhone, setEditProfilePhone] = useState(userProfile.phoneNumber || '');
 
   // Custom Blueprint Confirmation Modal State
   const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
@@ -348,6 +349,12 @@ export function AuthenticatedApp({
           setEditProfileEmail(profile.email);
           setEditProfileRole(profile.role);
           setEditProfileCurrency(profile.defaultCurrency);
+          setEditProfilePhone(profile.phoneNumber || '');
+
+          // Trigger onboarding modal if phone number is missing (e.g. Google OAuth signups)
+          if (!profile.phoneNumber || profile.phoneNumber.trim() === '') {
+            setShowOnboardingModal(true);
+          }
         } else {
           try {
             const { data: authData } = await supabase.auth.getUser();
@@ -369,6 +376,7 @@ export function AuthenticatedApp({
               setEditProfileEmail(newProfile.email);
               setEditProfileRole(newProfile.role);
               setEditProfileCurrency(newProfile.defaultCurrency);
+              setEditProfilePhone('');
               setShowOnboardingModal(true);
             }
           } catch (e) {
@@ -997,7 +1005,7 @@ export function AuthenticatedApp({
       role: editProfileRole,
       defaultCurrency: editProfileCurrency,
       avatar,
-      phoneNumber: userProfile.phoneNumber,
+      phoneNumber: editProfilePhone || userProfile.phoneNumber,
     };
 
     setUserProfile(updatedProfile);
@@ -2887,8 +2895,8 @@ export function AuthenticatedApp({
                 <input
                   type="tel"
                   required
-                  value={userProfile.phoneNumber || ''}
-                  onChange={(e) => setUserProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  value={editProfilePhone}
+                  onChange={(e) => setEditProfilePhone(e.target.value)}
                   placeholder="+234 801 234 5678"
                   className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896]"
                 />

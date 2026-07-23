@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { DEFAULT_BUCKETS, BUCKET_TEMPLATES } from './data/defaultBuckets';
-import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency } from './lib/utils';
+import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
 import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastMessage, AppNotification, Transaction } from './types';
 import { 
   syncProfileToSupabase, syncBucketsToSupabase, syncTransactionsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase,
@@ -301,10 +301,28 @@ export function AuthenticatedApp({
           setBuckets(dbBuckets);
         }
 
-        // 3. Load Transactions
+        // 3. Load Transactions (resolve bucket names from loaded buckets)
         const dbTxns = await loadTransactionsFromSupabase(currentUserId);
         if (dbTxns && dbTxns.length > 0) {
-          setTransactions(dbTxns);
+          const resolvedBuckets = (dbBuckets && dbBuckets.length > 0) ? dbBuckets : buckets;
+          const enrichedTxns = dbTxns.map(txn => {
+            // Resolve bucketName from loaded buckets if missing
+            let bucketName = txn.bucketName;
+            if (!bucketName && txn.bucketId) {
+              const match = resolvedBuckets.find(b => b.id === txn.bucketId || b.name === txn.bucketId);
+              bucketName = match?.name;
+            }
+            // Backfill missing audit hash
+            const hash = txn.deduplicationHash || generateAuditHash({
+              amount: txn.amount,
+              description: txn.description,
+              bucketId: txn.bucketId,
+              direction: txn.direction,
+              createdAt: txn.createdAt
+            });
+            return { ...txn, bucketName, deduplicationHash: hash };
+          });
+          setTransactions(enrichedTxns);
         }
 
         // 4. Load Payments (History)
@@ -499,18 +517,25 @@ export function AuthenticatedApp({
     setHistory(updatedHistory);
 
     // Create immutable ledger double-entry transaction records for each split
-    const newLedgerTxns: Transaction[] = payment.splits.map((s) => ({
-      id: generateId('txn'),
-      bucketId: s.bucketId,
-      bucketName: s.bucketName,
-      type: 'INCOME_SPLIT',
-      amount: s.amount,
-      direction: 'CREDIT',
-      description: `Income Allocation Split (${payment.currency} ${payment.amount})`,
-      receiptUrl: payment.receiptImage,
-      sourceType: 'MANUAL_ENTRY',
-      createdAt: new Date().toISOString()
-    }));
+    const now = new Date().toISOString();
+    const newLedgerTxns: Transaction[] = payment.splits.map((s) => {
+      const txnData = {
+        id: generateId('txn'),
+        bucketId: s.bucketId,
+        bucketName: s.bucketName,
+        type: 'INCOME_SPLIT' as const,
+        amount: s.amount,
+        direction: 'CREDIT' as const,
+        description: `Income Allocation Split (${payment.currency} ${payment.amount})`,
+        receiptUrl: payment.receiptImage,
+        sourceType: 'MANUAL_ENTRY' as const,
+        createdAt: now
+      };
+      return {
+        ...txnData,
+        deduplicationHash: generateAuditHash(txnData)
+      };
+    });
 
     setTransactions((prev) => [...newLedgerTxns, ...prev]);
 
@@ -588,7 +613,14 @@ export function AuthenticatedApp({
       description: expense.description,
       receiptUrl: expense.receiptImage,
       sourceType: 'MANUAL_ENTRY',
-      createdAt: new Date(expense.date).toISOString()
+      createdAt: new Date(expense.date).toISOString(),
+      deduplicationHash: generateAuditHash({
+        amount: expense.amount,
+        description: expense.description,
+        bucketId: expense.bucketId,
+        direction: 'DEBIT',
+        createdAt: new Date(expense.date).toISOString()
+      })
     };
 
     setTransactions((prev) => [newTxn, ...prev]);
@@ -1812,21 +1844,20 @@ export function AuthenticatedApp({
                             id="avatar-upload-input"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (file.size > 2 * 1024 * 1024) {
-                                  addToast('Image size should be less than 2MB', 'error');
+                                if (file.size > 5 * 1024 * 1024) {
+                                  addToast('Image size should be less than 5MB', 'error');
                                   return;
                                 }
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  if (typeof reader.result === 'string') {
-                                    setEditProfileAvatar(reader.result);
-                                    addToast('Avatar uploaded! Click Save Changes below to save.', 'success');
-                                  }
-                                };
-                                reader.readAsDataURL(file);
+                                try {
+                                  const compressed = await compressImageFile(file, 256, 0.82);
+                                  setEditProfileAvatar(compressed);
+                                  addToast('Avatar uploaded! Click Save Changes below to save.', 'success');
+                                } catch {
+                                  addToast('Failed to process image. Try a different file.', 'error');
+                                }
                               }
                             }}
                           />

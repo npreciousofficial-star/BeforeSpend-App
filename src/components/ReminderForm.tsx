@@ -109,7 +109,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
             onClick={() => setIsRecurring(false)}
             className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               !isRecurring
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-zinc-850 dark:text-zinc-50'
+                ? 'bg-white text-gray-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50'
                 : 'text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200'
             }`}
           >
@@ -121,7 +121,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
             onClick={() => setIsRecurring(true)}
             className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               isRecurring
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-zinc-850 dark:text-zinc-50'
+                ? 'bg-white text-gray-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50'
                 : 'text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200'
             }`}
           >

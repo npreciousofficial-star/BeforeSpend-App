@@ -227,7 +227,7 @@ export function SplitCalculator({
       
       {/* Input Control Area */}
       <div className="lg:col-span-5 space-y-5">
-        <div id="calculator-input-card" className="p-6 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 shadow-xl backdrop-blur-xl space-y-5">
+        <div id="calculator-input-card" className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-4 shadow-sm">
           <div>
             <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-2 mb-2">
               <label className="text-xs font-black text-[#0E2A47] dark:text-zinc-200 uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap min-w-max">
@@ -386,7 +386,7 @@ export function SplitCalculator({
 
       {/* Real-time Calculation Display Area */}
       <div className="lg:col-span-7 space-y-4">
-        <div id="calculator-results-card" className="p-6 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 shadow-xl backdrop-blur-xl space-y-5">
+        <div id="calculator-results-card" className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-4 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-zinc-900 pb-4">
             <div>
               <h3 className="font-black text-[#0E2A47] dark:text-zinc-50 text-lg flex items-center gap-2">

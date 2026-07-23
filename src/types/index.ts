@@ -16,7 +16,7 @@ export interface Bucket {
   lowBalanceThreshold?: number; // Optional low balance threshold for notifications
 }
 
-export type TransactionType = 'INCOME_SPLIT' | 'EXPENSE' | 'MANUAL_ADJUSTMENT' | 'TRANSFER';
+export type TransactionType = 'INCOME_SPLIT' | 'EXPENSE' | 'MANUAL_ADJUSTMENT' | 'TRANSFER' | 'REVERSAL';
 export type TransactionDirection = 'CREDIT' | 'DEBIT';
 export type TransactionSourceType = 'MANUAL_ENTRY' | 'CSV_IMPORT' | 'SYSTEM_ADJUSTMENT';
 
@@ -65,6 +65,7 @@ export interface PaymentEntry {
   splits: SplitInfo[];
   note?: string;
   receiptImage?: string; // base64 encoded image
+  isArchived?: boolean;
 }
 
 export interface Expense {

@@ -449,7 +449,7 @@ export function AuthenticatedApp({
           setTransactions(enrichedTxns);
         }
 
-        if (dbPayments && dbPayments.length > 0) {
+        if (dbPayments !== null) {
           setHistory(dbPayments);
         }
 

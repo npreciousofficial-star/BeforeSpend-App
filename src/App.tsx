@@ -277,57 +277,8 @@ export function AuthenticatedApp({
     ]
   );
 
+  // Modal State for profile setup on onboarding
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-
-  // Listen for Supabase Google OAuth callback & user session redirects
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const authUser = session.user;
-        const validId = authUser.id;
-        setCurrentUserId(validId);
-        window.localStorage.setItem('beforespend_current_user_id', validId);
-
-        // Clean up URL hash fragment from OAuth callback
-        if (window.location.hash) {
-          window.history.replaceState({}, '', '/dashboard');
-        }
-        setAuthView('app');
-        setCurrentPath('/dashboard');
-
-        const existingProfile = await loadProfileFromSupabase(validId);
-        if (!existingProfile) {
-          const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User';
-          const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || 'preset-emerald';
-          
-          const newProfile: UserProfile = {
-            name: googleName,
-            email: authUser.email || '',
-            role: 'Personal Budgeter',
-            defaultCurrency: 'NGN',
-            avatar: googleAvatar,
-          };
-
-          setUserProfile(newProfile);
-          setEditProfileName(newProfile.name);
-          setEditProfileEmail(newProfile.email);
-          setEditProfileRole(newProfile.role);
-          setEditProfileCurrency(newProfile.defaultCurrency);
-          setShowOnboardingModal(true);
-        } else {
-          setUserProfile(existingProfile);
-          setEditProfileName(existingProfile.name);
-          setEditProfileEmail(existingProfile.email);
-          setEditProfileRole(existingProfile.role);
-          setEditProfileCurrency(existingProfile.defaultCurrency);
-        }
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
 
   // Lock body scrolling when any full modal or overlay drawer is active
   useEffect(() => {
@@ -378,6 +329,36 @@ export function AuthenticatedApp({
         if (profile) {
           setUserProfile(profile);
           setEditProfileAvatar(profile.avatar || 'preset-chidi');
+          setEditProfileName(profile.name);
+          setEditProfileEmail(profile.email);
+          setEditProfileRole(profile.role);
+          setEditProfileCurrency(profile.defaultCurrency);
+        } else {
+          try {
+            const { data: authData } = await supabase.auth.getUser();
+            const authUser = authData?.user;
+            if (authUser) {
+              const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User';
+              const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || 'preset-emerald';
+              
+              const newProfile: UserProfile = {
+                name: googleName,
+                email: authUser.email || '',
+                role: 'Personal Budgeter',
+                defaultCurrency: 'NGN',
+                avatar: googleAvatar,
+              };
+
+              setUserProfile(newProfile);
+              setEditProfileName(newProfile.name);
+              setEditProfileEmail(newProfile.email);
+              setEditProfileRole(newProfile.role);
+              setEditProfileCurrency(newProfile.defaultCurrency);
+              setShowOnboardingModal(true);
+            }
+          } catch (e) {
+            console.warn('Google profile metadata fallback warning:', e);
+          }
         }
 
         // 2. Load Buckets
@@ -3531,34 +3512,54 @@ export default function App() {
     }
   };
 
-  // Sync initial route on mount
+  // Top-level Supabase Auth Session Synchronizer & Google OAuth Redirect Handler
   useEffect(() => {
-    if (currentUserId) {
-      if (window.location.pathname.startsWith('/admin')) {
-        setAuthView('app');
-      } else if (authView === 'landing' && (window.location.pathname === '/' || !window.location.pathname)) {
-        window.history.replaceState({}, '', '/dashboard');
-        setCurrentPath('/dashboard');
-        setAuthView('app');
+    async function syncAuthSession(sessionUser: any) {
+      if (!sessionUser) return;
+      const validId = sessionUser.id;
+      setCurrentUserId(validId);
+      setAuthView('app');
+
+      // Determine if admin
+      const profile = await loadProfileFromSupabase(validId);
+      const isUserAdmin = profile?.role === 'Platform Administrator' ||
+                          profile?.email.toLowerCase() === 'admin@beforespend.app' ||
+                          profile?.email.toLowerCase() === 'admin@beforespend.xyz' ||
+                          sessionUser.email?.toLowerCase() === 'admin@beforespend.app' ||
+                          sessionUser.email?.toLowerCase() === 'admin@beforespend.xyz';
+
+      const targetPath = isUserAdmin ? '/admin' : '/dashboard';
+      if (window.location.hash || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register') {
+        window.history.replaceState({}, '', targetPath);
+        setCurrentPath(targetPath);
       }
     }
-  }, [currentUserId]);
 
-  // Theme synchronization
-  const [isDark, setIsDark] = useState(() => {
-    return window.localStorage.getItem('before spend_dark_mode') === 'true';
-  });
+    // 1. Check active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        syncAuthSession(session.user);
+      }
+    });
 
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    // 2. Realtime listener for OAuth callbacks & sign-in events
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session?.user) {
+        syncAuthSession(session.user);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Sign out warning:', e);
     }
-    window.localStorage.setItem('before spend_dark_mode', String(isDark));
-  }, [isDark]);
-
-  const handleLogout = () => {
     setCurrentUserId(null);
     setAuthView('landing');
     window.history.pushState({}, '', '/');

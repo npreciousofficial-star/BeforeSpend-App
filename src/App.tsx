@@ -3476,6 +3476,20 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useLocalStorage<string | null>('beforespend_logged_in_user_id', null);
   const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register'>('beforespend_auth_view', 'landing');
 
+  // Theme synchronization at root level
+  const [isDark, setIsDark] = useState(() => {
+    return window.localStorage.getItem('before spend_dark_mode') === 'true';
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    window.localStorage.setItem('before spend_dark_mode', String(isDark));
+  }, [isDark]);
+
   // Clean HTML5 History Navigation Synchronizer
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname || '/');
 

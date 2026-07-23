@@ -1,52 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatCurrency } from '../lib/utils';
 
 interface AnimatedNumberProps {
   value: number;
   currency?: string;
+  duration?: number; // duration in ms
   className?: string;
-  duration?: number; // Duration in ms
+  formatter?: (val: number) => string;
 }
 
-export function AnimatedNumber({ 
-  value, 
-  currency = 'NGN', 
-  className = '', 
-  duration = 800 
+export function AnimatedNumber({
+  value,
+  currency,
+  duration = 800,
+  className = '',
+  formatter
 }: AnimatedNumberProps) {
   const [displayValue, setDisplayValue] = useState<number>(0);
 
   useEffect(() => {
     let startTimestamp: number | null = null;
-    const startValue = displayValue;
-    const endValue = value;
+    const initialValue = displayValue;
+    const targetValue = value;
+    
+    if (initialValue === targetValue) return;
 
-    if (startValue === endValue) return;
+    let animationFrameId: number;
 
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       
-      // Smooth easeOutExpo curve
-      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const current = startValue + (endValue - startValue) * easeProgress;
-      
-      setDisplayValue(current);
+      // Smooth easeOutQuad easing function
+      const easeProgress = 1 - (1 - progress) * (1 - progress);
+      const currentValue = initialValue + (targetValue - initialValue) * easeProgress;
+
+      setDisplayValue(currentValue);
 
       if (progress < 1) {
-        window.requestAnimationFrame(step);
+        animationFrameId = requestAnimationFrame(step);
       } else {
-        setDisplayValue(endValue);
+        setDisplayValue(targetValue);
       }
     };
 
-    const animationFrame = window.requestAnimationFrame(step);
-    return () => window.cancelAnimationFrame(animationFrame);
+    animationFrameId = requestAnimationFrame(step);
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
   }, [value, duration]);
 
-  return (
-    <span className={className}>
-      {formatCurrency(displayValue, currency)}
-    </span>
-  );
+  const formattedText = formatter
+    ? formatter(displayValue)
+    : currency
+    ? formatCurrency(displayValue, currency)
+    : displayValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  return <span className={className}>{formattedText}</span>;
 }

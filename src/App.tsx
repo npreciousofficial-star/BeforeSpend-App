@@ -18,8 +18,9 @@ import {
 } from './lib/supabase';
 
 // Components
-import { Preloader } from './components/Preloader';
 import { ToastContainer } from './components/Toast';
+import { GooglePreloader } from './components/Preloader';
+import { AnimatedNumber } from './components/AnimatedNumber';
 import { SplitCalculator } from './components/SplitCalculator';
 import { FinanceCalculators } from './components/FinanceCalculators';
 import { BucketCard } from './components/BucketCard';
@@ -1061,10 +1062,6 @@ export function AuthenticatedApp({
 
   const currentTotalAllocPercentage = buckets.reduce((sum, b) => sum + b.percentage, 0);
 
-  if (!dataLoaded) {
-    return <Preloader message="Synchronizing financial vault with cloud database..." />;
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200 font-sans flex flex-col md:flex-row pb-16 md:pb-0">
       
@@ -1129,7 +1126,7 @@ export function AuthenticatedApp({
               </button>
             </span>
             <span className={`font-black text-[#00A896] transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
-              {formatCurrency(buckets.reduce((sum, b) => sum + b.balance, 0), userProfile.defaultCurrency)}
+              <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
             </span>
           </div>
         </div>
@@ -1297,7 +1294,7 @@ export function AuthenticatedApp({
               </button>
             </div>
             <p className={`text-xl font-black transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
-              {formatCurrency(buckets.reduce((sum, b) => sum + b.balance, 0), userProfile.defaultCurrency)}
+              <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
             </p>
           </div>
           <div className="text-right text-[10px] text-teal-100">
@@ -2757,8 +2754,8 @@ export function AuthenticatedApp({
 
         </main>
 
-        {/* FOOTER - Matched to page background without border lines */}
-        <footer className="mt-auto py-5 px-6 sm:px-10 text-right text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
+        {/* FOOTER - Matching off-white page background without borders */}
+        <footer className="mt-auto py-5 px-6 sm:px-10 border-none text-right text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
           <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
         </footer>
 
@@ -3099,6 +3096,10 @@ export function AuthenticatedApp({
           onBatchImport={handleBatchImport}
           onClose={() => setShowStatementParserModal(false)}
         />
+      )}
+      {/* Google-Style Preloader while retrieving data from Supabase */}
+      {!dataLoaded && (
+        <GooglePreloader message="Retrieving your financial ledger & balances..." />
       )}
 
     </div>

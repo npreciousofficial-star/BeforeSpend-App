@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Bucket, SplitInfo } from '../types';
 import { calculateSplits, formatCurrency, convertCurrency } from '../lib/utils';
@@ -11,16 +6,15 @@ import { AnimatedNumber } from './AnimatedNumber';
 import { 
   Copy, 
   Check, 
-  ArrowRight, 
   Wallet, 
   Image as ImageIcon, 
   X, 
   FileCheck, 
   Sparkles,
-  Zap,
-  Building2,
+  ArrowRight,
   TrendingUp,
-  CreditCard
+  Layers,
+  PieChart
 } from 'lucide-react';
 
 interface SplitCalculatorProps {
@@ -55,7 +49,7 @@ export function SplitCalculator({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync input currency if default currency changes
+  // Sync input currency if default currency changes, or keep it NGN
   useEffect(() => {
     if (defaultCurrency && !amount) {
       setCurrency(defaultCurrency);
@@ -63,7 +57,11 @@ export function SplitCalculator({
   }, [defaultCurrency]);
 
   const numericAmount = parseFloat(amount) || 0;
+
+  // Convert the entered amount from input currency to user's default currency
   const convertedAmount = convertCurrency(numericAmount, currency, defaultCurrency, exchangeRates);
+
+  // Calculate splits based on convertedAmount (which is in defaultCurrency)
   const splits = calculateSplits(convertedAmount, buckets);
 
   const handleCopyAmount = (amt: number, index: number) => {
@@ -86,7 +84,7 @@ export function SplitCalculator({
     textSummary += `*Bucket Distributions:*\n`;
     
     splits.forEach((split) => {
-      textSummary += `- ${split.bucketName} (${split.percentage}%): ${formatCurrency(split.amount, defaultCurrency)} -> ${split.destinationAccount}\n`;
+      textSummary += `- ${split.bucketName} (${split.percentage}%): ${formatCurrency(split.amount, defaultCurrency)} To: ${split.destinationAccount}\n`;
     });
     
     navigator.clipboard.writeText(textSummary);
@@ -109,7 +107,7 @@ export function SplitCalculator({
       receiptImage: receiptBase64,
     });
 
-    addToast('Payment split saved! Bucket balances updated.', 'success');
+    addToast('Payment split saved! Balances updated.', 'success');
     
     // Reset calculator inputs
     setAmount('');
@@ -120,6 +118,7 @@ export function SplitCalculator({
     }
   };
 
+  // Receipt image file reader
   const processFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       addToast('Please select a valid image file (PNG/JPG).', 'error');
@@ -187,106 +186,98 @@ export function SplitCalculator({
       case 'teal': return 'bg-teal-500';
       case 'indigo': return 'bg-indigo-500';
       case 'pink': return 'bg-pink-500';
-      default: return 'bg-gray-500';
+      default: return 'bg-[#00A896]';
     }
   };
 
   const getThemePillClass = (colorName: string) => {
     switch (colorName) {
-      case 'emerald': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40';
-      case 'blue': return 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40';
-      case 'amber': return 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/40';
-      case 'red': return 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40';
-      case 'purple': return 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200/60 dark:border-purple-900/40';
-      case 'teal': return 'bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-200/60 dark:border-teal-900/40';
-      case 'indigo': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-900/40';
-      case 'pink': return 'bg-pink-100 text-pink-800 dark:bg-pink-950/40 dark:text-pink-400 border border-pink-200/60 dark:border-pink-900/40';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-400 border border-gray-200 dark:border-gray-800';
+      case 'emerald': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/50';
+      case 'blue': return 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50';
+      case 'amber': return 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/50';
+      case 'red': return 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/50';
+      case 'purple': return 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/50';
+      case 'teal': return 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200/50';
+      case 'indigo': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/50';
+      case 'pink': return 'bg-pink-100 text-pink-800 dark:bg-pink-950/60 dark:text-pink-300 border border-pink-200/50';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-400';
     }
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       
-      {/* LEFT: Input & Controls Area */}
+      {/* Input Control Area */}
       <div className="lg:col-span-5 space-y-5">
-        <div id="calculator-input-card" className="p-6 rounded-3xl border border-gray-200/80 bg-white dark:bg-zinc-950 dark:border-zinc-800/80 shadow-xl shadow-gray-200/40 dark:shadow-none space-y-5 transition-all">
-          
-          {/* Card Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/30 text-[#00A896] border border-teal-100/50 dark:border-teal-900/30">
-                <Wallet className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-gray-900 dark:text-zinc-50">
-                  Payment Received
-                </h2>
-                <p className="text-xs font-semibold text-gray-400 dark:text-zinc-500">
-                  Enter incoming funds to allocate
-                </p>
+        <div id="calculator-input-card" className="p-6 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 shadow-xl backdrop-blur-xl space-y-5">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-black text-[#0E2A47] dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Wallet className="w-4 h-4 text-[#00A896]" />
+                Payment Received
+              </label>
+              {/* Currency Selector */}
+              <div className="flex gap-1 bg-gray-100 dark:bg-zinc-900 p-1 rounded-xl border border-gray-200 dark:border-zinc-800">
+                {['NGN', 'USD', 'GBP', 'EUR', 'CAD'].map((curr) => (
+                  <button
+                    key={curr}
+                    type="button"
+                    onClick={() => setCurrency(curr)}
+                    className={`px-2.5 py-1 text-[11px] font-black rounded-lg cursor-pointer transition-all ${
+                      currency === curr
+                        ? 'bg-[#0E2A47] text-white shadow-md dark:bg-[#00A896]'
+                        : 'text-gray-500 hover:text-gray-900 dark:text-zinc-400'
+                    }`}
+                  >
+                    {curr === 'NGN' ? '₦' : curr}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Currency Selector Pills */}
-            <div className="flex gap-1 bg-gray-100 dark:bg-zinc-900/90 p-1 rounded-xl border border-gray-200/60 dark:border-zinc-800">
-              {['NGN', 'USD', 'GBP', 'EUR', 'CAD'].map((curr) => (
-                <button
-                  key={curr}
-                  type="button"
-                  onClick={() => setCurrency(curr)}
-                  className={`px-2 py-1 text-[10px] font-black rounded-lg cursor-pointer transition-all ${
-                    currency === curr
-                      ? 'bg-white text-gray-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-50'
-                      : 'text-gray-500 hover:text-gray-900 dark:text-zinc-400'
-                  }`}
-                >
-                  {curr === 'NGN' ? '₦' : curr}
-                </button>
-              ))}
+            {/* Major Input Box */}
+            <div className="relative rounded-2xl border border-gray-300/80 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-[#00A896]/30 focus-within:border-[#00A896] overflow-hidden bg-gradient-to-br from-gray-50/50 to-teal-50/20 dark:from-zinc-900/40 dark:to-zinc-900/10 flex items-center pr-4 transition-all">
+              <span className="pl-5 text-[#0E2A47] dark:text-zinc-200 font-extrabold text-3xl select-none">
+                {currency === 'NGN' ? '₦' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : 'C$'}
+              </span>
+              <input
+                id="calculator-main-input"
+                type="number"
+                min="0"
+                step="any"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full pl-3 pr-4 py-4 text-3xl font-black bg-transparent border-none text-gray-900 dark:text-zinc-50 placeholder-gray-300 dark:placeholder-zinc-700 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+
+            {/* Quick Amounts */}
+            <div className="mt-3">
+              <QuickAmounts 
+                onSelect={(amt) => setAmount(amt.toString())}
+                inputCurrency={currency}
+                defaultCurrency={defaultCurrency}
+                exchangeRates={exchangeRates}
+              />
             </div>
           </div>
 
-          {/* Large Hero Amount Input Box */}
-          <div className="relative rounded-2xl border-2 border-gray-200 dark:border-zinc-800/90 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/10 transition-all overflow-hidden bg-gray-50/50 dark:bg-zinc-900/30 flex items-center pr-4">
-            <span className="pl-4 text-gray-400 font-extrabold text-3xl select-none">
-              {currency === 'NGN' ? '₦' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : 'C$'}
-            </span>
-            <input
-              id="calculator-main-input"
-              type="number"
-              min="0"
-              step="any"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="w-full pl-2 pr-3 py-4 text-3xl font-black bg-transparent border-none text-gray-900 dark:text-zinc-50 placeholder-gray-300 dark:placeholder-zinc-700 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
-
-          {/* Quick Amount Buttons */}
-          <QuickAmounts 
-            onSelect={(amt) => setAmount(amt.toString())}
-            inputCurrency={currency}
-            defaultCurrency={defaultCurrency}
-            exchangeRates={exchangeRates}
-          />
-
-          {/* Real-time Conversion badge */}
+          {/* Real-time Conversion helper block */}
           {currency !== defaultCurrency && numericAmount > 0 && (
-            <div id="real-time-conversion-helper" className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-teal-50/60 border border-teal-100 dark:bg-teal-950/20 dark:border-teal-900/40 text-xs">
+            <div id="real-time-conversion-helper" className="flex items-center gap-2.5 p-4 rounded-2xl bg-gradient-to-r from-teal-50/60 to-emerald-50/40 border border-teal-100 dark:from-teal-950/20 dark:to-emerald-950/10 dark:border-teal-900/40 text-xs shadow-xs">
               <Sparkles className="w-4 h-4 text-[#00A896] flex-shrink-0 animate-pulse" />
-              <div className="text-gray-700 dark:text-zinc-300 font-medium">
-                Converts to <strong className="text-[#00A896] dark:text-teal-400 font-black">{formatCurrency(convertedAmount, defaultCurrency)}</strong>
-                <span className="text-gray-400 dark:text-zinc-500 font-mono ml-1.5">(1 {currency} = {formatCurrency(exchangeRates[currency] || 1, 'NGN')})</span>
+              <div className="text-gray-700 dark:text-zinc-200 font-medium">
+                Converts to <strong className="text-[#00A896] dark:text-teal-300 font-bold">{formatCurrency(convertedAmount, defaultCurrency)}</strong> at 
+                <span className="font-mono ml-1">1 {currency} = {formatCurrency(exchangeRates[currency] || 1, 'NGN')}</span>
               </div>
             </div>
           )}
 
-          {/* Receipt Screenshot Upload */}
+          {/* Screenshot Upload Block */}
           <div className="pt-1">
-            <label className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider block mb-2">
-              Receipt / Proof of Payment (Optional)
+            <label className="text-xs font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-wider block mb-2">
+              Receipt Screenshot (Optional)
             </label>
             
             <input
@@ -304,30 +295,30 @@ export function SplitCalculator({
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={triggerSelectFile}
-                className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center gap-1.5 ${
+                className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center gap-2 ${
                   isDragging 
-                    ? 'border-[#00A896] bg-teal-50/40 dark:bg-teal-950/20' 
-                    : 'border-gray-200 hover:border-gray-400 dark:border-zinc-800 dark:hover:border-zinc-700 bg-gray-50/40 dark:bg-zinc-900/20'
+                    ? 'border-[#00A896] bg-teal-50/40 dark:bg-teal-950/30' 
+                    : 'border-gray-200 hover:border-[#00A896] dark:border-zinc-800 dark:hover:border-teal-700 bg-gray-50/40 dark:bg-zinc-900/20'
                 }`}
               >
-                <ImageIcon className="w-5 h-5 text-gray-400" />
-                <span className="text-xs font-semibold text-gray-600 dark:text-zinc-300">
-                  Drag & drop receipt screenshot or <span className="text-[#00A896] hover:underline font-bold">browse</span>
+                <ImageIcon className="w-6 h-6 text-[#00A896] opacity-80" />
+                <span className="text-xs font-semibold text-gray-700 dark:text-zinc-300">
+                  Drag & drop receipt or <span className="text-[#00A896] underline font-bold">browse file</span>
                 </span>
-                <span className="text-[10px] text-gray-400">PNG, JPG up to 2MB</span>
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500">PNG, JPG up to 2MB</span>
               </div>
             ) : (
-              <div id="receipt-preview-container" className="flex items-center justify-between p-3.5 rounded-2xl border border-teal-200/80 bg-teal-50/30 dark:bg-teal-950/20 dark:border-teal-900/30">
+              <div id="receipt-preview-container" className="flex items-center justify-between p-3.5 rounded-2xl border border-teal-200 bg-teal-50/30 dark:bg-teal-950/20 dark:border-teal-900/40">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 flex-shrink-0 shadow-xs">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden border border-teal-200 dark:border-teal-800 flex-shrink-0 shadow-xs">
                     <img referrerPolicy="no-referrer" src={receiptBase64} alt="Receipt preview" className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 truncate max-w-[160px]">
                       {receiptName || 'receipt_uploaded.png'}
                     </p>
-                    <span className="text-[10px] text-[#00A896] font-bold flex items-center gap-0.5">
-                      <FileCheck className="w-3 h-3" /> Attached
+                    <span className="text-[11px] text-[#00A896] dark:text-teal-400 font-semibold flex items-center gap-1 mt-0.5">
+                      <FileCheck className="w-3.5 h-3.5" /> Receipt Attached
                     </span>
                   </div>
                 </div>
@@ -335,7 +326,7 @@ export function SplitCalculator({
                   id="remove-receipt-button"
                   type="button"
                   onClick={clearReceipt}
-                  className="p-1.5 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                  className="p-2 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -343,116 +334,102 @@ export function SplitCalculator({
             )}
           </div>
 
-          {/* Action Buttons */}
+          {/* Action buttons */}
           <div className="grid grid-cols-2 gap-3 pt-2">
             <button
               id="calculator-copy-all-button"
               type="button"
               disabled={numericAmount <= 0}
               onClick={handleCopyAll}
-              className={`py-3 px-3 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              className={`py-3 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
                 numericAmount > 0
-                  ? 'border-gray-200 hover:bg-gray-100 text-gray-800 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:text-zinc-100 shadow-xs'
+                  ? 'border-gray-300 hover:bg-gray-100 text-[#0E2A47] dark:border-zinc-700 dark:hover:bg-zinc-900 dark:text-zinc-200 shadow-xs'
                   : 'border-gray-200 text-gray-300 dark:border-zinc-900 dark:text-zinc-700 cursor-not-allowed'
               }`}
             >
               {copiedAll ? <Check className="w-4 h-4 text-[#00A896]" /> : <Copy className="w-4 h-4" />}
-              Copy Summary
+              <span>Copy Summary</span>
             </button>
             <button
               id="calculator-save-button"
               type="button"
               disabled={numericAmount <= 0}
               onClick={handleSave}
-              className={`py-3 px-3 rounded-2xl text-xs font-bold text-white transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              className={`py-3 px-4 rounded-2xl text-xs font-black text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md ${
                 numericAmount > 0
-                  ? 'bg-gradient-to-r from-[#00A896] to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-lg shadow-teal-500/20'
-                  : 'bg-gray-200 dark:bg-zinc-900 text-gray-400 dark:text-zinc-700 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-[#0E2A47] to-[#00A896] hover:opacity-95 shadow-teal-500/10'
+                  : 'bg-gray-200 dark:bg-zinc-900 text-gray-400 dark:text-zinc-700 cursor-not-allowed shadow-none'
               }`}
             >
-              <Zap className="w-4 h-4" />
-              Save to Buckets
+              <Wallet className="w-4 h-4" />
+              <span>Save to Buckets</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* RIGHT: Real-time Split Distribution Cards */}
+      {/* Real-time Calculation Display Area */}
       <div className="lg:col-span-7 space-y-4">
-        <div id="calculator-results-card" className="p-6 rounded-3xl border border-gray-200/80 bg-white dark:bg-zinc-950 dark:border-zinc-800/80 shadow-xl shadow-gray-200/40 dark:shadow-none space-y-5">
-          
-          {/* Header */}
-          <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-zinc-900">
+        <div id="calculator-results-card" className="p-6 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 shadow-xl backdrop-blur-xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-zinc-900 pb-4">
             <div>
-              <h3 className="font-black text-gray-900 dark:text-zinc-50 text-base flex items-center gap-2">
-                <span>Real-time Split Distribution</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 dark:bg-teal-950/40 text-[#00A896] border border-teal-100 dark:border-teal-900/40">
-                  Automated
-                </span>
+              <h3 className="font-black text-[#0E2A47] dark:text-zinc-50 text-lg flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-[#00A896]" />
+                Real-Time Split Distribution
               </h3>
-              <p className="text-xs font-medium text-gray-400 dark:text-zinc-500">
-                Instant percentage breakdowns per your financial targets
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                Instant distribution rule breakdown across your active money buckets.
               </p>
             </div>
 
             {numericAmount > 0 && (
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider block">
-                  Total Allocated
-                </span>
-                <span className="text-sm font-black text-[#00A896] dark:text-teal-400">
+              <div className="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-900/40 text-right">
+                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-400 block uppercase">Total Split Value</span>
+                <span className="text-sm font-black text-[#00A896] dark:text-teal-300">
                   <AnimatedNumber value={convertedAmount} currency={defaultCurrency} />
                 </span>
               </div>
             )}
           </div>
 
-          {/* Distribution List / Cards */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             {splits.length === 0 ? (
-              <div className="text-center py-16 text-gray-400 dark:text-zinc-500 space-y-3">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-300 dark:text-zinc-700">
-                  <Wallet className="w-7 h-7" />
+              <div className="text-center py-14 text-gray-400 dark:text-zinc-500 space-y-2">
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-zinc-900 flex items-center justify-center mx-auto text-[#00A896] opacity-60">
+                  <Layers className="w-7 h-7" />
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-700 dark:text-zinc-300">Ready to split received income</p>
-                  <p className="text-xs max-w-xs mx-auto text-gray-400 dark:text-zinc-500 mt-1">
-                    Enter a payment amount on the left to watch your income automatically split into designated savings, tax, and operating vaults.
-                  </p>
-                </div>
+                <p className="text-base font-bold text-[#0E2A47] dark:text-zinc-200">Ready for Payment Allocation</p>
+                <p className="text-xs max-w-xs mx-auto text-gray-500 dark:text-zinc-400">
+                  Enter an income payment on the left to see the breakdown calculated live across your buckets.
+                </p>
               </div>
             ) : (
               splits.map((split, idx) => {
                 const originalBucket = buckets.find((b) => b.id === split.bucketId);
                 const currentBalance = originalBucket ? originalBucket.balance : 0;
-                const projectedBalance = currentBalance + split.amount;
                 
                 return (
-                  <div 
-                    key={split.bucketId} 
-                    className="p-4 rounded-2xl border border-gray-150 dark:border-zinc-900 bg-gray-50/40 dark:bg-zinc-900/20 hover:border-gray-300 dark:hover:border-zinc-800 transition-all space-y-3 group"
-                  >
-                    {/* Top Row: Name, Pill, Allocated Amount */}
-                    <div className="flex justify-between items-center">
+                  <div key={split.bucketId} className="p-4 rounded-2xl bg-gray-50/60 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/80 hover:border-teal-200 dark:hover:border-teal-900/60 transition-all space-y-3">
+                    <div className="flex justify-between items-center gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className={`w-3 h-3 rounded-full ${getThemeColorClass(split.color)} shadow-xs flex-shrink-0`} />
-                        <span className="text-sm font-black text-gray-800 dark:text-zinc-100 truncate">
+                        <span className={`w-3 h-3 rounded-full flex-shrink-0 ${getThemeColorClass(split.color)} shadow-xs`} />
+                        <span className="text-sm font-bold text-gray-900 dark:text-zinc-100 truncate">
                           {split.bucketName}
                         </span>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${getThemePillClass(split.color)} flex-shrink-0`}>
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md flex-shrink-0 ${getThemePillClass(split.color)}`}>
                           {split.percentage}%
                         </span>
                       </div>
                       
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-base font-black text-gray-900 dark:text-zinc-50">
+                        <span className="text-base font-black text-[#0E2A47] dark:text-zinc-50">
                           <AnimatedNumber value={split.amount} currency={defaultCurrency} />
                         </span>
                         
                         <button
                           id={`copy-amount-btn-${split.bucketId}`}
                           onClick={() => handleCopyAmount(split.amount, idx)}
-                          className="p-1.5 rounded-xl text-gray-400 hover:text-[#00A896] hover:bg-white dark:hover:bg-zinc-800 transition-all cursor-pointer shadow-2xs"
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 transition-colors cursor-pointer shadow-2xs"
                           title="Copy amount"
                         >
                           {copiedIndex === idx ? (
@@ -464,30 +441,26 @@ export function SplitCalculator({
                       </div>
                     </div>
 
-                    {/* Progress Ratio Bar */}
-                    <div className="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                    {/* Split Percentage Progress Bar */}
+                    <div className="w-full bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
                       <div 
-                        className={`h-full ${getThemeColorClass(split.color)} transition-all duration-500 rounded-full`}
+                        className={`h-full ${getThemeColorClass(split.color)} transition-all duration-500 ease-out`}
                         style={{ width: `${Math.min(split.percentage, 100)}%` }}
                       />
                     </div>
 
-                    {/* Bottom Row: Account Destination & Projected Balance */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-0.5">
-                      <div className="flex items-center gap-1.5 text-gray-500 dark:text-zinc-400 font-semibold">
-                        <Building2 className="w-3.5 h-3.5 text-gray-400" />
-                        <span>To: <strong className="text-gray-700 dark:text-zinc-200">{split.destinationAccount}</strong></span>
-                      </div>
-
-                      <div className="flex items-center gap-3 font-semibold text-gray-500 dark:text-zinc-400">
-                        <span>Current: <strong className="text-gray-700 dark:text-zinc-300">{formatCurrency(currentBalance, defaultCurrency)}</strong></span>
-                        {numericAmount > 0 && (
-                          <span className="text-[#00A896] dark:text-teal-400 font-bold flex items-center gap-0.5">
-                            <TrendingUp className="w-3 h-3" />
-                            <span>After: {formatCurrency(projectedBalance, defaultCurrency)}</span>
-                          </span>
-                        )}
-                      </div>
+                    {/* Progress indicators */}
+                    <div className="flex flex-wrap items-center justify-between text-xs text-gray-500 dark:text-zinc-400 gap-2 pt-0.5">
+                      <span className="font-medium flex items-center gap-1">
+                        <span className="text-gray-400">Destination:</span> 
+                        <strong className="text-gray-700 dark:text-zinc-300 font-semibold">{split.destinationAccount}</strong>
+                      </span>
+                      <span className="font-medium">
+                        Current Balance:{' '}
+                        <strong className={currentBalance >= 0 ? 'text-[#00A896]' : 'text-rose-500'}>
+                          <AnimatedNumber value={currentBalance} currency={defaultCurrency} />
+                        </strong>
+                      </span>
                     </div>
                   </div>
                 );

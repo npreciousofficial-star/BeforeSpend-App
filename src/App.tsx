@@ -14,7 +14,7 @@ import {
   loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase,
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
-  adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll
+  adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase
 } from './lib/supabase';
 
 // Components
@@ -274,6 +274,7 @@ export function AuthenticatedApp({
 
     async function loadData() {
       try {
+        pingSupabaseDatabase();
         console.log('Fetching user data from Supabase database...');
         
         // 1. Load Profile

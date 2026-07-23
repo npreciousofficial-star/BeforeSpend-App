@@ -913,5 +913,20 @@ export async function clearAllNotificationsFromSupabase(userId: string): Promise
   }
 }
 
-
-
+/**
+ * Keep-Alive Heartbeat: Pings Supabase database to ensure connection is active
+ */
+export async function pingSupabaseDatabase(): Promise<boolean> {
+  try {
+    const { status, error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+    if (error) {
+      console.warn('Supabase ping warning:', error.message);
+      return false;
+    }
+    console.log('Supabase DB connection active. Status:', status);
+    return true;
+  } catch (err) {
+    console.warn('pingSupabaseDatabase error:', err);
+    return false;
+  }
+}

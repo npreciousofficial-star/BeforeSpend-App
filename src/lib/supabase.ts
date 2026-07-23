@@ -275,6 +275,7 @@ export async function syncPaymentsToSupabase(payments: PaymentEntry[], userId: s
       }
 
       const { error } = await supabase.from('payments').upsert({
+        id: ensureUuid(p.id),
         user_id: validUuid,
         date: p.date,
         amount: p.amount,
@@ -302,9 +303,9 @@ export async function syncTransactionsToSupabase(transactions: Transaction[], us
     if (!transactions || transactions.length === 0) return;
 
     const records = transactions.map(t => ({
-      id: t.id,
+      id: ensureUuid(t.id),
       user_id: validUuid,
-      bucket_id: t.bucketId || null,
+      bucket_id: t.bucketId ? ensureUuid(t.bucketId) : null,
       type: t.type || 'EXPENSE',
       amount: Number(t.amount) || 0,
       direction: t.direction || 'DEBIT',
@@ -338,10 +339,11 @@ export async function syncMilestonesToSupabase(milestones: Milestone[], userId: 
   try {
     const validUuid = ensureUuid(userId);
     const records = milestones.map(m => ({
+      id: ensureUuid(m.id),
       user_id: validUuid,
       name: m.name,
       target_amount: m.targetAmount,
-      bucket_id: m.bucketId || null, // fixed: was being dropped, causing milestones to lose bucket link
+      bucket_id: m.bucketId ? ensureUuid(m.bucketId) : null,
       created_date: m.createdDate || new Date().toISOString()
     }));
 
@@ -359,6 +361,7 @@ export async function syncRemindersToSupabase(reminders: Reminder[], userId: str
   try {
     const validUuid = ensureUuid(userId);
     const records = reminders.map(r => ({
+      id: ensureUuid(r.id),
       user_id: validUuid,
       text: r.text,
       due_date: r.dueDate,

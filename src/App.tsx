@@ -290,25 +290,25 @@ export function AuthenticatedApp({
 
         // 3. Load Transactions
         const dbTxns = await loadTransactionsFromSupabase(currentUserId);
-        if (dbTxns) {
+        if (dbTxns && dbTxns.length > 0) {
           setTransactions(dbTxns);
         }
 
         // 4. Load Payments (History)
         const dbPayments = await loadPaymentsFromSupabase(currentUserId);
-        if (dbPayments) {
+        if (dbPayments && dbPayments.length > 0) {
           setHistory(dbPayments);
         }
 
         // 5. Load Milestones
         const dbMilestones = await loadMilestonesFromSupabase(currentUserId);
-        if (dbMilestones) {
+        if (dbMilestones && dbMilestones.length > 0) {
           setMilestones(dbMilestones);
         }
 
         // 6. Load Reminders
         const dbReminders = await loadRemindersFromSupabase(currentUserId);
-        if (dbReminders) {
+        if (dbReminders && dbReminders.length > 0) {
           setReminders(dbReminders);
         }
 

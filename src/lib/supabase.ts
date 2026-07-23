@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Bucket, Transaction, PaymentEntry, Milestone, Reminder, UserProfile } from '../types';
+import { Bucket, Transaction, PaymentEntry, Milestone, Reminder, UserProfile, AppNotification } from '../types';
 
 const env = (import.meta as unknown as { env?: Record<string, string> }).env || {};
 const SUPABASE_URL = env.VITE_SUPABASE_URL || 'https://soqllmwmojyzvathirdd.supabase.co';
@@ -782,7 +782,7 @@ export async function adminDeleteTransactionFromSupabase(transactionId: string):
 /**
  * Admin: Broadcast notification to all user profiles
  */
-export async function adminBroadcastNotificationToAll(title: string, message: string, type: 'info' | 'success' | 'warning' | 'alert'): Promise<boolean> {
+export async function adminBroadcastNotificationToAll(title: string, message: string, type: 'info' | 'success' | 'warning' | 'alert' = 'info'): Promise<boolean> {
   try {
     // 1. Fetch all profiles
     const { data: profiles, error: fetchErr } = await supabase.from('profiles').select('id');

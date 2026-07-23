@@ -23,6 +23,7 @@ import {
   ChevronUp, 
   Lock, 
   Users, 
+  LayoutGrid,
   RefreshCw, 
   Sun, 
   Moon, 

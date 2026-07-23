@@ -3,19 +3,25 @@
   "name": "BeforeSpend - Income & Money Manager",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/logo.png",
       "type": "image/png",
-      "sizes": "32x32"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "/pwa-icon.png",
+      "src": "/logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "32x32"
     }
   ],
   "start_url": "/",
-  "background_color": "#F8F9F5",
+  "background_color": "#0A192F",
   "theme_color": "#00A896",
   "display": "standalone",
   "orientation": "portrait",

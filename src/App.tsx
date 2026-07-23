@@ -47,6 +47,7 @@ import { BeforeSpendIcon } from './components/BeforeSpendIcon';
 import { AdminCommandCenter } from './components/AdminCommandCenter';
 import { TermsOfService } from './components/TermsOfService';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { PwaInstallBanner } from './components/PwaInstallBanner';
 
 // Icons
 import { 
@@ -3606,6 +3607,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 font-sans transition-colors duration-200">
+      <PwaInstallBanner />
       {currentPath === '/terms' || authView === 'terms' ? (
         <TermsOfService
           onBack={() => { navigateTo('/'); setAuthView('landing'); }}

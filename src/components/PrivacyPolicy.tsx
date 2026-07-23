@@ -1,168 +1,240 @@
 import React, { useEffect } from 'react';
 import { BeforeSpendLogo } from './BeforeSpendLogo';
-import { ShieldCheck, ArrowLeft, Lock, Eye, Database, Server, CheckCircle2, Mail, Key } from 'lucide-react';
+import { Sun, Moon, ArrowLeft, Mail, ChevronRight, Lock, Eye, Database } from 'lucide-react';
 
 interface PrivacyPolicyProps {
   onBack: () => void;
   onGoToTerms?: () => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+  onGoToLogin?: () => void;
+  onGoToRegister?: () => void;
+  onGoToDashboard?: () => void;
+  isLoggedIn?: boolean;
 }
 
-export function PrivacyPolicy({ onBack, onGoToTerms }: PrivacyPolicyProps) {
+export function PrivacyPolicy({
+  onBack,
+  onGoToTerms,
+  isDark = false,
+  onToggleTheme,
+  onGoToLogin,
+  onGoToRegister,
+  onGoToDashboard,
+  isLoggedIn = false,
+}: PrivacyPolicyProps) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 font-sans transition-colors duration-200">
-      {/* Top Bar Navigation */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800 px-4 sm:px-8 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 text-xs font-bold text-gray-700 dark:text-zinc-200 transition-all cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#00A896]" />
-              <span>Back</span>
-            </button>
-            <BeforeSpendLogo size="md" />
-          </div>
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 font-sans transition-colors duration-200 overflow-x-hidden antialiased">
+      
+      {/* 1. LANDING PAGE HEADER */}
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800/80 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          
+          {/* Brand Logo */}
+          <BeforeSpendLogo size="md" onClick={onBack} />
 
-          <div className="flex items-center gap-2">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-gray-600 dark:text-zinc-300">
+            <button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Homepage</button>
+            <button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Features</button>
+            <button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Calculator</button>
             {onGoToTerms && (
-              <button
-                onClick={onGoToTerms}
-                className="text-xs font-bold text-[#00A896] hover:underline cursor-pointer"
-              >
-                Terms of Service →
+              <button onClick={onGoToTerms} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">
+                Terms of Service
               </button>
+            )}
+          </nav>
+
+          {/* Action CTAs */}
+          <div className="flex items-center gap-3">
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="w-10 h-10 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:border-[#00A896]/50 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer transition-all shadow-2xs hover:shadow-xs flex items-center justify-center"
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDark ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-[#00A896]" />}
+              </button>
+            )}
+
+            {isLoggedIn ? (
+              <button
+                onClick={onGoToDashboard}
+                className="px-4 py-2 text-xs font-black rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white transition-all cursor-pointer shadow-xs"
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                {onGoToLogin && (
+                  <button
+                    onClick={onGoToLogin}
+                    className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-zinc-200 hover:text-[#00A896] transition-colors cursor-pointer"
+                  >
+                    Sign In
+                  </button>
+                )}
+                {onGoToRegister && (
+                  <button
+                    onClick={onGoToRegister}
+                    className="px-4 py-2 text-xs font-black rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white transition-all cursor-pointer shadow-xs"
+                  >
+                    Get Started
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-10 sm:py-14 space-y-8">
-        
-        {/* Header Hero */}
-        <div className="space-y-4 border-b border-gray-200 dark:border-zinc-800 pb-8 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#00A896]/10 text-[#00A896]">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Data Protection & Privacy</span>
+      {/* 2. ELEGANT DOCUMENT TITLE BAR */}
+      <div className="bg-[#0A192F] text-white py-12 px-4 sm:px-8 border-b border-[#1e293b]">
+        <div className="max-w-4xl mx-auto space-y-3 text-left">
+          
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-2 text-xs font-semibold text-teal-400/90">
+            <button onClick={onBack} className="hover:underline cursor-pointer">Homepage</button>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-slate-300">Legal</span>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-white font-bold">Privacy Policy</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-zinc-50 tracking-tight">
+
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             Privacy Policy
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Effective Date: July 23, 2026 • Last Updated: July 23, 2026
+
+          <p className="text-xs sm:text-sm text-slate-300 font-medium">
+            Last Updated: July 23, 2026 • Effective Date: July 23, 2026
           </p>
-          <p className="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed pt-2">
-            BeforeSpend ("we", "us", or "our") respects your privacy and is committed to protecting the personal and financial information you share with us. This Privacy Policy explains how your data is collected, processed, encrypted, and protected when using our Platform.
+        </div>
+      </div>
+
+      {/* 3. WELL-FORMATTED DOCUMENT CONTENT (Clean Document Typography) */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16 text-left space-y-12">
+        
+        {/* Preamble */}
+        <div className="text-base leading-relaxed text-gray-700 dark:text-zinc-300 border-b border-gray-150 dark:border-zinc-800/80 pb-8 space-y-4">
+          <p>
+            At <strong>BeforeSpend</strong>, we respect your privacy and are committed to protecting the personal and financial information you entrust to us. This Privacy Policy outlines our practices regarding data collection, encryption, cloud synchronization, and user control rights.
+          </p>
+          <p>
+            By using BeforeSpend, creating a workspace profile, or authenticating via Google OAuth, you consent to the data practices described in this policy.
           </p>
         </div>
 
-        {/* Section Breakdown */}
-        <div className="space-y-8 text-left text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
-          
-          {/* Section 1 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">1</span>
-              <span>Information We Collect</span>
-            </h2>
-            <p>We collect information to provide and optimize your financial allocation experience:</p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs text-gray-600 dark:text-zinc-300">
-              <li><strong className="text-gray-800 dark:text-zinc-100">Account Credentials:</strong> Full name, email address, phone number, workspace role, and primary currency provided during registration or Google OAuth sign-in.</li>
-              <li><strong className="text-gray-800 dark:text-zinc-100">Google OAuth Profile:</strong> Name, verified email, and high-res profile photo URL provided directly by Google Auth APIs.</li>
-              <li><strong className="text-gray-800 dark:text-zinc-100">Financial Allocations & Ledger Entries:</strong> Money bucket percentages, custom category balances, transaction amounts, expense notes, and bank statement uploads.</li>
-              <li><strong className="text-gray-800 dark:text-zinc-100">Device & Telemetry Data:</strong> Browser type, viewport resolution, theme preferences (dark mode), and encrypted session tokens.</li>
-            </ul>
-          </section>
+        {/* Section 1 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            1. Information We Collect
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            We collect only the minimum necessary information required to operate a secure income-splitting and budgeting workspace:
+          </p>
+          <ul className="list-disc pl-6 space-y-2 text-sm text-gray-700 dark:text-zinc-300">
+            <li><strong>Account Profile Information:</strong> Full name, email address, mandatory phone number, primary workspace currency (NGN, USD, EUR, etc.), and role.</li>
+            <li><strong>Google OAuth Metadata:</strong> Full name, verified Google email, and high-resolution profile photo URL (`lh3.googleusercontent.com`) automatically retrieved upon Google Auth.</li>
+            <li><strong>Financial Allocation Entries:</strong> Budget bucket names, percentage splits, target bank destinations, transaction records, expense entries, and uploaded bank statements.</li>
+          </ul>
+        </section>
 
-          {/* Section 2 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">2</span>
-              <span>How We Use Your Data</span>
-            </h2>
-            <p>We utilize your data strictly for legitimate operational purposes:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-              <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 space-y-1">
-                <span className="font-bold text-[#00A896]">1. Workspace Personalization</span>
-                <p className="text-gray-500 dark:text-zinc-400">Customizing your home currency symbols (₦, $, €, £), income split templates, and milestone targets.</p>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 space-y-1">
-                <span className="font-bold text-[#00A896]">2. Secure Cloud Synchronization</span>
-                <p className="text-gray-500 dark:text-zinc-400">Syncing your visual buckets and transaction ledgers securely across your authorized devices via Supabase.</p>
-              </div>
-            </div>
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-200 text-xs font-semibold mt-2">
-              <p className="font-bold flex items-center gap-1.5">
-                <Lock className="w-4 h-4 text-emerald-600" />
-                <span>Zero Data Selling Promise</span>
-              </p>
-              <p className="font-normal text-emerald-800 dark:text-emerald-300">
-                BeforeSpend NEVER sells, rents, trades, or monetizes your personal information, email, or financial transaction logs to third-party advertisers or data brokers.
-              </p>
-            </div>
-          </section>
+        {/* Section 2 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            2. How We Use Your Information & Zero Data-Selling Pledge
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            Your data is used exclusively to deliver, maintain, and personalize your BeforeSpend experience.
+          </p>
 
-          {/* Section 3 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">3</span>
-              <span>Data Storage & Encryption</span>
-            </h2>
-            <p>
-              BeforeSpend implements enterprise-grade security controls:
+          <div className="my-4 p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border-l-4 border-emerald-500 text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed space-y-1">
+            <p className="font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Zero Third-Party Data Monetization
             </p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs text-gray-600 dark:text-zinc-300">
-              <li><strong className="text-gray-800 dark:text-zinc-100">Transport Layer Security (TLS):</strong> All API traffic between your browser and our servers is encrypted using 256-bit SSL/TLS.</li>
-              <li><strong className="text-gray-800 dark:text-zinc-100">Row Level Security (RLS):</strong> Supabase PostgreSQL databases enforce strict RLS policies ensuring only your authenticated UUID can query your financial records.</li>
-              <li><strong className="text-gray-800 dark:text-zinc-100">Password Hashing:</strong> Email passwords are fully salted and hashed using standard bcrypt algorithms.</li>
-            </ul>
-          </section>
+            <p>
+              BeforeSpend <strong>never sells, rents, leases, or trades your personal data, email, or financial logs to advertisers or third-party data brokers</strong>.
+            </p>
+          </div>
+        </section>
 
-          {/* Section 4 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">4</span>
-              <span>Your Rights & Control</span>
-            </h2>
-            <p>You have full ownership of your data:</p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs text-gray-600 dark:text-zinc-300">
-              <li><strong className="text-gray-800 dark:text-zinc-100">Export Snapshot:</strong> You can export a complete JSON database dump of your entries at any time from the Admin Center.</li>
-              <li><strong className="text-gray-800 dark:text-zinc-100">Right to Erasure:</strong> You can request full deletion of your profile and data records by contacting support.</li>
-            </ul>
-          </section>
-
-          {/* Section 5 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">5</span>
-              <span>Privacy Contact</span>
-            </h2>
-            <p>For any privacy-related inquiries or data requests, please reach out to our privacy compliance officer:</p>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#00A896]">
-              <Mail className="w-4 h-4" />
-              <span>privacy@beforespend.app</span>
-            </div>
-          </section>
-        </div>
-
-        {/* Bottom CTA Bar */}
-        <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500 dark:text-zinc-400">
-            © 2026 BeforeSpend Inc. All rights reserved.
+        {/* Section 3 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            3. Security, Encryption & PostgreSQL RLS
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            We implement industry-standard encryption protocols:
           </p>
-          <button
-            onClick={onBack}
-            className="px-6 py-2.5 rounded-2xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-bold text-xs cursor-pointer transition-all shadow-md"
-          >
-            I Understand & Agree
-          </button>
-        </div>
+          <ul className="list-disc pl-6 space-y-2 text-sm text-gray-700 dark:text-zinc-300">
+            <li><strong>SSL/TLS Transport Encryption:</strong> All data transmitted between your device and our servers is secured via 256-bit SSL/TLS encryption.</li>
+            <li><strong>Row Level Security (RLS):</strong> Database tables enforce PostgreSQL RLS rules ensuring only your authenticated user UUID can access your financial data.</li>
+            <li><strong>Salted Password Hashes:</strong> User passwords are fully salted and hashed using secure cryptographic algorithms.</li>
+          </ul>
+        </section>
+
+        {/* Section 4 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            4. User Rights & Data Erasure
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            You retain full rights over your data. You may export a complete JSON snapshot of your database entries or request permanent deletion of your profile by emailing:
+          </p>
+          <div className="flex items-center gap-2 text-sm font-bold text-[#00A896] pt-1">
+            <Mail className="w-4 h-4" />
+            <span>privacy@beforespend.app</span>
+          </div>
+        </section>
+
       </main>
+
+      {/* 4. LANDING PAGE FOOTER */}
+      <footer className="bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-900 py-12 text-xs text-gray-500 dark:text-zinc-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-8">
+          
+          <div className="space-y-3">
+            <BeforeSpendLogo size="md" onClick={onBack} />
+            <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-sm">
+              The smart way to manage your money before you spend it. Organise your salary, protect your savings, and spend stress-free.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-left">
+            <div className="font-extrabold text-xs text-gray-900 dark:text-zinc-200 uppercase tracking-wider">Quick Links</div>
+            <ul className="flex flex-wrap gap-4 text-xs">
+              <li><button onClick={onBack} className="hover:text-[#00A896] transition-colors cursor-pointer">Homepage</button></li>
+              <li><button onClick={onBack} className="hover:text-[#00A896] transition-colors cursor-pointer">Calculator</button></li>
+              {onGoToTerms && (
+                <li>
+                  <button onClick={onGoToTerms} className="hover:text-[#00A896] transition-colors cursor-pointer font-semibold text-[#00A896]">
+                    Terms of Service
+                  </button>
+                </li>
+              )}
+            </ul>
+          </div>
+
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-100 dark:border-zinc-900 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+          <span>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</span>
+          <div className="flex items-center gap-4">
+            {onGoToTerms && (
+              <button onClick={onGoToTerms} className="hover:text-gray-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+                Terms of Service
+              </button>
+            )}
+            <span>•</span>
+            <span className="font-bold text-[#00A896]">Privacy Policy</span>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

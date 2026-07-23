@@ -3601,11 +3601,23 @@ export default function App() {
         <TermsOfService
           onBack={() => { navigateTo('/'); setAuthView('landing'); }}
           onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
+          onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
+          onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
+          isLoggedIn={Boolean(currentUserId)}
         />
       ) : currentPath === '/privacy' || authView === 'privacy' ? (
         <PrivacyPolicy
           onBack={() => { navigateTo('/'); setAuthView('landing'); }}
           onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
+          onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
+          onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
+          isLoggedIn={Boolean(currentUserId)}
         />
       ) : currentUserId && (authView === 'app' || currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard')) ? (
         <AuthenticatedApp 

@@ -1,179 +1,255 @@
 import React, { useEffect } from 'react';
 import { BeforeSpendLogo } from './BeforeSpendLogo';
-import { ShieldCheck, ArrowLeft, Lock, FileText, Scale, Globe, CheckCircle2, Mail } from 'lucide-react';
+import { Sun, Moon, ArrowLeft, Mail, ChevronRight, ShieldCheck } from 'lucide-react';
 
 interface TermsOfServiceProps {
   onBack: () => void;
   onGoToPrivacy?: () => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+  onGoToLogin?: () => void;
+  onGoToRegister?: () => void;
+  onGoToDashboard?: () => void;
+  isLoggedIn?: boolean;
 }
 
-export function TermsOfService({ onBack, onGoToPrivacy }: TermsOfServiceProps) {
+export function TermsOfService({
+  onBack,
+  onGoToPrivacy,
+  isDark = false,
+  onToggleTheme,
+  onGoToLogin,
+  onGoToRegister,
+  onGoToDashboard,
+  isLoggedIn = false,
+}: TermsOfServiceProps) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 font-sans transition-colors duration-200">
-      {/* Top Bar Navigation */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800 px-4 sm:px-8 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 text-xs font-bold text-gray-700 dark:text-zinc-200 transition-all cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#00A896]" />
-              <span>Back</span>
-            </button>
-            <BeforeSpendLogo size="md" />
-          </div>
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 font-sans transition-colors duration-200 overflow-x-hidden antialiased">
+      
+      {/* 1. LANDING PAGE HEADER */}
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800/80 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          
+          {/* Brand Logo */}
+          <BeforeSpendLogo size="md" onClick={onBack} />
 
-          <div className="flex items-center gap-2">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-gray-600 dark:text-zinc-300">
+            <button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Homepage</button>
+            <button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Features</button>
+            <button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Calculator</button>
             {onGoToPrivacy && (
-              <button
-                onClick={onGoToPrivacy}
-                className="text-xs font-bold text-[#00A896] hover:underline cursor-pointer"
-              >
-                Privacy Policy →
+              <button onClick={onGoToPrivacy} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">
+                Privacy Policy
               </button>
+            )}
+          </nav>
+
+          {/* Action CTAs */}
+          <div className="flex items-center gap-3">
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="w-10 h-10 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:border-[#00A896]/50 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer transition-all shadow-2xs hover:shadow-xs flex items-center justify-center"
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDark ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-[#00A896]" />}
+              </button>
+            )}
+
+            {isLoggedIn ? (
+              <button
+                onClick={onGoToDashboard}
+                className="px-4 py-2 text-xs font-black rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white transition-all cursor-pointer shadow-xs"
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                {onGoToLogin && (
+                  <button
+                    onClick={onGoToLogin}
+                    className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-zinc-200 hover:text-[#00A896] transition-colors cursor-pointer"
+                  >
+                    Sign In
+                  </button>
+                )}
+                {onGoToRegister && (
+                  <button
+                    onClick={onGoToRegister}
+                    className="px-4 py-2 text-xs font-black rounded-xl bg-[#00A896] hover:bg-[#0E2A47] text-white transition-all cursor-pointer shadow-xs"
+                  >
+                    Get Started
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-10 sm:py-14 space-y-8">
-        
-        {/* Header Hero */}
-        <div className="space-y-4 border-b border-gray-200 dark:border-zinc-800 pb-8 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#00A896]/10 text-[#00A896]">
-            <Scale className="w-3.5 h-3.5" />
-            <span>Legal Agreement</span>
+      {/* 2. ELEGANT DOCUMENT TITLE BAR */}
+      <div className="bg-[#0A192F] text-white py-12 px-4 sm:px-8 border-b border-[#1e293b]">
+        <div className="max-w-4xl mx-auto space-y-3 text-left">
+          
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-2 text-xs font-semibold text-teal-400/90">
+            <button onClick={onBack} className="hover:underline cursor-pointer">Homepage</button>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-slate-300">Legal</span>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-white font-bold">Terms of Service</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-zinc-50 tracking-tight">
+
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             Terms of Service
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Effective Date: July 23, 2026 • Last Updated: July 23, 2026
+
+          <p className="text-xs sm:text-sm text-slate-300 font-medium">
+            Last Updated: July 23, 2026 • Effective Date: July 23, 2026
           </p>
-          <p className="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed pt-2">
-            Welcome to BeforeSpend ("BeforeSpend", "we", "us", or "our"). These Terms of Service govern your access to and use of the BeforeSpend website, mobile application, database integrations, and financial allocation services (collectively, the "Platform").
+        </div>
+      </div>
+
+      {/* 3. WELL-FORMATTED DOCUMENT CONTENT (Clean Document Typography) */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16 text-left space-y-12">
+        
+        {/* Preamble */}
+        <div className="text-base leading-relaxed text-gray-700 dark:text-zinc-300 border-b border-gray-150 dark:border-zinc-800/80 pb-8 space-y-4">
+          <p>
+            Welcome to <strong>BeforeSpend</strong> ("BeforeSpend", "Platform", "we", "us", or "our"). These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and BeforeSpend governing your access to and use of our financial allocation software, website, database tools, and mobile web services.
+          </p>
+          <p>
+            By accessing or using BeforeSpend, creating an account, or authenticating via Google OAuth, you confirm that you have read, understood, and agree to be bound by these Terms and our Privacy Policy.
           </p>
         </div>
 
-        {/* Section Breakdown */}
-        <div className="space-y-8 text-left text-sm leading-relaxed text-gray-700 dark:text-zinc-300">
+        {/* Section 1 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            1. Acceptance of Terms & Eligibility
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            By creating an account on BeforeSpend, you represent and warrant that you are at least 18 years of age (or legal age of majority in your jurisdiction) and have the full legal capacity to enter into this agreement.
+          </p>
+        </section>
+
+        {/* Section 2 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            2. Scope of Services & Important Financial Disclaimer
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            BeforeSpend is an income allocation software application designed to help individuals, freelancers, and businesses plan category budgets before spending occurs.
+          </p>
           
-          {/* Section 1 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">1</span>
-              <span>Acceptance of Terms</span>
-            </h2>
-            <p>
-              By accessing, registering, or using the BeforeSpend Platform—whether through our website, mobile interface, or Google OAuth authentication—you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree to all terms herein, you must refrain from accessing or using the Platform.
+          <div className="my-4 p-5 rounded-2xl bg-slate-100 dark:bg-zinc-900 border-l-4 border-[#00A896] text-xs text-gray-800 dark:text-zinc-200 leading-relaxed space-y-2">
+            <p className="font-extrabold uppercase tracking-wider text-[#00A896]">
+              Non-Banking Notice
             </p>
-          </section>
-
-          {/* Section 2 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">2</span>
-              <span>Description of Services</span>
-            </h2>
             <p>
-              BeforeSpend provides an income allocation, visual money ledger, and expense tracking workspace designed to help freelancers, salaried professionals, business owners, and personal budgeters plan allocations before spending occurs.
+              BeforeSpend is a financial tracking and planning software product. <strong>BeforeSpend is not a bank, licensed deposit-taking institution, or registered investment advisor.</strong> BeforeSpend does not execute wire transfers, hold user deposits, or guarantee financial returns.
             </p>
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 text-xs font-semibold space-y-1">
-              <p className="font-bold flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <span>Important Financial Disclaimer</span>
-              </p>
-              <p className="font-normal text-amber-800 dark:text-amber-300">
-                BeforeSpend is a software tool for personal budgeting and financial organization. BeforeSpend is NOT a registered bank, financial institution, investment advisor, or tax consultancy. The Platform does not hold, move, custody, or manage monetary funds or bank deposits directly.
-              </p>
-            </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Section 3 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">3</span>
-              <span>User Registration & Security</span>
-            </h2>
-            <p>
-              To access certain features, you must create an account using Google OAuth or email registration. You agree to:
-            </p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs text-gray-600 dark:text-zinc-300">
-              <li>Provide accurate, current, and complete information, including a valid phone number and primary currency.</li>
-              <li>Maintain the security of your authentication credentials and account tokens.</li>
-              <li>Promptly notify BeforeSpend if you suspect any unauthorized access to your account.</li>
-            </ul>
-          </section>
-
-          {/* Section 4 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">4</span>
-              <span>Data Protection & Privacy</span>
-            </h2>
-            <p>
-              Your data privacy is fundamental to our architecture. BeforeSpend utilizes local browser storage encryption, Supabase Row Level Security (RLS), and SSL/TLS transport protocols. Please review our <button onClick={onGoToPrivacy} className="text-[#00A896] font-bold underline cursor-pointer">Privacy Policy</button> to understand how your data is collected, stored, and protected.
-            </p>
-          </section>
-
-          {/* Section 5 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">5</span>
-              <span>Prohibited Uses</span>
-            </h2>
-            <p>You agree not to engage in any of the following prohibited activities:</p>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs text-gray-600 dark:text-zinc-300">
-              <li>Using the Platform for fraudulent, deceptive, or illegal financial activities.</li>
-              <li>Attempting to bypass authentication or probe system vulnerabilities.</li>
-              <li>Reverse engineering or compiling derivative works of the BeforeSpend codebase.</li>
-            </ul>
-          </section>
-
-          {/* Section 6 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">6</span>
-              <span>Limitation of Liability</span>
-            </h2>
-            <p>
-              To the maximum extent permitted by applicable law, BeforeSpend shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Platform.
-            </p>
-          </section>
-
-          {/* Section 7 */}
-          <section className="space-y-3 bg-white dark:bg-zinc-900/60 p-6 sm:p-8 rounded-3xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-[#00A896]/10 text-[#00A896] text-xs flex items-center justify-center font-black">7</span>
-              <span>Contact Information</span>
-            </h2>
-            <p>If you have questions regarding these Terms of Service, please contact our legal team:</p>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#00A896]">
-              <Mail className="w-4 h-4" />
-              <span>legal@beforespend.app</span>
-            </div>
-          </section>
-        </div>
-
-        {/* Bottom CTA Bar */}
-        <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500 dark:text-zinc-400">
-            © 2026 BeforeSpend Inc. All rights reserved.
+        {/* Section 3 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            3. Account Registration, Phone Verification & Security
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            When registering via email or Google OAuth, you agree to:
           </p>
-          <button
-            onClick={onBack}
-            className="px-6 py-2.5 rounded-2xl bg-[#00A896] hover:bg-[#0E2A47] text-white font-bold text-xs cursor-pointer transition-all shadow-md"
-          >
-            I Understand & Agree
-          </button>
-        </div>
+          <ul className="list-disc pl-6 space-y-2 text-sm text-gray-700 dark:text-zinc-300">
+            <li>Provide accurate and complete information, including a mandatory verified phone number.</li>
+            <li>Maintain the confidentiality of your authentication credentials and tokens.</li>
+            <li>Accept full responsibility for all activities that occur under your authenticated profile.</li>
+          </ul>
+        </section>
+
+        {/* Section 4 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            4. Data Encryption, Storage & Intellectual Property
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            All proprietary code, branding, vector assets, algorithms, and interface designs of BeforeSpend are protected by copyright, trademark, and intellectual property laws. All user financial data is encrypted in transit using SSL/TLS and secured at rest using PostgreSQL Row Level Security (RLS).
+          </p>
+        </section>
+
+        {/* Section 5 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            5. Termination & Data Export Rights
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            You may terminate your account at any time. BeforeSpend grants you the right to export your complete database snapshot in JSON format prior to account closure.
+          </p>
+        </section>
+
+        {/* Section 6 */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 border-b border-gray-200 dark:border-zinc-800 pb-2">
+            6. Governing Law & Legal Contact
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+            These Terms are governed by and construed in accordance with applicable business laws. For formal legal inquiries, contact our legal counsel:
+          </p>
+          <div className="flex items-center gap-2 text-sm font-bold text-[#00A896] pt-1">
+            <Mail className="w-4 h-4" />
+            <span>legal@beforespend.app</span>
+          </div>
+        </section>
+
       </main>
+
+      {/* 4. LANDING PAGE FOOTER */}
+      <footer className="bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-900 py-12 text-xs text-gray-500 dark:text-zinc-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-8">
+          
+          <div className="space-y-3">
+            <BeforeSpendLogo size="md" onClick={onBack} />
+            <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-sm">
+              The smart way to manage your money before you spend it. Organise your salary, protect your savings, and spend stress-free.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-left">
+            <div className="font-extrabold text-xs text-gray-900 dark:text-zinc-200 uppercase tracking-wider">Quick Links</div>
+            <ul className="flex flex-wrap gap-4 text-xs">
+              <li><button onClick={onBack} className="hover:text-[#00A896] transition-colors cursor-pointer">Homepage</button></li>
+              <li><button onClick={onBack} className="hover:text-[#00A896] transition-colors cursor-pointer">Calculator</button></li>
+              {onGoToPrivacy && (
+                <li>
+                  <button onClick={onGoToPrivacy} className="hover:text-[#00A896] transition-colors cursor-pointer font-semibold text-[#00A896]">
+                    Privacy Policy
+                  </button>
+                </li>
+              )}
+            </ul>
+          </div>
+
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-100 dark:border-zinc-900 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+          <span>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</span>
+          <div className="flex items-center gap-4">
+            <span className="font-bold text-[#00A896]">Terms of Service</span>
+            <span>•</span>
+            {onGoToPrivacy && (
+              <button onClick={onGoToPrivacy} className="hover:text-gray-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+                Privacy Policy
+              </button>
+            )}
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

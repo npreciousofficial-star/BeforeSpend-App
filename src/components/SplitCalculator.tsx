@@ -283,7 +283,7 @@ export function SplitCalculator({
 
             {/* Dynamic Premium Income Description / Source Input Field (Appears when income is typed) */}
             {numericAmount > 0 && (
-              <div className="mt-3.5 pt-3.5 border-t border-gray-150 dark:border-zinc-850 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="mt-3.5 pt-1 animate-in fade-in slide-in-from-top-2 duration-200">
                 <label className="text-[11px] font-black text-[#0E2A47] dark:text-zinc-200 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#00A896]" />

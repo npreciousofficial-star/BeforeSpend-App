@@ -1466,11 +1466,11 @@ export function AuthenticatedApp({
           {/* Deep Search Engine Button */}
           <button
             onClick={() => setShowGlobalSearchModal(true)}
-            className="p-2 rounded-lg border border-gray-250 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-gray-500 dark:text-zinc-400 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer flex items-center gap-1.5"
+            className="h-10 px-3 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
             title="Deep Search Engine (Cmd+K / Ctrl+K)"
           >
             <Search className="w-4 h-4 text-[#00A896]" />
-            <span className="hidden sm:inline text-[11px] font-bold text-gray-500 dark:text-zinc-400">Search (⌘K)</span>
+            <span className="hidden sm:inline text-xs font-extrabold text-gray-700 dark:text-zinc-200">Search (⌘K)</span>
           </button>
 
           {/* Advanced Notification System */}
@@ -1484,10 +1484,10 @@ export function AuthenticatedApp({
           {/* Theme Switcher */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-lg border border-gray-250 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-gray-500 dark:text-zinc-400 cursor-pointer"
+            className="w-10 h-10 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all flex items-center justify-center shadow-2xs cursor-pointer"
             title="Toggle Theme"
           >
-            {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-[#00A896]" />}
+            {isDarkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-[#00A896]" />}
           </button>
 
           {/* Quick Profile Avatar */}

@@ -120,9 +120,12 @@ export function GlobalSearchModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[999999] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-[999999] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-md animate-fadeIn cursor-pointer"
+    >
       <div 
-        className="w-full max-w-2xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] text-left"
+        className="w-full max-w-2xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] text-left cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
@@ -136,12 +139,21 @@ export function GlobalSearchModal({
             placeholder="Deep Search transactions, payments, buckets, expenses, bills..."
             className="w-full text-sm font-semibold bg-transparent border-none text-gray-900 dark:text-zinc-50 placeholder-gray-400 focus:outline-none"
           />
-          {query && (
+          {query ? (
             <button 
               onClick={() => setQuery('')}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 p-1 cursor-pointer"
+              title="Clear text"
             >
               <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 p-1.5 rounded-full hover:bg-gray-200/50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              title="Close Search"
+            >
+              <X className="w-5 h-5" />
             </button>
           )}
           <kbd className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold text-gray-400 bg-gray-200/60 dark:bg-zinc-800 rounded border border-gray-300/60 dark:border-zinc-700">

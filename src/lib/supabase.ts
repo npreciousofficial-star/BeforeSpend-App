@@ -172,7 +172,7 @@ export async function registerUserAccountToSupabase(user: {
       default_currency: user.defaultCurrency || 'NGN',
       phone_number: user.phoneNumber || null,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'email' });
+    }, { onConflict: 'id' });
 
     if (profileError) {
       console.warn('Supabase profile insertion error:', profileError.message);
@@ -259,7 +259,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       default_currency: profile.defaultCurrency || 'NGN',
       phone_number: profile.phoneNumber || null,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'email' });
+    }, { onConflict: 'id' });
 
     if (error) {
       if (error.message.includes('foreign key constraint')) {

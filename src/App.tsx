@@ -325,7 +325,6 @@ export function AuthenticatedApp({
     }
 
     async function loadData() {
-      setDataLoaded(false);
       try {
         pingSupabaseDatabase();
         console.log('Fetching user data from Supabase database...');

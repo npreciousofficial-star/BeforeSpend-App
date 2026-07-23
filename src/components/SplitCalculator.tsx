@@ -291,7 +291,7 @@ export function SplitCalculator({
                   </span>
                   <span className="text-[10px] text-gray-400 font-normal lowercase">(Optional)</span>
                 </label>
-                <div className="relative rounded-xl border border-gray-250 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-[#00A896]/30 focus-within:border-[#00A896] overflow-hidden bg-white dark:bg-zinc-900 shadow-2xs transition-all flex items-center pr-3">
+                <div className="relative rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 focus-within:ring-2 focus-within:ring-[#00A896]/30 focus-within:border-[#00A896] overflow-hidden shadow-2xs transition-all flex items-center pr-3">
                   <input
                     id="calculator-note-input"
                     type="text"

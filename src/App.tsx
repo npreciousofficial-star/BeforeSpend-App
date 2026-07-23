@@ -45,6 +45,8 @@ import { LedgerTable } from './components/LedgerTable';
 import { BeforeSpendLogo } from './components/BeforeSpendLogo';
 import { BeforeSpendIcon } from './components/BeforeSpendIcon';
 import { AdminCommandCenter } from './components/AdminCommandCenter';
+import { TermsOfService } from './components/TermsOfService';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 
 // Icons
 import { 
@@ -3595,7 +3597,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 font-sans transition-colors duration-200">
-      {currentUserId && (authView === 'app' || currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard')) ? (
+      {currentPath === '/terms' || authView === 'terms' ? (
+        <TermsOfService
+          onBack={() => { navigateTo('/'); setAuthView('landing'); }}
+          onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
+        />
+      ) : currentPath === '/privacy' || authView === 'privacy' ? (
+        <PrivacyPolicy
+          onBack={() => { navigateTo('/'); setAuthView('landing'); }}
+          onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
+        />
+      ) : currentUserId && (authView === 'app' || currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard')) ? (
         <AuthenticatedApp 
           currentUserId={currentUserId} 
           onLogout={handleLogout} 
@@ -3605,6 +3617,8 @@ export default function App() {
         <LandingPage
           onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
           onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
+          onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
+          onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
           isDark={isDark}
           onToggleTheme={() => setIsDark(!isDark)}
           isLoggedIn={Boolean(currentUserId)}
@@ -3624,6 +3638,8 @@ export default function App() {
             setCurrentPath(targetPath);
           }}
           onBackToLanding={() => { navigateTo('/'); setAuthView('landing'); }}
+          onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
+          onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
           initialIsRegister={authView === 'register'}
         />
       )}

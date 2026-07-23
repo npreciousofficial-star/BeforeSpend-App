@@ -46,6 +46,8 @@ import { formatCurrency } from '../lib/utils';
 interface LandingPageProps {
   onGoToLogin: () => void;
   onGoToRegister: () => void;
+  onGoToTerms?: () => void;
+  onGoToPrivacy?: () => void;
   isDark: boolean;
   onToggleTheme: () => void;
   isLoggedIn?: boolean;
@@ -57,6 +59,8 @@ interface LandingPageProps {
 export function LandingPage({
   onGoToLogin,
   onGoToRegister,
+  onGoToTerms,
+  onGoToPrivacy,
   isDark,
   onToggleTheme,
   isLoggedIn = false,
@@ -1183,13 +1187,32 @@ export function LandingPage({
               <li><a href="#how-it-works" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">How It Works</a></li>
               <li><a href="#testimonials" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">Testimonials</a></li>
               <li><a href="#faqs" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">FAQs</a></li>
+              <li>
+                <button onClick={onGoToTerms} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">
+                  Terms of Service
+                </button>
+              </li>
+              <li>
+                <button onClick={onGoToPrivacy} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">
+                  Privacy Policy
+                </button>
+              </li>
             </ul>
           </div>
 
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-100 dark:border-zinc-900 pt-6 text-center sm:text-left text-xs text-gray-400">
-          © 2026 BeforeSpend is a Product of DirectPadi Ltd.
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-100 dark:border-zinc-900 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+          <span>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</span>
+          <div className="flex items-center gap-4">
+            <button onClick={onGoToTerms} className="hover:text-gray-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+              Terms of Service
+            </button>
+            <span>•</span>
+            <button onClick={onGoToPrivacy} className="hover:text-gray-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
+              Privacy Policy
+            </button>
+          </div>
         </div>
       </footer>
 

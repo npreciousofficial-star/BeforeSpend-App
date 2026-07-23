@@ -10,6 +10,8 @@ import {
 interface LoginRegisterScreenProps {
   onLogin: (userId: string) => void;
   onBackToLanding?: () => void;
+  onGoToTerms?: () => void;
+  onGoToPrivacy?: () => void;
   initialIsRegister?: boolean;
 }
 
@@ -42,7 +44,7 @@ const CURRENCY_OPTIONS = [
   { value: 'GHS', label: 'GHS (GH₵) — Ghanaian Cedi' }
 ];
 
-export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegister = false }: LoginRegisterScreenProps) {
+export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onGoToPrivacy, initialIsRegister = false }: LoginRegisterScreenProps) {
   const [isRegister, setIsRegister] = useState(initialIsRegister);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -672,8 +674,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
           {/* Footer Terms Notice */}
           <p className="text-center text-[10px] text-gray-400 dark:text-zinc-500 leading-relaxed pt-2">
             By continuing, you agree to BeforeSpend's{' '}
-            <span className="font-bold text-gray-600 dark:text-zinc-400">Terms of Service</span> and{' '}
-            <span className="font-bold text-gray-600 dark:text-zinc-400">Privacy Policy</span>. All credentials are fully salted and hashed.
+            <button type="button" onClick={onGoToTerms} className="font-bold text-gray-600 dark:text-zinc-400 hover:text-[#00A896] hover:underline cursor-pointer">Terms of Service</button> and{' '}
+            <button type="button" onClick={onGoToPrivacy} className="font-bold text-gray-600 dark:text-zinc-400 hover:text-[#00A896] hover:underline cursor-pointer">Privacy Policy</button>. All credentials are fully salted and hashed.
           </p>
 
         </div>

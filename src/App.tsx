@@ -11,7 +11,7 @@ import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastM
 import { 
   syncProfileToSupabase, syncBucketsToSupabase, syncTransactionsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase,
   loadProfileFromSupabase, loadBucketsFromSupabase, loadTransactionsFromSupabase, loadPaymentsFromSupabase, loadMilestonesFromSupabase, loadRemindersFromSupabase,
-  loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase,
+  loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase, deletePaymentFromSupabase, clearAllPaymentsFromSupabase, deleteTransactionsByTypeFromSupabase,
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
   adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase,
@@ -691,6 +691,9 @@ export function AuthenticatedApp({
         )
       );
     }
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      deletePaymentFromSupabase(id, currentUserId);
+    }
     addToast('Payment reversed and ledger entries removed.', 'info');
   };
 
@@ -698,11 +701,17 @@ export function AuthenticatedApp({
     if (revertBalances) {
       // Wipes history AND removes corresponding INCOME_SPLIT ledger credits so bucket balances revert
       setTransactions((prev) => prev.filter((t) => t.type !== 'INCOME_SPLIT'));
+      if (currentUserId && !currentUserId.startsWith('00000000-')) {
+        deleteTransactionsByTypeFromSupabase('INCOME_SPLIT', currentUserId);
+      }
       addToast('Split history cleared & bucket balances reversed!', 'info');
     } else {
       addToast('Split history log cleared! Bucket balances remain intact.', 'success');
     }
     setHistory([]);
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      clearAllPaymentsFromSupabase(currentUserId);
+    }
   };
 
   // Log expense handler (creates DEBIT transaction)

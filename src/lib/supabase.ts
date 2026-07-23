@@ -364,6 +364,42 @@ export async function syncPaymentsToSupabase(payments: PaymentEntry[], userId: s
 }
 
 /**
+ * Delete a single payment from Supabase 'payments' table
+ */
+export async function deletePaymentFromSupabase(paymentId: string, userId: string) {
+  try {
+    const validUuid = ensureUuid(userId);
+    await supabase.from('payments').delete().eq('id', ensureUuid(paymentId)).eq('user_id', validUuid);
+  } catch (err) {
+    console.warn('deletePaymentFromSupabase failed:', err);
+  }
+}
+
+/**
+ * Clear all payment records from Supabase 'payments' table for user
+ */
+export async function clearAllPaymentsFromSupabase(userId: string) {
+  try {
+    const validUuid = ensureUuid(userId);
+    await supabase.from('payments').delete().eq('user_id', validUuid);
+  } catch (err) {
+    console.warn('clearAllPaymentsFromSupabase failed:', err);
+  }
+}
+
+/**
+ * Delete transactions by type (e.g. INCOME_SPLIT) from Supabase 'transactions' table
+ */
+export async function deleteTransactionsByTypeFromSupabase(type: string, userId: string) {
+  try {
+    const validUuid = ensureUuid(userId);
+    await supabase.from('transactions').delete().eq('type', type).eq('user_id', validUuid);
+  } catch (err) {
+    console.warn('deleteTransactionsByTypeFromSupabase failed:', err);
+  }
+}
+
+/**
  * Sync transactions (immutable double-entry ledger) to Supabase.
  * This is the most critical sync — without it, bucket balances are lost on cache clear.
  */

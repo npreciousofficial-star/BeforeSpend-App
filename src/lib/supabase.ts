@@ -240,6 +240,7 @@ export async function syncBucketsToSupabase(buckets: Bucket[], userId: string) {
     if (validBuckets.length === 0) return;
 
     const records = validBuckets.map(b => ({
+      id: ensureUuid(b.id),
       user_id: validUuid,
       name: b.name,
       // Send both column names to handle either DB schema (old: 'allocation_percentage', actual may differ)
@@ -324,7 +325,16 @@ export async function syncTransactionsToSupabase(transactions: Transaction[], us
         onConflict: 'id',
         ignoreDuplicates: false
       });
-      if (error) console.warn('Supabase transactions sync error:', error.message);
+      
+      if (error) {
+        console.warn('Supabase transactions sync error:', error.message);
+        // If foreign key constraint on bucket_id fails, fallback to null bucket_id
+        if (error.message.includes('foreign key constraint') || error.message.includes('transactions_bucket_id_fkey')) {
+          console.log('Retrying transaction batch sync with null bucket_id fallbacks...');
+          const fallbackBatch = batch.map(r => ({ ...r, bucket_id: null }));
+          await supabase.from('transactions').upsert(fallbackBatch, { onConflict: 'id' });
+        }
+      }
     }
   } catch (err) {
     console.warn('Supabase syncTransactions failed:', err);

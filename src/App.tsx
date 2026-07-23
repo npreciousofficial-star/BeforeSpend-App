@@ -335,13 +335,19 @@ export function AuthenticatedApp({
     if (!currentUserId || currentUserId.startsWith('00000000-') || !dataLoaded) {
       return; // Skip sync for guests and until load completes (prevents race condition)
     }
-    syncProfileToSupabase(userProfile, currentUserId);
-    syncBucketsToSupabase(buckets, currentUserId);
-    syncTransactionsToSupabase(transactions, currentUserId);
-    syncPaymentsToSupabase(history, currentUserId);
-    syncMilestonesToSupabase(milestones, currentUserId);
-    syncRemindersToSupabase(reminders, currentUserId);
-    syncNotificationsToSupabase(notifications, currentUserId);
+
+    async function runSequentialSync() {
+      await syncProfileToSupabase(userProfile, currentUserId);
+      await syncBucketsToSupabase(buckets, currentUserId);
+      // Sequentially sync dependent tables after buckets exist in database
+      await syncTransactionsToSupabase(transactions, currentUserId);
+      await syncPaymentsToSupabase(history, currentUserId);
+      await syncMilestonesToSupabase(milestones, currentUserId);
+      await syncRemindersToSupabase(reminders, currentUserId);
+      await syncNotificationsToSupabase(notifications, currentUserId);
+    }
+
+    runSequentialSync();
   }, [userProfile, buckets, transactions, history, milestones, reminders, notifications, currentUserId, dataLoaded]);
 
   // Dynamic system notifications logic

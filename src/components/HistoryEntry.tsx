@@ -259,6 +259,11 @@ export function HistoryEntryList({
                     )}
 
                     <div className="min-w-0">
+                      {entry.note && (
+                        <div className="mb-0.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/50 text-[#00A896] dark:text-teal-300 border border-teal-100 dark:border-teal-900/40 text-[11px] font-black">
+                          <span>{entry.note}</span>
+                        </div>
+                      )}
                       <p className="text-sm font-black text-gray-900 dark:text-zinc-50 flex items-center gap-1.5">
                         {formatCurrency(entry.amount, entry.currency)}
                         {entry.currency !== currency && (

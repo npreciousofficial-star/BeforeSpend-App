@@ -38,6 +38,7 @@ import { FinanceCharts } from './components/FinanceCharts';
 import { LoginRegisterScreen } from './components/LoginRegisterScreen';
 import { LandingPage } from './components/LandingPage';
 import { Avatar, AVATAR_PRESETS } from './components/Avatar';
+import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { NotificationBell } from './components/NotificationBell';
 import { ReconciliationModal } from './components/ReconciliationModal';
 import { StatementParserModal } from './components/StatementParserModal';
@@ -1092,6 +1093,19 @@ export function AuthenticatedApp({
 
   // Standalone Admin Command Center overlay state - auto-open for admins on login
   const [showAdminCenter, setShowAdminCenter] = useState(false);
+  const [showGlobalSearchModal, setShowGlobalSearchModal] = useState(false);
+
+  // Keyboard shortcut: Cmd+K / Ctrl+K opens Deep Search Engine
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowGlobalSearchModal(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Auto-redirect admin directly to Admin Command Center on login
   useEffect(() => {
@@ -1456,6 +1470,16 @@ export function AuthenticatedApp({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Deep Search Engine Button */}
+          <button
+            onClick={() => setShowGlobalSearchModal(true)}
+            className="p-2 rounded-lg border border-gray-250 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-gray-500 dark:text-zinc-400 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer flex items-center gap-1.5"
+            title="Deep Search Engine (Cmd+K / Ctrl+K)"
+          >
+            <Search className="w-4 h-4 text-[#00A896]" />
+            <span className="hidden sm:inline text-[11px] font-bold text-gray-500 dark:text-zinc-400">Search (⌘K)</span>
+          </button>
+
           {/* Advanced Notification System */}
           <NotificationBell 
             notifications={notifications} 
@@ -3540,6 +3564,20 @@ export function AuthenticatedApp({
           </div>
         </div>
       )}
+
+      {/* GLOBAL DEEP SEARCH ENGINE MODAL */}
+      <GlobalSearchModal
+        isOpen={showGlobalSearchModal}
+        onClose={() => setShowGlobalSearchModal(false)}
+        transactions={transactions}
+        history={history}
+        buckets={buckets}
+        expenses={expenses}
+        milestones={milestones}
+        reminders={reminders}
+        currency={userProfile.defaultCurrency}
+        onNavigate={(tabId) => setActiveTab(tabId)}
+      />
 
     </div>
   );

@@ -288,15 +288,24 @@ export async function syncBucketsToSupabase(buckets: Bucket[], userId: string) {
       note: b.note || null
     }));
 
-    const { error } = await supabase.from('buckets').upsert(records, {
-      onConflict: 'user_id,name',
+    let { error } = await supabase.from('buckets').upsert(records, {
+      onConflict: 'id',
       ignoreDuplicates: false
     });
+
+    if (error && (error.code === '409' || error.message.includes('unique constraint'))) {
+      const { error: fallbackError } = await supabase.from('buckets').upsert(records, {
+        onConflict: 'user_id,name',
+        ignoreDuplicates: true
+      });
+      error = fallbackError;
+    }
+
     if (error) {
       if (error.message.includes('foreign key constraint')) {
         console.info('Supabase buckets FK notice: Run SUPABASE_SCHEMA_FIX.sql to enable unconstrained bucket sync.');
       } else {
-        console.warn('Supabase buckets sync error:', error.message);
+        console.warn('Supabase buckets sync notice:', error.message);
       }
     }
   } catch (err) {

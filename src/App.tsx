@@ -324,11 +324,24 @@ export function AuthenticatedApp({
         pingSupabaseDatabase();
         console.log('Fetching user data from Supabase database...');
         
-        // 1. Load Profile
+        // 1. Load Profile & automatically pull Google high-res avatar photo URL
         const profile = await loadProfileFromSupabase(currentUserId);
+        let googleAvatar: string | undefined;
+        try {
+          const { data: authData } = await supabase.auth.getUser();
+          googleAvatar = authData?.user?.user_metadata?.avatar_url || authData?.user?.user_metadata?.picture;
+        } catch (e) {
+          // ignore offline fallback
+        }
+
         if (profile) {
-          setUserProfile(profile);
-          setEditProfileAvatar(profile.avatar || 'preset-chidi');
+          const finalAvatar = (googleAvatar && (!profile.avatar || profile.avatar.startsWith('preset-')))
+            ? googleAvatar
+            : (profile.avatar || googleAvatar || 'preset-chidi');
+
+          const updatedProfile = { ...profile, avatar: finalAvatar };
+          setUserProfile(updatedProfile);
+          setEditProfileAvatar(finalAvatar);
           setEditProfileName(profile.name);
           setEditProfileEmail(profile.email);
           setEditProfileRole(profile.role);
@@ -339,14 +352,14 @@ export function AuthenticatedApp({
             const authUser = authData?.user;
             if (authUser) {
               const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User';
-              const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || 'preset-emerald';
+              const avatarPhoto = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || 'preset-emerald';
               
               const newProfile: UserProfile = {
                 name: googleName,
                 email: authUser.email || '',
                 role: 'Personal Budgeter',
                 defaultCurrency: 'NGN',
-                avatar: googleAvatar,
+                avatar: avatarPhoto,
               };
 
               setUserProfile(newProfile);

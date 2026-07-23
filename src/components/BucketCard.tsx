@@ -6,6 +6,7 @@
 import React from 'react';
 import { Bucket } from '../types';
 import { formatCurrency } from '../lib/utils';
+import { AnimatedNumber } from './AnimatedNumber';
 import { Landmark, TrendingUp, HelpCircle, AlertTriangle } from 'lucide-react';
 
 interface BucketCardProps {
@@ -132,7 +133,7 @@ export function BucketCard({ bucket, currency, onEdit, hideBalance = false }: Bu
               isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             } ${hideBalance ? 'blur-md select-none' : ''}`}
           >
-            {formatCurrency(bucket.balance, currency)}
+            <AnimatedNumber value={bucket.balance} currency={currency} />
           </span>
         </div>
 

@@ -18,6 +18,7 @@ import {
 } from './lib/supabase';
 
 // Components
+import { Preloader } from './components/Preloader';
 import { ToastContainer } from './components/Toast';
 import { SplitCalculator } from './components/SplitCalculator';
 import { FinanceCalculators } from './components/FinanceCalculators';
@@ -1059,6 +1060,10 @@ export function AuthenticatedApp({
   }
 
   const currentTotalAllocPercentage = buckets.reduce((sum, b) => sum + b.percentage, 0);
+
+  if (!dataLoaded) {
+    return <Preloader message="Synchronizing financial vault with cloud database..." />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200 font-sans flex flex-col md:flex-row pb-16 md:pb-0">
@@ -2752,8 +2757,8 @@ export function AuthenticatedApp({
 
         </main>
 
-        {/* FOOTER - Pinned to bottom right as outlined in Image 2 */}
-        <footer className="mt-auto py-5 px-6 sm:px-10 border-t border-gray-150/70 dark:border-zinc-850 text-right text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-white/40 dark:bg-zinc-950/40">
+        {/* FOOTER - Matched to page background without border lines */}
+        <footer className="mt-auto py-5 px-6 sm:px-10 text-right text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-gray-50/50 dark:bg-zinc-950">
           <p>© 2026 BeforeSpend is a Product of DirectPadi Ltd.</p>
         </footer>
 

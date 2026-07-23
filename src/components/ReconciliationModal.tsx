@@ -21,6 +21,14 @@ export function ReconciliationModal({
   onClose,
   initialBucketId
 }: ReconciliationModalProps) {
+  // Lock body scroll while modal is open
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   const [selectedBucketId, setSelectedBucketId] = useState<string>(
     initialBucketId || (buckets.length > 0 ? buckets[0].id : '')
   );

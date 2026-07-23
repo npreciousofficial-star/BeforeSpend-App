@@ -835,6 +835,14 @@ export function AdminCommandCenter({
 
   const currentDeepDiveTelemetry = deepDiveUser ? getUserTelemetry(deepDiveUser) : null;
 
+  // Prevent main page scrolling while Admin Command Center is active
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 z-[100] flex bg-[#0E1A2E] text-slate-100 font-sans w-full max-w-full overflow-x-hidden">
 

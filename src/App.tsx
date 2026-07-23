@@ -329,6 +329,39 @@ export function AuthenticatedApp({
     };
   }, []);
 
+  // Lock body scrolling when any full modal or overlay drawer is active
+  useEffect(() => {
+    const isAnyModalActive = Boolean(
+      showOnboardingModal ||
+      showBlueprintConfirmModal ||
+      showImportDbModal ||
+      showAddCustomBucketModal ||
+      editingBucket ||
+      adminEditingUser ||
+      showReconciliationModal ||
+      showStatementParserModal
+    );
+
+    if (isAnyModalActive) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [
+    showOnboardingModal,
+    showBlueprintConfirmModal,
+    showImportDbModal,
+    showAddCustomBucketModal,
+    editingBucket,
+    adminEditingUser,
+    showReconciliationModal,
+    showStatementParserModal,
+  ]);
+
   // Load data from Supabase DB on mount/login
   useEffect(() => {
     if (!currentUserId || currentUserId.startsWith('00000000-')) {

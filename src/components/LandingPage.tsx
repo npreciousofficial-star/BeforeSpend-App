@@ -233,10 +233,7 @@ export function LandingPage({
                   </button>
 
                   {showUserDropdown && (
-                    <>
-                      {/* Close popover backdrop */}
-                      <div className="fixed inset-0 z-40" onClick={() => setShowUserDropdown(false)} />
-                      <div className="absolute right-0 mt-2.5 w-64 rounded-2xl border border-gray-200/85 dark:border-zinc-850 bg-white dark:bg-zinc-950 p-4 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-left">
+                    <div className="absolute right-0 mt-2.5 w-64 rounded-2xl border border-gray-200/85 dark:border-zinc-850 bg-white dark:bg-zinc-950 p-4 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-left">
                         <div className="flex flex-col items-center text-center pb-3 border-b border-gray-100 dark:border-zinc-900/60">
                           <div className="w-11 h-11 rounded-full overflow-hidden border border-gray-150 dark:border-zinc-800 shadow-2xs mb-2">
                             <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
@@ -276,7 +273,6 @@ export function LandingPage({
                           </div>
                         )}
                       </div>
-                    </>
                   )}
                 </div>
               </div>

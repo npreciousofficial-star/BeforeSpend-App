@@ -27,6 +27,13 @@ export function StatementParserModal({
   onBatchImport,
   onClose,
 }: StatementParserModalProps) {
+  // Lock body scroll while StatementParserModal is open
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
   const [step, setStep] = useState<'UPLOAD' | 'MAP_COLUMNS' | 'PREVIEW'>('UPLOAD');
   const [fileName, setFileName] = useState<string>('');
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);

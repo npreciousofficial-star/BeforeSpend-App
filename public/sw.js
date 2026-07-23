@@ -1,9 +1,10 @@
-const CACHE_NAME = 'beforespend-pwa-v3';
+const CACHE_NAME = 'beforespend-pwa-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon.svg',
+  '/logo.png',
+  '/pwa-icon.png',
   '/favicon.png',
   '/favicon.ico'
 ];
@@ -32,7 +33,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Network-First for HTML/Navigations to prevent stale deployment assets
+// Fetch Event - Stale-While-Revalidate for sub-second app launch
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -57,13 +58,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isNavigation = event.request.mode === 'navigate' || 
-                       (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
+  // Cache-First strategy for images, icons, and static assets for instant load
+  const isStaticAsset = url.pathname.endsWith('.png') ||
+                        url.pathname.endsWith('.jpg') ||
+                        url.pathname.endsWith('.ico') ||
+                        url.pathname.endsWith('.svg') ||
+                        url.pathname.endsWith('.woff2');
 
-  if (isNavigation) {
-    // Network-First for HTML navigation to ensure latest JS/CSS hashes are loaded
+  if (isStaticAsset) {
     event.respondWith(
-      fetch(event.request)
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // Stale-While-Revalidate for HTML, JS, CSS
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
@@ -73,30 +94,9 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => {
-          // Offline fallback
-          return caches.match(event.request).then((cachedResponse) => {
-            return cachedResponse || caches.match('/index.html');
-          });
-        })
-    );
-    return;
-  }
+        .catch(() => cachedResponse || caches.match('/index.html'));
 
-  // Network-First for JS and CSS assets to prevent 404 on re-deployments
-  event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+      return cachedResponse || fetchPromise;
+    })
   );
 });

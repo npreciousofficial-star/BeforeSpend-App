@@ -385,24 +385,28 @@ export function AuthenticatedApp({
           }
         }
 
-        // 2. Load Buckets
-        const dbBuckets = await loadBucketsFromSupabase(currentUserId);
+        // 2. Parallel data fetching via Promise.all for sub-second database load
+        const [dbBuckets, dbTxns, dbPayments, dbMilestones, dbReminders, dbNotifications] = await Promise.all([
+          loadBucketsFromSupabase(currentUserId),
+          loadTransactionsFromSupabase(currentUserId),
+          loadPaymentsFromSupabase(currentUserId),
+          loadMilestonesFromSupabase(currentUserId),
+          loadRemindersFromSupabase(currentUserId),
+          loadNotificationsFromSupabase(currentUserId),
+        ]);
+
         if (dbBuckets && dbBuckets.length > 0) {
           setBuckets(dbBuckets);
         }
 
-        // 3. Load Transactions (resolve bucket names from loaded buckets)
-        const dbTxns = await loadTransactionsFromSupabase(currentUserId);
         if (dbTxns && dbTxns.length > 0) {
           const resolvedBuckets = (dbBuckets && dbBuckets.length > 0) ? dbBuckets : buckets;
           const enrichedTxns = dbTxns.map(txn => {
-            // Resolve bucketName from loaded buckets if missing
             let bucketName = txn.bucketName;
             if (!bucketName && txn.bucketId) {
               const match = resolvedBuckets.find(b => b.id === txn.bucketId || b.name === txn.bucketId);
               bucketName = match?.name;
             }
-            // Backfill missing audit hash
             const hash = txn.deduplicationHash || generateAuditHash({
               amount: txn.amount,
               description: txn.description,
@@ -415,26 +419,18 @@ export function AuthenticatedApp({
           setTransactions(enrichedTxns);
         }
 
-        // 4. Load Payments (History)
-        const dbPayments = await loadPaymentsFromSupabase(currentUserId);
         if (dbPayments && dbPayments.length > 0) {
           setHistory(dbPayments);
         }
 
-        // 5. Load Milestones
-        const dbMilestones = await loadMilestonesFromSupabase(currentUserId);
         if (dbMilestones && dbMilestones.length > 0) {
           setMilestones(dbMilestones);
         }
 
-        // 6. Load Reminders
-        const dbReminders = await loadRemindersFromSupabase(currentUserId);
         if (dbReminders && dbReminders.length > 0) {
           setReminders(dbReminders);
         }
 
-        // 7. Load Notifications
-        const dbNotifications = await loadNotificationsFromSupabase(currentUserId);
         if (dbNotifications && dbNotifications.length > 0) {
           setNotifications(dbNotifications);
         }

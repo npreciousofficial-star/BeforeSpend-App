@@ -3,19 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>BeforeSpend - Master Your Income</title>
+    <title>BeforeSpend - Master Your Income Before You Spend</title>
     
-    <!-- PWA & Mobile Settings -->
+    <!-- PWA & Preload Assets for Sub-Second Opening -->
+    <link rel="preload" href="/logo.png" as="image" type="image/png" />
+    <link rel="preload" href="/pwa-icon.png" as="image" type="image/png" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="shortcut icon" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/pwa-icon.png" />
-    <meta name="theme-color" content="#00A896" />
-    <meta name="description" content="Master your income before it leaves your hands. Simple income splitting, bank statement imports, and expense tracking." />
+    <meta name="theme-color" content="#0A192F" />
+    <meta name="description" content="Master your income before it leaves your hands. Simple income splitting, automatic bank statement imports, and expense category ledgers." />
+    <meta name="keywords" content="income splitter, budgeting app, before spend, money management, bank statement parser, expense tracker, salary allocation" />
+    <meta name="author" content="BeforeSpend Inc." />
+    <link rel="canonical" href="https://before-spend-app.vercel.app/" />
+
+    <!-- Open Graph / Facebook / WhatsApp SEO -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://before-spend-app.vercel.app/" />
+    <meta property="og:title" content="BeforeSpend - Master Your Income Before You Spend" />
+    <meta property="og:description" content="Simple income splitting, automatic bank statement imports, and expense category ledgers to control your financial future." />
+    <meta property="og:image" content="https://before-spend-app.vercel.app/hero-dashboard.png" />
+    <meta property="og:site_name" content="BeforeSpend" />
+
+    <!-- Twitter Card SEO -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://before-spend-app.vercel.app/" />
+    <meta name="twitter:title" content="BeforeSpend - Master Your Income Before You Spend" />
+    <meta name="twitter:description" content="Simple income splitting, automatic bank statement imports, and expense category ledgers to control your financial future." />
+    <meta name="twitter:image" content="https://before-spend-app.vercel.app/hero-dashboard.png" />
+
+    <!-- Mobile & PWA Capabilities -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="BeforeSpend" />
+
+    <!-- Structured Data Schema (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "BeforeSpend",
+        "operatingSystem": "All",
+        "applicationCategory": "FinanceApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Master your income before it leaves your hands. Simple income splitting, bank statement imports, and expense tracking."
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
@@ -29,12 +68,10 @@
         );
 
         if (isLocalhost) {
-          // Unregister any active service worker in local dev mode
           navigator.serviceWorker.ready.then((registration) => {
             registration.unregister();
           }).catch(() => {});
         } else {
-          // Register PWA service worker in production
           window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
               .then(reg => console.log('BeforeSpend ServiceWorker registered:', reg.scope))
@@ -45,5 +82,3 @@
     </script>
   </body>
 </html>
-
-

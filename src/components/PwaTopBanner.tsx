@@ -112,3 +112,5 @@ export function PwaTopBanner() {
     </div>
   );
 }
+
+export const PwaInstallBanner = PwaTopBanner;

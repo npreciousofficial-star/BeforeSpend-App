@@ -1466,16 +1466,16 @@ export function AuthenticatedApp({
             {/* Theme Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-[#00A896]/50 bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 cursor-pointer transition-colors"
+              className="w-10 h-10 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:border-[#00A896]/50 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer transition-all shadow-2xs hover:shadow-xs flex items-center justify-center"
               title="Toggle Light/Dark Theme"
             >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-[#00A896]" />}
+              {isDarkMode ? <Sun className="w-4.5 h-4.5 text-amber-500" /> : <Moon className="w-4.5 h-4.5 text-[#00A896]" />}
             </button>
 
             {/* Profile Avatar Trigger */}
             <button
               onClick={() => setActiveTab('settings')}
-              className="w-8.5 h-8.5 rounded-full overflow-hidden focus:outline-none cursor-pointer border border-gray-200 dark:border-zinc-800 hover:border-[#00A896] transition-colors shadow-2xs"
+              className="w-10 h-10 rounded-full overflow-hidden focus:outline-none cursor-pointer ring-2 ring-[#00A896]/30 hover:ring-[#00A896] transition-all flex items-center justify-center shrink-0 shadow-sm hover:shadow-md"
               title="View Account Profile"
             >
               <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />

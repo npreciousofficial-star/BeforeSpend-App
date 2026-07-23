@@ -1064,12 +1064,14 @@ export function AdminCommandCenter({
                   setShowNotificationsDropdown(!showNotificationsDropdown);
                   setShowProfileDropdown(false);
                 }}
-                className="relative p-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="w-10 h-10 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-[#00A896]/50 cursor-pointer transition-all flex items-center justify-center relative select-none shadow-2xs"
                 title="Notifications"
               >
-                <Bell className="w-4.5 h-4.5" />
+                <Bell className="w-4.5 h-4.5 text-[#00A896]" />
                 {notifications && notifications.some(n => !n.read) && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00A896] ring-2 ring-white dark:ring-[#0D1B34]" />
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-4.5 rounded-full bg-rose-500 text-white font-black text-[9px] flex items-center justify-center px-1 border-2 border-white dark:border-[#0D1B34] shadow-xs animate-pulse">
+                    {notifications.filter(n => !n.read).length}
+                  </span>
                 )}
               </button>
 
@@ -1128,8 +1130,12 @@ export function AdminCommandCenter({
             </div>
 
             {/* Theme Toggle */}
-            <button onClick={toggleDarkMode} className="p-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Toggle Mode">
-              {isDarkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-slate-700" />}
+            <button
+              onClick={toggleDarkMode}
+              className="w-10 h-10 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-[#00A896]/50 hover:text-[#00A896] dark:hover:text-[#00A896] cursor-pointer transition-all shadow-2xs flex items-center justify-center"
+              title="Toggle Mode"
+            >
+              {isDarkMode ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-[#00A896]" />}
             </button>
 
             {/* Profile Dropdown */}
@@ -1141,7 +1147,9 @@ export function AdminCommandCenter({
                 }}
                 className="flex items-center gap-2.5 cursor-pointer pl-2 border-l border-slate-200 dark:border-slate-800 py-1 hover:opacity-85"
               >
-                <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-700 shadow-2xs" />
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#00A896]/30 hover:border-[#00A896] transition-all flex items-center justify-center shrink-0 shadow-sm">
+                  <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full" />
+                </div>
                 <div className="hidden xl:block text-left">
                   <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{userProfile.name}</p>
                   <p className="text-[10px] font-mono font-bold text-[#00A896]">{userProfile.role || 'Root Admin'}</p>

@@ -1180,7 +1180,7 @@ export function AuthenticatedApp({
           <div 
             onClick={onGoToLanding} 
             className="cursor-pointer hover:opacity-85 transition-opacity" 
-            title="View Homepage / About"
+            title="View Website Homepage"
           >
             <BeforeSpendLogo size="md" variant="white" />
           </div>
@@ -1263,7 +1263,7 @@ export function AuthenticatedApp({
             { id: 'calculators', label: 'Money Calculators', icon: Calculator },
             { id: 'settings', label: 'Account Settings', icon: Settings },
             { id: 'admin', label: 'Backups & Data', icon: Database },
-            { id: 'home_landing', label: 'Homepage / About', icon: Globe },
+            { id: 'home_landing', label: 'Website Homepage', icon: Globe },
           ].filter(tab => tab.id !== 'admin' || !isAdmin).map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1328,7 +1328,7 @@ export function AuthenticatedApp({
         <div 
           onClick={onGoToLanding} 
           className="cursor-pointer hover:opacity-85 transition-opacity" 
-          title="View Homepage / About"
+          title="View Website Homepage"
         >
           <BeforeSpendLogo size="md" />
         </div>

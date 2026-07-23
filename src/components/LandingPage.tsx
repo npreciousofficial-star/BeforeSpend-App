@@ -452,17 +452,17 @@ export function LandingPage({
             </a>
           </div>
 
-          {/* Dashboard Preview Mockup */}
+          {/* Dashboard Preview Screenshot Mockup */}
           <div className="pt-6 max-w-5xl mx-auto">
-            <div className="rounded-2xl sm:rounded-3xl border border-gray-200 dark:border-zinc-800 bg-slate-900 text-white p-3 sm:p-5 shadow-2xl overflow-hidden relative text-left">
+            <div className="rounded-2xl sm:rounded-3xl border border-gray-200 dark:border-zinc-800 bg-slate-900 text-white p-2 sm:p-3 shadow-2xl overflow-hidden relative text-left">
               
-              {/* Mock App Header */}
-              <div className="flex items-center justify-between flex-wrap gap-2 pb-3 mb-4 border-b border-zinc-800 text-xs">
+              {/* Mock App Header Bar */}
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-2 mb-2 px-2 border-b border-zinc-800 text-xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 shrink-0" />
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 shrink-0" />
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#00A896] shrink-0" />
-                  <span className="ml-1 sm:ml-2 font-mono text-[9px] sm:text-xs text-zinc-400 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">app.beforespend.com/dashboard</span>
+                  <span className="ml-1 sm:ml-2 font-mono text-[9px] sm:text-xs text-zinc-400 truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">app.beforespend.com/dashboard</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-[#00A896] font-mono whitespace-nowrap shrink-0 ml-auto">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#00A896] animate-ping shrink-0" />
@@ -470,47 +470,12 @@ export function LandingPage({
                 </div>
               </div>
 
-              {/* Mock Grid Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-zinc-800/80 border border-zinc-700/60">
-                  <div className="text-[10px] text-zinc-400 uppercase font-bold">Total Income</div>
-                  <div className="text-sm sm:text-base font-black text-[#00A896] font-mono mt-0.5">₦1,250,000.00</div>
-                  <div className="text-[9px] text-zinc-400 mt-1">100% Categorized</div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-zinc-800/80 border border-zinc-700/60">
-                  <div className="text-[10px] text-zinc-400 uppercase font-bold">Bills & Rent</div>
-                  <div className="text-sm sm:text-base font-black text-white font-mono mt-0.5">₦625,000.00</div>
-                  <div className="text-[9px] text-[#00A896] mt-1">50% Set Aside</div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-zinc-800/80 border border-zinc-700/60">
-                  <div className="text-[10px] text-zinc-400 uppercase font-bold">Emergency Savings</div>
-                  <div className="text-sm sm:text-base font-black text-blue-400 font-mono mt-0.5">₦250,000.00</div>
-                  <div className="text-[9px] text-zinc-400 mt-1">Protected Reserve</div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-zinc-800/80 border border-zinc-700/60">
-                  <div className="text-[10px] text-zinc-400 uppercase font-bold">Record Status</div>
-                  <div className="text-sm sm:text-base font-black text-purple-400 font-mono mt-0.5">100% Accurate</div>
-                  <div className="text-[9px] text-zinc-400 mt-1">Balanced Records</div>
-                </div>
-              </div>
-
-              {/* Mock Transaction Stream Table */}
-              <div className="bg-zinc-950/80 rounded-xl p-3 border border-zinc-800 text-[11px] font-mono space-y-2">
-                <div className="text-[10px] font-bold uppercase text-zinc-400 flex justify-between">
-                  <span>Recent Transaction</span>
-                  <span>Status</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-900 border border-zinc-800/80 text-zinc-200">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00A896] flex-shrink-0" />
-                    <span className="truncate max-w-[140px] sm:max-w-xs">Salary / Freelance Payment</span>
-                  </div>
-                  <span className="text-[#00A896] font-bold">+₦500,000.00</span>
-                </div>
-              </div>
+              {/* High Resolution App Preview Screenshot */}
+              <img
+                src="/hero-dashboard.png"
+                alt="BeforeSpend Live Dashboard Overview"
+                className="w-full h-auto rounded-xl sm:rounded-2xl object-cover border border-zinc-800/80 shadow-inner"
+              />
 
             </div>
           </div>
@@ -665,9 +630,12 @@ export function LandingPage({
 
                   <div className="relative flex items-center rounded-2xl border border-gray-300/80 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-950/40 focus-within:border-[#00A896] focus-within:ring-4 focus-within:ring-[#00A896]/10 transition-all">
                     <input
-                      type="number"
-                      value={sandboxIncome}
-                      onChange={(e) => setSandboxIncome(Math.max(0, Number(e.target.value)))}
+                      type="text"
+                      value={sandboxIncome ? sandboxIncome.toLocaleString('en-US') : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        setSandboxIncome(raw ? parseInt(raw, 10) : 0);
+                      }}
                       className="w-full px-4 py-3.5 rounded-2xl bg-transparent font-black text-base text-gray-900 dark:text-zinc-50 focus:outline-none"
                       placeholder="Enter revenue amount"
                     />
@@ -1091,12 +1059,14 @@ export function LandingPage({
                 "Before BeforeSpend, I had money flowing into my account from different clients, but at the end of the month, I couldn't account for where it went. BeforeSpend changed everything—now every payout is sorted before I touch it."
               </blockquote>
               <div className="pt-2 border-t border-zinc-800 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#00A896] text-white font-black text-xs flex items-center justify-center">
-                  CO
-                </div>
+                <img
+                  src="/testimonial-avatar.jpg"
+                  alt="Chidi Okechukwu"
+                  className="w-11 h-11 rounded-full object-cover border-2 border-[#00A896] shadow-md flex-shrink-0"
+                />
                 <div>
                   <div className="font-extrabold text-xs text-white">Chidi Okechukwu</div>
-                  <div className="text-[10px] text-zinc-400">UI/UX Designer & Freelancer</div>
+                  <div className="text-[10px] text-zinc-400 font-medium">UI/UX Designer & Senior Freelancer</div>
                 </div>
               </div>
             </div>

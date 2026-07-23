@@ -830,6 +830,9 @@ export function AuthenticatedApp({
 
     setBuckets(loaded);
     setUserProfile((prev) => ({ ...prev, selectedBlueprint: tmpl.name }));
+    if (currentUserId) {
+      syncBucketsToSupabase(loaded, currentUserId);
+    }
     setShowBlueprintConfirmModal(false);
     setPendingTemplateToLoad(null);
 
@@ -1856,42 +1859,6 @@ export function AuthenticatedApp({
                     <span className={currentTotalAllocPercentage === 100 ? 'text-[#00A896]' : 'text-rose-500'}>
                       {currentTotalAllocPercentage}% / 100%
                     </span>
-                  </div>
-                </div>
-
-                {/* Templates Box */}
-                <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-4">
-                  <div>
-                    <h3 className="font-bold text-gray-900 dark:text-zinc-50 text-base flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-[#00A896] animate-pulse" /> Load Industry Blueprints
-                    </h3>
-                    <p className="text-xs text-gray-400">Load system budget setups directly mapped to global standards.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {BUCKET_TEMPLATES.map((tmpl) => (
-                      <div
-                        key={tmpl.name}
-                        id={`template-card-${tmpl.name.replace(/\s+/g, '-').toLowerCase()}`}
-                        className="p-4 rounded-xl border border-gray-200 hover:border-[#00A896] dark:border-zinc-800 dark:hover:border-zinc-700 bg-gray-50/20 dark:bg-zinc-950/25 flex flex-col justify-between gap-3.5 group/tmpl"
-                      >
-                        <div>
-                          <h4 className="font-bold text-gray-800 dark:text-zinc-100 text-xs">
-                            {tmpl.name}
-                          </h4>
-                          <p className="text-[11px] text-gray-400 mt-1">
-                            {tmpl.description}
-                          </p>
-                        </div>
-                        <button
-                          id={`apply-template-btn-${tmpl.name.replace(/\s+/g, '-').toLowerCase()}`}
-                          onClick={() => handleLoadTemplate(tmpl)}
-                          className="w-full py-1.5 px-3 rounded-lg text-[11px] font-bold bg-white hover:bg-teal-50 border border-gray-200 text-gray-700 group-hover/tmpl:border-[#00A896] dark:bg-zinc-900 dark:hover:bg-zinc-850 dark:text-zinc-200 dark:border-zinc-800 transition-all cursor-pointer"
-                        >
-                          Apply Blueprint
-                        </button>
-                      </div>
-                    ))}
                   </div>
                 </div>
 

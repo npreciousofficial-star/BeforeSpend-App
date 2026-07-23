@@ -44,14 +44,19 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
           allElems.forEach((el) => {
             const htmlEl = el as HTMLElement;
             const style = window.getComputedStyle(htmlEl);
-            if (style.color && style.color.includes('oklch')) {
+            const isModernColor = (val: string) => val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'));
+
+            if (isModernColor(style.color)) {
               htmlEl.style.color = '#0E2A47';
             }
-            if (style.backgroundColor && style.backgroundColor.includes('oklch')) {
+            if (isModernColor(style.backgroundColor)) {
               htmlEl.style.backgroundColor = '#FFFFFF';
             }
-            if (style.borderColor && style.borderColor.includes('oklch')) {
+            if (isModernColor(style.borderColor)) {
               htmlEl.style.borderColor = '#E5E7EB';
+            }
+            if (isModernColor(style.borderTopColor)) {
+              htmlEl.style.borderTopColor = '#00A896';
             }
           });
         }

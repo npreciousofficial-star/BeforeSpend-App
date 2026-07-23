@@ -320,10 +320,12 @@ export function AuthenticatedApp({
   // Load data from Supabase DB on mount/login
   useEffect(() => {
     if (!currentUserId || currentUserId.startsWith('00000000-')) {
+      setDataLoaded(true);
       return;
     }
 
     async function loadData() {
+      setDataLoaded(false);
       try {
         pingSupabaseDatabase();
         console.log('Fetching user data from Supabase database...');
@@ -436,10 +438,10 @@ export function AuthenticatedApp({
         }
 
         console.log('Supabase user data loaded successfully!');
-        setDataLoaded(true);
       } catch (err) {
         console.warn('Failed to load user data from Supabase:', err);
-        setDataLoaded(true); // allow sync even on partial load failure
+      } finally {
+        setDataLoaded(true);
       }
     }
 

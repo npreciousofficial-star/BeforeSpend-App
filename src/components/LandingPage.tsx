@@ -696,7 +696,12 @@ export function LandingPage({
                             : 'bg-white dark:bg-zinc-950/60 border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 hover:border-gray-400'
                         }`}
                       >
-                        {formatCurrency(amt, sandboxCurrency).replace(',000', 'k')}
+                        {(() => {
+                          const sym = sandboxCurrency === 'USD' ? '$' : sandboxCurrency === 'GBP' ? '£' : sandboxCurrency === 'EUR' ? '€' : '₦';
+                          if (amt >= 1000000) return `${sym}${amt / 1000000}M`;
+                          if (amt >= 1000) return `${sym}${amt / 1000}k`;
+                          return `${sym}${amt}`;
+                        })()}
                       </button>
                     ))}
                   </div>

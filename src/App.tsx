@@ -1227,7 +1227,7 @@ export function AuthenticatedApp({
         <nav className="flex-1 space-y-0.5 overflow-y-auto scrollbar-none">
           <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold px-3 pb-1">Main</p>
           {[
-            { id: 'buckets', label: 'Dashboard & Categories', icon: Layers },
+            { id: 'buckets', label: 'Dashboard', icon: Layers },
             { id: 'split', label: 'Income Splitter', icon: Wallet },
             { id: 'expenses', label: 'Expense Tracker', icon: TrendingDown },
             { id: 'ledger', label: 'Transactions & Statements', icon: Scale },

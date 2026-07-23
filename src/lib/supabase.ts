@@ -77,7 +77,7 @@ export async function uploadToSupabaseStorage(
     }
 
     const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(data.path);
-    return publicUrlData.publicUrl;
+    return `${publicUrlData.publicUrl}?v=${Date.now()}`;
   } catch (err) {
     console.warn('Failed to upload to Supabase storage:', err);
     return null;

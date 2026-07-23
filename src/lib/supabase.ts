@@ -85,6 +85,33 @@ export async function uploadToSupabaseStorage(
 }
 
 /**
+ * Trigger direct Google OAuth redirect via Supabase Auth
+ */
+export async function loginWithGoogleOAuth(): Promise<void> {
+  try {
+    const redirectTo = window.location.origin;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account',
+        },
+      },
+    });
+
+    if (error) {
+      console.warn('Google OAuth error:', error.message);
+      throw error;
+    }
+  } catch (err) {
+    console.warn('Google OAuth initiation failed:', err);
+    throw err;
+  }
+}
+
+/**
  * Register & Sync new user accounts to Supabase Auth & public.profiles table
  */
 export async function registerUserAccountToSupabase(user: {

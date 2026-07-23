@@ -277,6 +277,51 @@ export function AuthenticatedApp({
     ]
   );
 
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+
+  // Listen for Supabase Google OAuth callback & user session redirects
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const authUser = session.user;
+        const validId = authUser.id;
+        setCurrentUserId(validId);
+        window.localStorage.setItem('beforespend_current_user_id', validId);
+
+        const existingProfile = await loadProfileFromSupabase(validId);
+        if (!existingProfile) {
+          const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User';
+          const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || 'preset-emerald';
+          
+          const newProfile: UserProfile = {
+            name: googleName,
+            email: authUser.email || '',
+            role: 'Personal Budgeter',
+            defaultCurrency: 'NGN',
+            avatar: googleAvatar,
+          };
+
+          setUserProfile(newProfile);
+          setEditProfileName(newProfile.name);
+          setEditProfileEmail(newProfile.email);
+          setEditProfileRole(newProfile.role);
+          setEditProfileCurrency(newProfile.defaultCurrency);
+          setShowOnboardingModal(true);
+        } else {
+          setUserProfile(existingProfile);
+          setEditProfileName(existingProfile.name);
+          setEditProfileEmail(existingProfile.email);
+          setEditProfileRole(existingProfile.role);
+          setEditProfileCurrency(existingProfile.defaultCurrency);
+        }
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
   // Load data from Supabase DB on mount/login
   useEffect(() => {
     if (!currentUserId || currentUserId.startsWith('00000000-')) {
@@ -2753,6 +2798,94 @@ export function AuthenticatedApp({
               </div>
             )
           )}
+
+      {/* POST-LOGIN GOOGLE OAUTH ONBOARDING PROFILE SETUP MODAL */}
+      {showOnboardingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 relative text-left">
+            
+            {/* Header */}
+            <div className="flex items-start gap-4 border-b border-gray-100 dark:border-zinc-900 pb-4">
+              <div className="p-3 rounded-2xl bg-teal-50 dark:bg-teal-950/40 text-[#00A896] shrink-0 border border-teal-100 dark:border-teal-900/30">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#00A896]/10 text-[#00A896]">
+                  Google Account Connected
+                </span>
+                <h3 className="text-xl font-black text-gray-900 dark:text-zinc-50 tracking-tight">
+                  Welcome to BeforeSpend! 🎉
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
+                  Your Google account is now authenticated. Please confirm your primary currency and workspace role so we can personalize your money categories, exchange rates, and financial reports.
+                </p>
+              </div>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveProfile(e);
+                setShowOnboardingModal(false);
+                addToast('Welcome! Your workspace preferences have been saved.', 'success');
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div>
+                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editProfileName}
+                  onChange={(e) => setEditProfileName(e.target.value)}
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <CustomSelect
+                    label="Primary Currency"
+                    options={[
+                      { value: 'NGN', label: 'NGN (₦ - Nigerian Naira)' },
+                      { value: 'USD', label: 'USD ($ - US Dollar)' },
+                      { value: 'EUR', label: 'EUR (€ - Euro)' },
+                      { value: 'GBP', label: 'GBP (£ - British Pound)' },
+                      { value: 'CAD', label: 'CAD (C$ - Canadian Dollar)' },
+                    ]}
+                    value={editProfileCurrency}
+                    onChange={(val) => setEditProfileCurrency(val)}
+                  />
+                </div>
+
+                <div>
+                  <CustomSelect
+                    label="Workspace Role"
+                    options={[
+                      { value: 'Personal Budgeter', label: 'Personal Budgeter' },
+                      { value: 'Salaried Employee / Professional', label: 'Salaried Employee' },
+                      { value: 'Freelancer & Contractor', label: 'Freelancer & Contractor' },
+                      { value: 'Business Owner / Entrepreneur', label: 'Business Owner' },
+                    ]}
+                    value={editProfileRole}
+                    onChange={(val) => setEditProfileRole(val)}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#00A896] via-teal-600 to-[#00A896] hover:from-[#0E2A47] hover:to-[#0E2A47] text-white font-black text-xs cursor-pointer shadow-lg shadow-[#00A896]/20 transition-all flex items-center justify-center gap-2 mt-2"
+              >
+                <span>Save Preferences & Launch Workspace</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
           {/* EDIT MODALS FOR ADMIN */}
           {adminEditingUser && (

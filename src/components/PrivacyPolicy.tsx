@@ -197,15 +197,11 @@ export function PrivacyPolicy({
           <div className="space-y-2 text-left">
             <div className="font-extrabold text-xs text-gray-900 dark:text-zinc-200 uppercase tracking-wider">Quick Links</div>
             <ul className="flex flex-wrap gap-4 text-xs">
-              <li><button onClick={onBack} className="hover:text-[#00A896] transition-colors cursor-pointer">Homepage</button></li>
-              <li><button onClick={onBack} className="hover:text-[#00A896] transition-colors cursor-pointer">Calculator</button></li>
-              {onGoToTerms && (
-                <li>
-                  <button onClick={onGoToTerms} className="hover:text-[#00A896] transition-colors cursor-pointer font-semibold text-[#00A896]">
-                    Terms of Service
-                  </button>
-                </li>
-              )}
+              <li><button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Features</button></li>
+              <li><button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Calculator</button></li>
+              <li><button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">How It Works</button></li>
+              <li><button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">Testimonials</button></li>
+              <li><button onClick={onBack} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">FAQs</button></li>
             </ul>
           </div>
 

@@ -5,6 +5,17 @@ const env = (import.meta as unknown as { env?: Record<string, string> }).env || 
 const SUPABASE_URL = env.VITE_SUPABASE_URL || 'https://soqllmwmojyzvathirdd.supabase.co';
 const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvcWxsbXdtb2p5enZhdGhpcmRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MzE5NTAsImV4cCI6MjEwMDIwNzk1MH0.aTgkvp7erLcPj334U09NjQ57M99KOPxI_Oj8cEN8Yas';
 
+// Filter out harmless Supabase GoTrue clock skew warnings when local machine time is slightly off UTC
+if (typeof window !== 'undefined') {
+  const originalWarn = console.warn;
+  console.warn = function (...args: any[]) {
+    if (args[0] && typeof args[0] === 'string' && args[0].includes('Session as retrieved from URL was issued in the future')) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**

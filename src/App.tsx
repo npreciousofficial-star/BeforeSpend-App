@@ -2848,20 +2848,17 @@ export function AuthenticatedApp({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
           <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 relative text-left">
             
-            {/* Header */}
-            <div className="flex items-start gap-4 border-b border-gray-100 dark:border-zinc-900 pb-4">
-              <div className="p-3 rounded-2xl bg-teal-50 dark:bg-teal-950/40 text-[#00A896] shrink-0 border border-teal-100 dark:border-teal-900/30">
-                <Sparkles className="w-6 h-6" />
+            {/* Header with User Avatar */}
+            <div className="flex items-center gap-4 border-b border-gray-100 dark:border-zinc-900 pb-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-[#00A896]/30">
+                <Avatar avatar={userProfile.avatar} name={userProfile.name} className="w-full h-full text-base" />
               </div>
-              <div className="space-y-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#00A896]/10 text-[#00A896]">
-                  Google Account Connected
-                </span>
+              <div className="space-y-0.5">
                 <h3 className="text-xl font-black text-gray-900 dark:text-zinc-50 tracking-tight">
                   Welcome to BeforeSpend! 🎉
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
-                  Your Google account is now authenticated. Please confirm your primary currency and workspace role so we can personalize your money categories, exchange rates, and financial reports.
+                  Complete your profile details to finalize setting up your workspace.
                 </p>
               </div>
             </div>
@@ -2907,11 +2904,15 @@ export function AuthenticatedApp({
                   <CustomSelect
                     label="Primary Currency"
                     options={[
-                      { value: 'NGN', label: 'NGN (₦ - Nigerian Naira)' },
-                      { value: 'USD', label: 'USD ($ - US Dollar)' },
-                      { value: 'EUR', label: 'EUR (€ - Euro)' },
-                      { value: 'GBP', label: 'GBP (£ - British Pound)' },
-                      { value: 'CAD', label: 'CAD (C$ - Canadian Dollar)' },
+                      { value: 'NGN', label: 'NGN (₦) — Nigerian Naira' },
+                      { value: 'USD', label: 'USD ($) — US Dollar' },
+                      { value: 'GBP', label: 'GBP (£) — British Pound' },
+                      { value: 'EUR', label: 'EUR (€) — Euro' },
+                      { value: 'CAD', label: 'CAD ($) — Canadian Dollar' },
+                      { value: 'AUD', label: 'AUD ($) — Australian Dollar' },
+                      { value: 'KES', label: 'KES (KSh) — Kenyan Shilling' },
+                      { value: 'ZAR', label: 'ZAR (R) — South African Rand' },
+                      { value: 'GHS', label: 'GHS (GH₵) — Ghanaian Cedi' }
                     ]}
                     value={editProfileCurrency}
                     onChange={(val) => setEditProfileCurrency(val)}
@@ -2922,10 +2923,10 @@ export function AuthenticatedApp({
                   <CustomSelect
                     label="Workspace Role"
                     options={[
-                      { value: 'Personal Budgeter', label: 'Personal Budgeter' },
-                      { value: 'Salaried Employee / Professional', label: 'Salaried Employee' },
+                      { value: 'Salaried Employee / Professional', label: 'Salaried Employee / Professional' },
                       { value: 'Freelancer & Contractor', label: 'Freelancer & Contractor' },
-                      { value: 'Business Owner / Entrepreneur', label: 'Business Owner' },
+                      { value: 'Business Owner / Entrepreneur', label: 'Business Owner / Entrepreneur' },
+                      { value: 'Student & Personal Budgeter', label: 'Student & Personal Budgeter' }
                     ]}
                     value={editProfileRole}
                     onChange={(val) => setEditProfileRole(val)}

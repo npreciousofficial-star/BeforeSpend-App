@@ -1187,16 +1187,6 @@ export function LandingPage({
               <li><a href="#how-it-works" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">How It Works</a></li>
               <li><a href="#testimonials" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">Testimonials</a></li>
               <li><a href="#faqs" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">FAQs</a></li>
-              <li>
-                <button onClick={onGoToTerms} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">
-                  Terms of Service
-                </button>
-              </li>
-              <li>
-                <button onClick={onGoToPrivacy} className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors cursor-pointer">
-                  Privacy Policy
-                </button>
-              </li>
             </ul>
           </div>
 

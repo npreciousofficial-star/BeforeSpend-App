@@ -44,10 +44,10 @@ import { StatementParserModal } from './components/StatementParserModal';
 import { LedgerTable } from './components/LedgerTable';
 import { BeforeSpendLogo } from './components/BeforeSpendLogo';
 import { BeforeSpendIcon } from './components/BeforeSpendIcon';
-import { AdminCommandCenter } from './components/AdminCommandCenter';
 import { TermsOfService } from './components/TermsOfService';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { PwaInstallBanner } from './components/PwaInstallBanner';
+import { PwaTopBanner } from './components/PwaTopBanner';
+import { CookieConsentModal } from './components/CookieConsentModal';
 
 // Icons
 import { 
@@ -1087,6 +1087,13 @@ export function AuthenticatedApp({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isAdmin]);
 
+  // Scroll to top of page whenever active tab changes in AuthenticatedApp
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [activeTab]);
+
   useEffect(() => {
     if (activeTab === 'admin' && isAdmin) {
       loadAdminData();
@@ -1268,9 +1275,9 @@ export function AuthenticatedApp({
         {/* Top: Logo + Close Button */}
         <div className="flex items-center justify-between">
           <div 
-            onClick={onGoToLanding} 
+            onClick={() => { setActiveTab('buckets'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
             className="cursor-pointer hover:opacity-85 transition-opacity" 
-            title="View Website Homepage"
+            title="Dashboard Overview"
           >
             <BeforeSpendLogo size="md" variant="white" />
           </div>
@@ -1416,9 +1423,9 @@ export function AuthenticatedApp({
       {/* MOBILE TOPBAR (md and below) */}
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 shadow-xs">
         <div 
-          onClick={onGoToLanding} 
+          onClick={() => { setActiveTab('buckets'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
           className="cursor-pointer hover:opacity-85 transition-opacity" 
-          title="View Website Homepage"
+          title="Dashboard Overview"
         >
           <BeforeSpendLogo size="md" />
         </div>
@@ -3607,7 +3614,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 font-sans transition-colors duration-200">
-      <PwaInstallBanner />
+      <PwaTopBanner />
+      <CookieConsentModal onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }} />
       {currentPath === '/terms' || authView === 'terms' ? (
         <TermsOfService
           onBack={() => { navigateTo('/'); setAuthView('landing'); }}

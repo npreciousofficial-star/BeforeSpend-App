@@ -43,20 +43,28 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
           const allElems = clonedDoc.querySelectorAll('*');
           allElems.forEach((el) => {
             const htmlEl = el as HTMLElement;
-            const style = window.getComputedStyle(htmlEl);
-            const isModernColor = (val: string) => val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'));
+            try {
+              const style = window.getComputedStyle(htmlEl);
+              const isModernColor = (val: string) => val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix') || val.includes('light-dark'));
 
-            if (isModernColor(style.color)) {
-              htmlEl.style.color = '#0E2A47';
-            }
-            if (isModernColor(style.backgroundColor)) {
-              htmlEl.style.backgroundColor = '#FFFFFF';
-            }
-            if (isModernColor(style.borderColor)) {
-              htmlEl.style.borderColor = '#E5E7EB';
-            }
-            if (isModernColor(style.borderTopColor)) {
-              htmlEl.style.borderTopColor = '#00A896';
+              if (isModernColor(style.color)) {
+                htmlEl.style.color = '#0E2A47';
+              }
+              if (isModernColor(style.backgroundColor)) {
+                htmlEl.style.backgroundColor = '#FFFFFF';
+              }
+              if (isModernColor(style.backgroundImage)) {
+                htmlEl.style.backgroundImage = 'none';
+                htmlEl.style.backgroundColor = '#0E2A47';
+              }
+              if (isModernColor(style.borderColor)) {
+                htmlEl.style.borderColor = '#E5E7EB';
+              }
+              if (isModernColor(style.borderTopColor)) {
+                htmlEl.style.borderTopColor = '#00A896';
+              }
+            } catch (e) {
+              // ignore computed style fallback
             }
           });
         }

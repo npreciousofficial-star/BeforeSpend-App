@@ -281,21 +281,28 @@ export function SplitCalculator({
               />
             </div>
 
-            {/* Income Description / Source Input Field */}
-            <div className="mt-3.5 pt-3 border-t border-gray-100 dark:border-zinc-900">
-              <label className="text-xs font-bold text-[#0E2A47] dark:text-zinc-200 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
-                <span>Payment Description / Income Source</span>
-                <span className="text-[10px] text-gray-400 font-normal lowercase">(Optional)</span>
-              </label>
-              <input
-                id="calculator-note-input"
-                type="text"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Website design project payment or Salary Income"
-                className="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/60 dark:text-zinc-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00A896]/30 focus:border-[#00A896] transition-all"
-              />
-            </div>
+            {/* Dynamic Premium Income Description / Source Input Field (Appears when income is typed) */}
+            {numericAmount > 0 && (
+              <div className="mt-3.5 pt-3.5 border-t border-gray-150 dark:border-zinc-850 animate-in fade-in slide-in-from-top-2 duration-200">
+                <label className="text-[11px] font-black text-[#0E2A47] dark:text-zinc-200 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#00A896]" />
+                    Payment Description / Income Source
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-normal lowercase">(Optional)</span>
+                </label>
+                <div className="relative rounded-xl border border-gray-250 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-[#00A896]/30 focus-within:border-[#00A896] overflow-hidden bg-white dark:bg-zinc-900 shadow-2xs transition-all flex items-center pr-3">
+                  <input
+                    id="calculator-note-input"
+                    type="text"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="e.g. Website design project payment or Salary Income"
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-transparent text-gray-900 dark:text-zinc-100 placeholder-gray-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Real-time Conversion helper block */}

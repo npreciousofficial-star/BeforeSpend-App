@@ -87,7 +87,8 @@ import {
   Edit3,
   Send,
   Menu,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Search
 } from 'lucide-react';
 
 const PAGE_TITLES: Record<string, { title: string; subtext: string }> = {
@@ -691,16 +692,8 @@ export function AuthenticatedApp({
 
   const handleClearHistory = (revertBalances?: boolean) => {
     if (revertBalances) {
-      const updatedBuckets = [...buckets];
-      history.forEach((entry) => {
-        entry.splits.forEach((split) => {
-          const bucket = updatedBuckets.find((b) => b.id === split.bucketId);
-          if (bucket) {
-            bucket.balance -= split.amount;
-          }
-        });
-      });
-      setBuckets(updatedBuckets);
+      // Wipes history AND removes corresponding INCOME_SPLIT ledger credits so bucket balances revert
+      setTransactions((prev) => prev.filter((t) => t.type !== 'INCOME_SPLIT'));
       addToast('Split history cleared & bucket balances reversed!', 'info');
     } else {
       addToast('Split history log cleared! Bucket balances remain intact.', 'success');

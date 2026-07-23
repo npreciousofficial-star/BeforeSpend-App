@@ -288,6 +288,13 @@ export function AuthenticatedApp({
         setCurrentUserId(validId);
         window.localStorage.setItem('beforespend_current_user_id', validId);
 
+        // Clean up URL hash fragment from OAuth callback
+        if (window.location.hash) {
+          window.history.replaceState({}, '', '/dashboard');
+        }
+        setAuthView('app');
+        setCurrentPath('/dashboard');
+
         const existingProfile = await loadProfileFromSupabase(validId);
         if (!existingProfile) {
           const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User';

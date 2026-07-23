@@ -266,19 +266,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, initialIsRegiste
   };
 
   return (
-    <div className="h-screen max-h-screen flex overflow-hidden font-sans bg-[#F4F6F9] dark:bg-[#070D19] transition-colors duration-300">
-      
-      {/* Backdrop overlays to close dropdowns */}
-      {(isRoleDropdownOpen || isCurrencyDropdownOpen || isGoogleRoleDropdownOpen) && (
-        <div 
-          className="fixed inset-0 z-20 cursor-default" 
-          onClick={() => {
-            setIsRoleDropdownOpen(false);
-            setIsCurrencyDropdownOpen(false);
-            setIsGoogleRoleDropdownOpen(false);
-          }} 
-        />
-      )}
+    <div className="min-h-screen flex font-sans bg-[#F4F6F9] dark:bg-[#070D19] transition-colors duration-300">
 
       {/* === LEFT BRAND PANEL (hidden on mobile and tablet portrait) === */}
       <div className="hidden lg:flex flex-col w-[480px] xl:w-[540px] flex-shrink-0 h-screen sticky top-0 overflow-hidden bg-[#0A192F] border-r border-[#1e293b] select-none">

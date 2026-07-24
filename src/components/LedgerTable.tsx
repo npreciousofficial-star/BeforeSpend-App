@@ -65,55 +65,64 @@ export function LedgerTable({
 
   return (
     <div className="space-y-5">
-      {/* Top Banner: Income & Expenses Overview */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-slate-50 dark:bg-zinc-900/30 border border-gray-200/80 dark:border-zinc-800/80 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xs">
-        <div className="space-y-3 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
+      {/* Top Banner: Ledger Audit Overview */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-zinc-950 border border-gray-200/60 dark:border-zinc-800/60 shadow-xs space-y-5">
+        {/* Status Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Ledger Audit Status: Active
+            <span className="text-[11px] font-extrabold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">
+              Ledger Active
             </span>
           </div>
+          <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 bg-gray-100 dark:bg-zinc-900 px-2.5 py-1 rounded-lg">
+            {filteredTransactions.length} Record{filteredTransactions.length !== 1 ? 's' : ''}
+          </span>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-250/60 dark:divide-zinc-800/50">
-            <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Net Account Balance</p>
-              <h2 className={`text-lg sm:text-2xl font-black tracking-tight mt-0.5 ${netLedgerBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                {formatCurrency(netLedgerBalance, currency)}
-              </h2>
-            </div>
-            <div className="pt-2 sm:pt-0 sm:pl-4">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                <ArrowUpRight className="w-3 h-3 text-emerald-500" /> Total Inflows
-              </p>
-              <h3 className="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                {formatCurrency(totalCredits, currency)}
-              </h3>
-            </div>
-            <div className="pt-2 sm:pt-0 sm:pl-4">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                <ArrowDownRight className="w-3 h-3 text-rose-500" /> Total Outflows
-              </p>
-              <h3 className="text-sm sm:text-base font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">
-                {formatCurrency(totalDebits, currency)}
-              </h3>
-            </div>
+        {/* Metrics Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Net Account Balance */}
+          <div className="p-4 rounded-2xl bg-gray-50/80 dark:bg-zinc-900/50">
+            <p className="text-[10px] font-extrabold text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Net Balance</p>
+            <h2 className={`text-xl sm:text-2xl font-black tracking-tight ${netLedgerBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {formatCurrency(netLedgerBalance, currency)}
+            </h2>
+          </div>
+          {/* Total Inflows */}
+          <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20">
+            <p className="text-[10px] font-extrabold text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+              <ArrowUpRight className="w-3 h-3 text-emerald-500" /> Total Inflows
+            </p>
+            <h3 className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
+              {formatCurrency(totalCredits, currency)}
+            </h3>
+          </div>
+          {/* Total Outflows */}
+          <div className="p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20">
+            <p className="text-[10px] font-extrabold text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+              <ArrowDownRight className="w-3 h-3 text-rose-500" /> Total Outflows
+            </p>
+            <h3 className="text-base sm:text-lg font-black text-rose-600 dark:text-rose-400">
+              {formatCurrency(totalDebits, currency)}
+            </h3>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-shrink-0">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <button
             onClick={() => onOpenReconciliation()}
-            className="px-4 py-2.5 bg-[#00A896] hover:bg-[#009685] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 min-h-[42px]"
+            className="px-4 py-3 bg-[#00A896] hover:bg-[#009685] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             <Scale className="w-4 h-4" /> Match Bank Balance
           </button>
           <button
             onClick={onOpenStatementParser}
-            className="px-4 py-2.5 bg-[#0E2A47] hover:bg-[#091e33] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 min-h-[42px]"
+            className="px-4 py-3 bg-[#0E2A47] hover:bg-[#091e33] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             <FileText className="w-4 h-4" /> Import Bank Statement
           </button>
@@ -277,9 +286,17 @@ export function LedgerTable({
 
             {/* DESKTOP TABLE VIEW (hidden on sm:table) */}
             <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left table-fixed">
+                <colgroup>
+                  <col className="w-[150px]" />
+                  <col />
+                  <col className="w-[140px]" />
+                  <col className="w-[180px]" />
+                  <col className="w-[130px]" />
+                  <col className="w-[120px]" />
+                </colgroup>
                 <thead>
-                  <tr className="bg-gray-50/80 dark:bg-zinc-900/80 border-b border-gray-200/80 dark:border-zinc-850 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  <tr className="bg-gray-50/80 dark:bg-zinc-900/80 text-[10px] font-black uppercase tracking-wider text-gray-400">
                     <th className="py-3.5 px-4">Timestamp</th>
                     <th className="py-3.5 px-4">Description</th>
                     <th className="py-3.5 px-4">Target Bucket</th>
@@ -288,7 +305,7 @@ export function LedgerTable({
                     <th className="py-3.5 px-4 text-center">Audit Hash</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-zinc-850 text-xs">
+                <tbody className="text-xs">
                   {filteredTransactions.map(txn => {
                     const isCredit = txn.direction === 'CREDIT';
                     const targetBucket = buckets.find(b => b.id === txn.bucketId || b.name === txn.bucketId || b.name === txn.bucketName);
@@ -304,15 +321,15 @@ export function LedgerTable({
                     return (
                       <tr
                         key={txn.id}
-                        className="hover:bg-slate-50/80 dark:hover:bg-zinc-900/50 transition-colors"
+                        className="border-t border-gray-100/80 dark:border-zinc-900/60 hover:bg-slate-50/80 dark:hover:bg-zinc-900/50 transition-colors"
                       >
                         <td className="py-3.5 px-4 font-mono text-gray-400 text-[11px] whitespace-nowrap">
                           {formattedDate}
                         </td>
                         <td className="py-3.5 px-4 font-bold text-[#0E2A47] dark:text-zinc-100">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
                             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isCredit ? 'bg-[#00A896]' : 'bg-rose-500'}`} />
-                            <span>{txn.description}</span>
+                            <span className="truncate">{txn.description}</span>
                             {txn.receiptUrl && (
                               <span className="px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 text-[9px] font-bold flex items-center gap-0.5 flex-shrink-0">
                                 <Receipt className="w-3 h-3" /> Receipt
@@ -320,11 +337,11 @@ export function LedgerTable({
                             )}
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 font-bold text-[#0E2A47] dark:text-zinc-200 whitespace-nowrap">
+                        <td className="py-3.5 px-4 font-bold text-[#0E2A47] dark:text-zinc-200 truncate">
                           {categoryLabel}
                         </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                               txn.type === 'INCOME_SPLIT'
                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'

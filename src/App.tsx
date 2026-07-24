@@ -43,6 +43,8 @@ import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { NotificationBell } from './components/NotificationBell';
 import { ReconciliationModal } from './components/ReconciliationModal';
 import { StatementParserModal } from './components/StatementParserModal';
+import { CacRegistrationModal } from './components/CacRegistrationModal';
+import { DirectDepositModal } from './components/DirectDepositModal';
 import { LedgerTable } from './components/LedgerTable';
 import { BeforeSpendLogo } from './components/BeforeSpendLogo';
 import { BeforeSpendIcon } from './components/BeforeSpendIcon';
@@ -252,6 +254,11 @@ export function AuthenticatedApp({
   // Custom Blueprint Confirmation Modal State
   const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
   const [pendingTemplateToLoad, setPendingTemplateToLoad] = useState<typeof BUCKET_TEMPLATES[0] | null>(null);
+
+  // CAC Registration & Direct Deposit Modals
+  const [showCacModal, setShowCacModal] = useState<boolean>(false);
+  const [showDirectDepositModal, setShowDirectDepositModal] = useState<boolean>(false);
+  const [targetDepositBucketId, setTargetDepositBucketId] = useState<string | undefined>(undefined);
 
   // 1.1 Notification System State
   const [notifications, setNotifications] = useLocalStorage<AppNotification[]>(
@@ -1503,8 +1510,9 @@ export function AuthenticatedApp({
           <div className="!my-3 border-t border-white/10" />
           
           {/* Secondary Navigation — Less frequent items */}
-          <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold px-3 pb-1">Tools & Settings</p>
+          <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold px-3 pb-1">Tools & Services</p>
           {[
+            { id: 'cac', label: 'CAC Business Register', icon: Building2 },
             { id: 'milestones', label: 'Savings Goals', icon: Target },
             { id: 'reminders', label: 'Bills & Reminders', icon: Bell },
             { id: 'analytics', label: 'Spending Insights', icon: BarChart3 },
@@ -1521,6 +1529,8 @@ export function AuthenticatedApp({
                 onClick={() => {
                   if (tab.id === 'home_landing') {
                     onGoToLanding?.();
+                  } else if (tab.id === 'cac') {
+                    setShowCacModal(true);
                   } else {
                     setActiveTab(tab.id);
                   }
@@ -1748,8 +1758,29 @@ export function AuthenticatedApp({
           {/* 0. MOBILE HUB TAB (Mobile portal for sub-menus) */}
           {activeTab === 'hub' && (
             <div id="view-hub-tab" className="space-y-6 md:hidden">
+              
+              {/* Featured Services Banner: CAC Business Registration */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white shadow-md relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-teal-200 border border-white/15">Featured Service</span>
+                    <h4 className="text-base font-black mt-1.5">Register Your Business with CAC</h4>
+                    <p className="text-xs text-teal-100 mt-0.5 max-w-xs">Get official Corporate Certificate & FREE FIRS Tax ID (TIN).</p>
+                  </div>
+                  <Building2 className="w-10 h-10 text-teal-300/80 shrink-0" />
+                </div>
+                <button
+                  onClick={() => setShowCacModal(true)}
+                  className="mt-4 py-2.5 px-4 rounded-xl bg-white text-[#0E2A47] text-xs font-black hover:bg-teal-50 shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Start Business Filing</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 gap-3.5">
                 {[
+                  { id: 'cac', label: 'CAC Register', desc: 'Business & Tax ID', icon: Building2, color: 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/10 dark:border-emerald-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-emerald-100/50' },
                   { id: 'ledger', label: 'Ledger Audit', desc: 'Double-entry log & statements', icon: Scale, color: 'bg-teal-50 border-teal-100 dark:bg-teal-950/10 dark:border-teal-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-teal-100/50' },
                   { id: 'milestones', label: 'Milestones', desc: 'Savings & goals tracker', icon: Target, color: 'bg-indigo-50 border-indigo-100 dark:bg-indigo-950/10 dark:border-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100/50' },
                   { id: 'reminders', label: 'Reminders', desc: 'Subscriptions & bills', icon: Bell, color: 'bg-amber-50 border-amber-100 dark:bg-amber-950/10 dark:border-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100/50' },
@@ -1762,7 +1793,13 @@ export function AuthenticatedApp({
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setActiveTab(item.id)}
+                      onClick={() => {
+                        if (item.id === 'cac') {
+                          setShowCacModal(true);
+                        } else {
+                          setActiveTab(item.id);
+                        }
+                      }}
                       className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${item.color}`}
                     >
                       <div className="p-2 rounded-lg bg-white/80 dark:bg-zinc-900/80 w-fit">
@@ -3686,9 +3723,70 @@ export function AuthenticatedApp({
         buckets={buckets}
         expenses={expenses}
         milestones={milestones}
-        reminders={reminders}
         currency={userProfile.defaultCurrency}
         onNavigate={(tabId) => setActiveTab(tabId)}
+      />
+
+      {/* MODAL: DIRECT SINGLE BUCKET DEPOSIT */}
+      <DirectDepositModal
+        isOpen={showDirectDepositModal}
+        onClose={() => {
+          setShowDirectDepositModal(false);
+          setTargetDepositBucketId(undefined);
+        }}
+        buckets={buckets}
+        defaultBucketId={targetDepositBucketId}
+        userCurrency={userProfile.defaultCurrency}
+        onDepositSuccess={(depositData) => {
+          const now = new Date().toISOString();
+          const newTxn: Transaction = {
+            id: generateId('txn'),
+            bucketId: depositData.bucketId,
+            bucketName: depositData.bucketName,
+            type: 'INCOME_SPLIT',
+            amount: depositData.convertedAmount,
+            direction: 'CREDIT',
+            description: depositData.note
+              ? `${depositData.note} — Direct Deposit (${depositData.currency} ${depositData.amount})`
+              : `Direct Deposit to ${depositData.bucketName} (${depositData.currency} ${depositData.amount})`,
+            sourceType: 'MANUAL_ENTRY',
+            createdAt: now,
+            deduplicationHash: ''
+          };
+          newTxn.deduplicationHash = generateAuditHash(newTxn);
+
+          setTransactions((prev) => [newTxn, ...prev]);
+          addToast(`Deposited ${formatCurrency(depositData.amount, depositData.currency)} to ${depositData.bucketName}`, 'success');
+
+          if (userProfile.email) {
+            sendEmailNotification({
+              to: userProfile.email,
+              type: 'income_alert',
+              userName: userProfile.name || 'Valued Budgeter',
+              data: {
+                amount: formatCurrency(depositData.amount, depositData.currency),
+                splitCount: 1,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                splits: [{
+                  bucketName: depositData.bucketName,
+                  amount: formatCurrency(depositData.amount, depositData.currency)
+                }]
+              }
+            }).catch(() => {});
+          }
+        }}
+      />
+
+      {/* MODAL: CAC BUSINESS REGISTRATION TOOL */}
+      <CacRegistrationModal
+        isOpen={showCacModal}
+        onClose={() => setShowCacModal(false)}
+        userEmail={userProfile.email}
+        userName={userProfile.name}
+        defaultCurrency={userProfile.defaultCurrency}
+        onAddNotification={(n) => {
+          setNotifications((prev) => [{ ...n, id: generateId('notif'), time: 'Just now' }, ...prev]);
+        }}
       />
 
     </div>

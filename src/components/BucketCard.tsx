@@ -13,10 +13,11 @@ interface BucketCardProps {
   bucket: Bucket;
   currency: string;
   onEdit?: (bucket: Bucket) => void;
+  onDeposit?: (bucket: Bucket) => void;
   hideBalance?: boolean;
 }
 
-export function BucketCard({ bucket, currency, onEdit, hideBalance = false }: BucketCardProps) {
+export function BucketCard({ bucket, currency, onEdit, onDeposit, hideBalance = false }: BucketCardProps) {
   const getThemeColor = (colorName: string) => {
     switch (colorName) {
       case 'emerald':
@@ -137,15 +138,19 @@ export function BucketCard({ bucket, currency, onEdit, hideBalance = false }: Bu
           </span>
         </div>
 
-        <div className="pt-2 border-t border-gray-100 dark:border-zinc-900 flex flex-wrap items-center justify-between text-xs gap-1.5">
+        <div className="pt-2 border-t border-gray-100 dark:border-zinc-900 flex items-center justify-between text-xs gap-1.5">
           <div className="flex items-center gap-1.5 font-bold text-gray-700 dark:text-zinc-300">
             <Landmark className="w-3.5 h-3.5 text-[#00A896] flex-shrink-0" />
             <span>{bucket.destinationAccount}</span>
           </div>
-          {bucket.note && (
-            <p className="text-[11px] text-gray-500 dark:text-zinc-400 font-medium leading-snug">
-              {bucket.note}
-            </p>
+
+          {onDeposit && (
+            <button
+              onClick={() => onDeposit(bucket)}
+              className="py-1 px-2.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-[#00A896] dark:text-teal-400 hover:bg-[#00A896] hover:text-white transition-all text-[11px] font-black flex items-center gap-1 cursor-pointer"
+            >
+              + Deposit
+            </button>
           )}
         </div>
       </div>

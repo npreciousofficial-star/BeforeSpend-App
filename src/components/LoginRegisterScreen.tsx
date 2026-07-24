@@ -259,27 +259,25 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
     try {
       const resetRedirect = `${window.location.origin}/login?mode=reset`;
-      
-      // 1. Supabase Auth built-in password reset link
-      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-        redirectTo: resetRedirect,
-      });
 
-      // 2. Trigger custom BeforeSpend Edge Function email system with branded template
-      sendEmailNotification({
+      // Dispatch single branded BeforeSpend Edge Function email with password reset template
+      const sent = await sendEmailNotification({
         to: cleanEmail,
         type: 'password_reset',
         userName: cleanEmail.split('@')[0],
         data: { resetUrl: resetRedirect }
-      }).catch((err) => console.warn('Edge function password reset email info:', err));
+      });
 
-      if (error && !error.message.includes('rate limit')) {
-        setForgotSuccessMsg(`Notice: ${error.message}. An email has been dispatched via our primary system.`);
-      } else {
-        setForgotSuccessMsg(`A secure password reset link has been dispatched to ${cleanEmail}. Please check your inbox and spam folder.`);
+      if (!sent) {
+        // Fallback to Supabase Auth reset link if Edge Function fails
+        await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: resetRedirect,
+        });
       }
+
+      setForgotSuccessMsg(`A secure password reset link has been dispatched to ${cleanEmail}. Please check your inbox.`);
     } catch (err) {
-      setForgotSuccessMsg(`Password reset initiated for ${cleanEmail}. Please check your email for further instructions.`);
+      setForgotSuccessMsg(`Password reset initiated for ${cleanEmail}. Please check your email inbox.`);
     }
   };
 

@@ -15,7 +15,7 @@ import {
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
   adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase,
-  uploadToSupabaseStorage, ensureUuid, supabase, sendEmailNotification
+  uploadToSupabaseStorage, ensureUuid, supabase, sendEmailNotification, fetchUserClientIp
 } from './lib/supabase';
 import { triggerSystemPushNotification } from './lib/pushNotifications';
 
@@ -746,6 +746,24 @@ export function AuthenticatedApp({
     });
 
     setTransactions((prev) => [...newLedgerTxns, ...prev]);
+
+    // Dispatch Income Deposit Split Email Notification
+    if (userProfile.email) {
+      sendEmailNotification({
+        to: userProfile.email,
+        type: 'income_alert',
+        userName: userProfile.name || 'Valued Budgeter',
+        data: {
+          amount: formatCurrency(payment.amount, payment.currency),
+          splitCount: payment.splits.length,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          splits: payment.splits.map(s => ({
+            bucketName: s.bucketName,
+            amount: formatCurrency(s.amount, userProfile.defaultCurrency)
+          }))
+        }
+      }).catch(() => {});
+    }
 
     // Dynamic milestone checks right after updates
     setTimeout(() => {
@@ -3765,6 +3783,22 @@ export default function App() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session?.user) {
         syncAuthSession(session.user);
+      }
+      if (event === 'SIGNED_IN' && session?.user?.email) {
+        const userEmail = session.user.email;
+        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || userEmail.split('@')[0];
+        fetchUserClientIp().then((ip) => {
+          sendEmailNotification({
+            to: userEmail,
+            type: 'login_alert',
+            userName,
+            data: {
+              ip,
+              device: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Browser') : 'Browser',
+              timestamp: new Date().toUTCString(),
+            }
+          });
+        }).catch(() => {});
       }
     });
 

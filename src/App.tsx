@@ -3894,6 +3894,9 @@ export default function App() {
                           sessionUser.email?.toLowerCase() === 'admin@beforespend.app' ||
                           sessionUser.email?.toLowerCase() === 'admin@beforespend.xyz';
 
+      // Ensure activeTab defaults to Dashboard ('buckets') on login
+      window.localStorage.setItem(`user_${validId}_beforespend_active_tab`, JSON.stringify('buckets'));
+
       const targetPath = isUserAdmin ? '/admin' : '/dashboard';
       if (window.location.hash || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register') {
         window.history.replaceState({}, '', targetPath);
@@ -3998,6 +4001,7 @@ export default function App() {
           onLogin={(userId) => {
             setCurrentUserId(userId);
             setAuthView('app');
+            window.localStorage.setItem(`user_${userId}_beforespend_active_tab`, JSON.stringify('buckets'));
             setActiveTab('buckets');
             const profileStr = window.localStorage.getItem(`user_${userId}_beforespend_profile`);
             const isUserAdmin = profileStr?.includes('Platform Administrator') || profileStr?.includes('admin@beforespend.app') || profileStr?.includes('admin@beforespend.xyz');

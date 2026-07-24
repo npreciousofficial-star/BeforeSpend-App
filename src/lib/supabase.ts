@@ -250,7 +250,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       if (uploadedUrl) avatarUrl = uploadedUrl;
     }
 
-    const { error } = await supabase.from('profiles').upsert({
+    let { error } = await supabase.from('profiles').upsert({
       id: validUuid,
       name: profile.name,
       email: profile.email,
@@ -262,11 +262,24 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
 
+    if (error && (error.message.includes('profiles_email_key') || error.code === '23505')) {
+      // Fallback: update existing profile record by matching email if ID differs
+      const { error: emailError } = await supabase.from('profiles').update({
+        name: profile.name,
+        role: profile.role || 'Personal Budgeter',
+        avatar: avatarUrl || 'preset-emerald',
+        default_currency: profile.defaultCurrency || 'NGN',
+        phone_number: profile.phoneNumber || null,
+        updated_at: new Date().toISOString()
+      }).eq('email', profile.email);
+      error = emailError;
+    }
+
     if (error) {
       if (error.message.includes('foreign key constraint')) {
         console.info('Supabase FK notice: Run SUPABASE_SCHEMA_FIX.sql in Supabase SQL editor to enable unconstrained multi-user profile sync.');
       } else {
-        console.warn('Supabase profile sync error:', error.message);
+        console.warn('Supabase profile sync notice:', error.message);
       }
     }
 
@@ -1010,9 +1023,12 @@ export async function syncNotificationsToSupabase(notifications: AppNotification
       read: n.read
     }));
 
+    // Deduplicate records by id to prevent Postgres ON CONFLICT DO UPDATE batch error
+    const uniqueRecords = Array.from(new Map(records.map(item => [item.id, item])).values());
+
     const { error } = await supabase
       .from('notifications')
-      .upsert(records, { onConflict: 'id' });
+      .upsert(uniqueRecords, { onConflict: 'id' });
 
     if (error) {
       console.warn('Error syncing notifications to Supabase:', error.message);

@@ -70,10 +70,13 @@ create table if not exists public.buckets (
     target_bank text default 'Default Bank',
     is_system boolean default false not null,
     note text,
+    low_balance_threshold numeric(15, 2),
     created_at timestamptz default timezone('utc'::text, now()) not null,
     updated_at timestamptz default timezone('utc'::text, now()) not null,
     constraint unique_user_bucket_name unique (user_id, name)
 );
+
+alter table public.buckets add column if not exists low_balance_threshold numeric(15, 2);
 
 alter table public.buckets enable row level security;
 

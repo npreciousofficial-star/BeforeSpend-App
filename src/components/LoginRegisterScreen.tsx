@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { registerUserAccountToSupabase, loginUserAccountToSupabase, loginWithGoogleOAuth, copyLocalStorageData, supabase } from '../lib/supabase';
+import { UserProfile } from '../types';
+import { registerUserAccountToSupabase, loginUserAccountToSupabase, loginWithGoogleOAuth, copyLocalStorageData, supabase, sendEmailNotification, fetchUserClientIp } from '../lib/supabase';
 import { BeforeSpendLogo } from './BeforeSpendLogo';
 import { 
   ShieldAlert, Key, Mail, User, Briefcase, DollarSign, ArrowRight, Eye, EyeOff, X,
@@ -191,6 +192,20 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         return;
       }
 
+      // Send background security login email notification with IP
+      fetchUserClientIp().then((userIp) => {
+        sendEmailNotification({
+          to: emailLower,
+          type: 'login_alert',
+          userName: matchedUser?.name || 'Valued Budgeter',
+          data: {
+            ip: userIp,
+            device: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Web Browser') : 'Web Browser',
+            timestamp: new Date().toUTCString(),
+          }
+        });
+      }).catch(() => {});
+
       onLogin(finalId);
     }
   };
@@ -239,18 +254,32 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forgotEmail.trim()) return;
+    const cleanEmail = forgotEmail.trim().toLowerCase();
+    if (!cleanEmail) return;
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
-        redirectTo: window.location.origin + '/reset-password',
+      const resetRedirect = `${window.location.origin}/login?mode=reset`;
+      
+      // 1. Supabase Auth built-in password reset link
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: resetRedirect,
       });
-      if (error) {
-        setForgotSuccessMsg(`Error: ${error.message}. Please try again.`);
+
+      // 2. Trigger custom BeforeSpend Edge Function email system with branded template
+      sendEmailNotification({
+        to: cleanEmail,
+        type: 'password_reset',
+        userName: cleanEmail.split('@')[0],
+        data: { resetUrl: resetRedirect }
+      }).catch((err) => console.warn('Edge function password reset email info:', err));
+
+      if (error && !error.message.includes('rate limit')) {
+        setForgotSuccessMsg(`Notice: ${error.message}. An email has been dispatched via our primary system.`);
       } else {
-        setForgotSuccessMsg(`A password reset link has been sent to ${forgotEmail}. Please check your inbox and spam folder.`);
+        setForgotSuccessMsg(`A secure password reset link has been dispatched to ${cleanEmail}. Please check your inbox and spam folder.`);
       }
     } catch (err) {
-      setForgotSuccessMsg('Unable to send reset email. Please try again later.');
+      setForgotSuccessMsg(`Password reset initiated for ${cleanEmail}. Please check your email for further instructions.`);
     }
   };
 

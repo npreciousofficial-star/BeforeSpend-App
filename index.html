@@ -17,22 +17,32 @@
     <meta name="description" content="Master your income before it leaves your hands. Simple income splitting, automatic bank statement imports, and expense category ledgers." />
     <meta name="keywords" content="income splitter, budgeting app, before spend, money management, bank statement parser, expense tracker, salary allocation" />
     <meta name="author" content="BeforeSpend Inc." />
-    <link rel="canonical" href="https://before-spend-app.vercel.app/" />
+    <link rel="canonical" href="https://beforespend.xyz/" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WXYN44HP1P"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-WXYN44HP1P');
+    </script>
 
     <!-- Open Graph / Facebook / WhatsApp SEO -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://before-spend-app.vercel.app/" />
+    <meta property="og:url" content="https://beforespend.xyz/" />
     <meta property="og:title" content="BeforeSpend - Master Your Income Before You Spend" />
     <meta property="og:description" content="Simple income splitting, automatic bank statement imports, and expense category ledgers to control your financial future." />
-    <meta property="og:image" content="https://before-spend-app.vercel.app/hero-dashboard.png" />
+    <meta property="og:image" content="https://beforespend.xyz/hero-dashboard.png" />
     <meta property="og:site_name" content="BeforeSpend" />
 
     <!-- Twitter Card SEO -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://before-spend-app.vercel.app/" />
+    <meta name="twitter:url" content="https://beforespend.xyz/" />
     <meta name="twitter:title" content="BeforeSpend - Master Your Income Before You Spend" />
     <meta name="twitter:description" content="Simple income splitting, automatic bank statement imports, and expense category ledgers to control your financial future." />
-    <meta name="twitter:image" content="https://before-spend-app.vercel.app/hero-dashboard.png" />
+    <meta name="twitter:image" content="https://beforespend.xyz/hero-dashboard.png" />
 
     <!-- Mobile & PWA Capabilities -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -40,20 +50,46 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="BeforeSpend" />
 
-    <!-- Structured Data Schema (JSON-LD) for Search Engines -->
+    <!-- Structured Data Schema (JSON-LD) for Search Engines & AI indexing -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "BeforeSpend",
-        "operatingSystem": "All",
-        "applicationCategory": "FinanceApplication",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
-        "description": "Master your income before it leaves your hands. Simple income splitting, bank statement imports, and expense tracking."
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "@id": "https://beforespend.xyz/#webapp",
+            "url": "https://beforespend.xyz/",
+            "name": "BeforeSpend",
+            "operatingSystem": "All",
+            "applicationCategory": "FinanceApplication",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "Master your income before it leaves your hands. Simple income splitting, automated bank statement imports, zero-based budgeting buckets, and visual expense category ledgers.",
+            "featureList": [
+              "Zero-based income split calculator",
+              "Custom budget bucket allocations",
+              "Bank statement PDF parser",
+              "Automated bill & subscription reminders",
+              "Low balance threshold notifications",
+              "Double-entry ledger bookkeeping"
+            ]
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://beforespend.xyz/#organization",
+            "name": "BeforeSpend Inc.",
+            "url": "https://beforespend.xyz/",
+            "logo": "https://beforespend.xyz/favicon.png",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "support@beforespend.xyz",
+              "contactType": "customer support"
+            }
+          }
+        ]
       }
     </script>
   </head>

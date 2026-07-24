@@ -297,7 +297,8 @@ export async function syncBucketsToSupabase(buckets: Bucket[], userId: string) {
       destination_account: b.destinationAccount || 'Default Account',
       target_bank: b.targetBank || 'Default Bank',
       is_system: b.isSystem || false,
-      note: b.note || null
+      note: b.note || null,
+      low_balance_threshold: b.lowBalanceThreshold !== undefined && b.lowBalanceThreshold !== null ? Number(b.lowBalanceThreshold) : null
     }));
 
     let { error } = await supabase.from('buckets').upsert(records, {
@@ -573,6 +574,7 @@ export async function loadBucketsFromSupabase(userId: string): Promise<Bucket[] 
       targetBank: b.target_bank,
       isSystem: b.is_system,
       note: b.note || undefined,
+      lowBalanceThreshold: b.low_balance_threshold != null ? Number(b.low_balance_threshold) : undefined,
       balance: 0, // Will be computed dynamically
     }));
   } catch (err) {
@@ -1078,6 +1080,45 @@ export async function pingSupabaseDatabase(): Promise<boolean> {
     return true;
   } catch (err) {
     console.warn('pingSupabaseDatabase error:', err);
+    return false;
+  }
+}
+
+/**
+ * Fetch client IP address for security login notifications
+ */
+export async function fetchUserClientIp(): Promise<string> {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+    const data = await res.json();
+    return data.ip || '127.0.0.1';
+  } catch {
+    return '127.0.0.1';
+  }
+}
+
+/**
+ * Send Transactional Email via Supabase Edge Function
+ */
+export async function sendEmailNotification(payload: {
+  to: string;
+  type: 'login_alert' | 'low_balance' | 'reminder' | 'welcome' | 'password_reset' | 'monthly_summary';
+  userName?: string;
+  data?: Record<string, any>;
+}): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('send-email', {
+      body: payload,
+    });
+
+    if (error) {
+      console.warn('Supabase send-email function notice:', error.message);
+      return false;
+    }
+    console.log('Email edge function triggered successfully:', data);
+    return true;
+  } catch (err) {
+    console.warn('sendEmailNotification failed:', err);
     return false;
   }
 }

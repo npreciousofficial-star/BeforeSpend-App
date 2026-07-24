@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AppNotification } from '../types';
 import { deleteNotificationFromSupabase, clearAllNotificationsFromSupabase } from '../lib/supabase';
+import { requestPushNotificationPermission, getNotificationPermissionStatus, triggerSystemPushNotification } from '../lib/pushNotifications';
 
 interface NotificationBellProps {
   notifications: AppNotification[];
@@ -25,6 +26,7 @@ interface NotificationBellProps {
 export function NotificationBell({ notifications, setNotifications, onNavigate, currentUserId }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [pushStatus, setPushStatus] = useState<NotificationPermission>(() => getNotificationPermissionStatus());
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -181,6 +183,36 @@ export function NotificationBell({ notifications, setNotifications, onNavigate, 
                 )}
               </div>
             </div>
+
+            {/* Push Notification Toggle Banner */}
+            {pushStatus !== 'granted' && (
+              <div className="px-4 py-2.5 bg-[#00A896]/10 border-b border-[#00A896]/20 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-3.5 h-3.5 text-[#00A896] animate-pulse" />
+                  <span className="text-[11px] font-bold text-gray-800 dark:text-zinc-200">
+                    Enable System Push Alerts
+                  </span>
+                </div>
+                <button
+                  onClick={async () => {
+                    const granted = await requestPushNotificationPermission();
+                    if (granted) {
+                      setPushStatus('granted');
+                      triggerSystemPushNotification({
+                        title: 'BeforeSpend Push Active 🔔',
+                        body: 'You will now receive instant push alerts for bill reminders and low bucket balance limits.',
+                        url: '/dashboard',
+                      });
+                    } else {
+                      setPushStatus(getNotificationPermissionStatus());
+                    }
+                  }}
+                  className="px-2.5 py-1 text-[10px] font-extrabold rounded-lg bg-[#00A896] hover:bg-[#0E2A47] text-white transition-colors cursor-pointer"
+                >
+                  Enable
+                </button>
+              </div>
+            )}
 
             {/* Filters */}
             <div className="flex px-4 py-1.5 border-b border-gray-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/30 gap-4">

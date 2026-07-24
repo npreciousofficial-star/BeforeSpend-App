@@ -4,12 +4,13 @@
 -- Paste and run this script in your Supabase Dashboard SQL Editor
 -- (https://supabase.com/dashboard/project/soqllmwmojyzvathirdd/sql/new)
 
--- 1. Ensure public.profiles has all necessary columns
+-- 1. Ensure public.profiles and public.buckets have all necessary columns
 alter table public.profiles add column if not exists phone_number text;
 alter table public.profiles add column if not exists onboarding_completed boolean default false;
 alter table public.profiles add column if not exists role text default 'Personal Budgeter';
 alter table public.profiles add column if not exists avatar text default 'preset-emerald';
 alter table public.profiles add column if not exists default_currency text default 'NGN';
+alter table public.buckets add column if not exists low_balance_threshold numeric(15, 2);
 
 -- 2. Drop legacy foreign key constraints that block custom UUID sync
 alter table public.buckets drop constraint if exists buckets_user_id_fkey;

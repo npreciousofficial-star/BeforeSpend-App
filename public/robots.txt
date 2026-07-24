@@ -1,0 +1,19 @@
+# BeforeSpend robots.txt
+User-agent: *
+Allow: /
+
+# Allow AI Search Crawlers & Indexers
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# XML Sitemap Link
+Sitemap: https://beforespend.xyz/sitemap.xml

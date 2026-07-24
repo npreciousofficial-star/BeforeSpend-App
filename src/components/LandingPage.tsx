@@ -462,7 +462,7 @@ export function LandingPage({
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 shrink-0" />
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 shrink-0" />
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#00A896] shrink-0" />
-                  <span className="ml-1 sm:ml-2 font-mono text-[9px] sm:text-xs text-zinc-400 truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">app.beforespend.com/dashboard</span>
+                  <span className="ml-1 sm:ml-2 font-mono text-[9px] sm:text-xs text-zinc-400 truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">beforespend.xyz/dashboard</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-[#00A896] font-mono whitespace-nowrap shrink-0 ml-auto">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#00A896] animate-ping shrink-0" />

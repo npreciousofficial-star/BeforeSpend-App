@@ -17,6 +17,7 @@ import {
   adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase,
   uploadToSupabaseStorage, ensureUuid, supabase
 } from './lib/supabase';
+import { triggerSystemPushNotification } from './lib/pushNotifications';
 
 // Components
 import { ToastContainer } from './components/Toast';
@@ -175,7 +176,7 @@ export function AuthenticatedApp({
   const [hideBalance, setHideBalance] = useLocalStorage<boolean>(`${userPrefix}beforespend_hide_balance`, false);
 
   // 2. Local App UI state - Context Aware Tab Persistence across Browser Refreshes
-  const [activeTab, setActiveTab] = useLocalStorage<string>(`${userPrefix}beforespend_active_tab`, 'split');
+  const [activeTab, setActiveTab] = useLocalStorage<string>(`${userPrefix}beforespend_active_tab`, 'buckets');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(true); // guards sync from firing before load completes
@@ -535,18 +536,33 @@ export function AuthenticatedApp({
       buckets.forEach((bucket) => {
         const notifId = `n-low-balance-${bucket.id}`;
         const existingNotif = updated.find(n => n.id === notifId);
-        const isBelowThreshold = bucket.lowBalanceThreshold !== undefined && bucket.lowBalanceThreshold > 0 && bucket.balance < bucket.lowBalanceThreshold;
+        
+        // Calculate live bucket balance from ledger transactions
+        const currentBalance = transactions
+          .filter((t) => t.bucketId === bucket.id)
+          .reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), bucket.balance || 0);
+
+        const isBelowThreshold = bucket.lowBalanceThreshold !== undefined && bucket.lowBalanceThreshold > 0 && currentBalance < bucket.lowBalanceThreshold;
 
         if (isBelowThreshold && !existingNotif) {
+          const title = `Low Balance Alert: ${bucket.name}`;
+          const message = `${bucket.name} balance (${formatCurrency(currentBalance, userProfile.defaultCurrency)}) has fallen below your set low balance threshold of ${formatCurrency(bucket.lowBalanceThreshold!, userProfile.defaultCurrency)}.`;
           updated.unshift({
             id: notifId,
-            title: `Low Balance: ${bucket.name}`,
-            message: `${bucket.name} balance (${formatCurrency(bucket.balance, userProfile.defaultCurrency)}) has fallen below your set threshold of ${formatCurrency(bucket.lowBalanceThreshold!, userProfile.defaultCurrency)}.`,
+            title,
+            message,
             time: new Date().toISOString(),
             type: 'warning',
             read: false
           });
           changed = true;
+
+          // Dispatch native Web Push notification to user's device
+          triggerSystemPushNotification({
+            title: `⚠️ ${title}`,
+            body: message,
+            url: '/dashboard'
+          }).catch(() => {});
         } else if (!isBelowThreshold && existingNotif) {
           updated = updated.filter(n => n.id !== notifId);
           changed = true;
@@ -555,7 +571,7 @@ export function AuthenticatedApp({
 
       return changed ? updated : prev;
     });
-  }, [buckets, userProfile.defaultCurrency]);
+  }, [buckets, transactions, userProfile.defaultCurrency]);
 
   // Trigger dark mode effects
   useEffect(() => {
@@ -3747,6 +3763,7 @@ export default function App() {
           onLogin={(userId) => {
             setCurrentUserId(userId);
             setAuthView('app');
+            setActiveTab('buckets');
             const profileStr = window.localStorage.getItem(`user_${userId}_beforespend_profile`);
             const isUserAdmin = profileStr?.includes('Platform Administrator') || profileStr?.includes('admin@beforespend.app') || profileStr?.includes('admin@beforespend.xyz');
             const targetPath = isUserAdmin ? '/admin' : '/dashboard';

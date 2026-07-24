@@ -1906,25 +1906,17 @@ export function AuthenticatedApp({
           {/* 3. BUCKETS TAB */}
           {activeTab === 'buckets' && (
             <div id="view-buckets-tab" className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+              <div className="flex justify-between items-center px-1">
                 <h2 className="text-base font-black text-gray-900 dark:text-zinc-50">
                   Budget Allocations Breakdown
                 </h2>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setShowDirectDepositModal(true)}
-                    className="py-1.5 px-3.5 rounded-xl bg-[#00A896] hover:bg-[#028072] text-white transition-all text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> + Direct Single-Bucket Deposit (100%)
-                  </button>
-                  <button
-                    id="add-custom-bucket-trigger"
-                    onClick={() => setShowAddCustomBucketModal(true)}
-                    className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" /> Add Custom Bucket
-                  </button>
-                </div>
+                <button
+                  id="add-custom-bucket-trigger"
+                  onClick={() => setShowAddCustomBucketModal(true)}
+                  className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" /> Add Custom Bucket
+                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2093,10 +2085,10 @@ export function AuthenticatedApp({
             <div id="view-cac-tab">
               <CacRegistrationModule 
                 userEmail={userProfile.email}
-                userName={userProfile.fullName}
+                userName={userProfile.name}
                 defaultCurrency={userProfile.defaultCurrency}
                 buckets={buckets}
-                onAddNotification={addNotification}
+                onAddNotification={(n) => setNotifications(prev => [{ ...n, id: generateId('notif'), time: 'Just now' }, ...prev])}
                 onDeductFromBucket={(bucketId, amount, note) => {
                   const targetBucket = buckets.find(b => b.id === bucketId);
                   if (!targetBucket || targetBucket.balance < amount) return false;

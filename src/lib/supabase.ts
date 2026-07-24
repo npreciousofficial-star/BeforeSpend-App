@@ -256,29 +256,72 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       if (uploadedUrl) avatarUrl = uploadedUrl;
     }
 
-    let { error } = await supabase.from('profiles').upsert({
-      id: validUuid,
-      name: profile.name,
-      email: profile.email,
-      role: profile.role || 'Personal Budgeter',
-      avatar: avatarUrl || 'preset-emerald',
-      default_currency: profile.defaultCurrency || 'NGN',
-      phone_number: profile.phoneNumber || null,
-      onboarding_completed: profile.onboardingCompleted ?? true,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    // Check if profile exists by ID first to avoid throwing unique constraint conflicts in database
+    const { data: existingById } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', validUuid)
+      .maybeSingle();
 
-    if (error && (error.message.includes('profiles_email_key') || error.code === '23505')) {
-      // Fallback: update existing profile record by matching email if ID differs
-      const { error: emailError } = await supabase.from('profiles').update({
-        name: profile.name,
-        role: profile.role || 'Personal Budgeter',
-        avatar: avatarUrl || 'preset-emerald',
-        default_currency: profile.defaultCurrency || 'NGN',
-        phone_number: profile.phoneNumber || null,
-        updated_at: new Date().toISOString()
-      }).eq('email', profile.email);
-      error = emailError;
+    let error: any = null;
+
+    if (existingById) {
+      // Profile exists under this user's ID, update it
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          name: profile.name,
+          email: profile.email,
+          role: profile.role || 'Personal Budgeter',
+          avatar: avatarUrl || 'preset-emerald',
+          default_currency: profile.defaultCurrency || 'NGN',
+          phone_number: profile.phoneNumber || null,
+          onboarding_completed: profile.onboardingCompleted ?? true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', validUuid);
+      error = updateError;
+    } else {
+      // Profile does not exist by ID. Check if it exists by email to link it
+      const { data: existingByEmail } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', profile.email)
+        .maybeSingle();
+
+      if (existingByEmail) {
+        // Link existing profile record to the new authenticated user's ID
+        const { error: linkError } = await supabase
+          .from('profiles')
+          .update({
+            id: validUuid,
+            name: profile.name,
+            role: profile.role || 'Personal Budgeter',
+            avatar: avatarUrl || 'preset-emerald',
+            default_currency: profile.defaultCurrency || 'NGN',
+            phone_number: profile.phoneNumber || null,
+            onboarding_completed: profile.onboardingCompleted ?? true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', profile.email);
+        error = linkError;
+      } else {
+        // Create new profile record
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: validUuid,
+            name: profile.name,
+            email: profile.email,
+            role: profile.role || 'Personal Budgeter',
+            avatar: avatarUrl || 'preset-emerald',
+            default_currency: profile.defaultCurrency || 'NGN',
+            phone_number: profile.phoneNumber || null,
+            onboarding_completed: profile.onboardingCompleted ?? true,
+            updated_at: new Date().toISOString()
+          });
+        error = insertError;
+      }
     }
 
     if (error) {

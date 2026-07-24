@@ -43,7 +43,7 @@ import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { NotificationBell } from './components/NotificationBell';
 import { ReconciliationModal } from './components/ReconciliationModal';
 import { StatementParserModal } from './components/StatementParserModal';
-import { CacRegistrationModal } from './components/CacRegistrationModal';
+import { CacRegistrationModule } from './components/CacRegistrationModule';
 import { DirectDepositModal } from './components/DirectDepositModal';
 import { LedgerTable } from './components/LedgerTable';
 import { BeforeSpendLogo } from './components/BeforeSpendLogo';
@@ -1759,34 +1759,14 @@ export function AuthenticatedApp({
           {/* 0. MOBILE HUB TAB (Mobile portal for sub-menus) */}
           {activeTab === 'hub' && (
             <div id="view-hub-tab" className="space-y-6 md:hidden">
-              
-              {/* Featured Services Banner: CAC Business Registration */}
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white shadow-md relative overflow-hidden">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-teal-200 border border-white/15">Featured Service</span>
-                    <h4 className="text-base font-black mt-1.5">Register Your Business with CAC</h4>
-                    <p className="text-xs text-teal-100 mt-0.5 max-w-xs">Get official Corporate Certificate & FREE FIRS Tax ID (TIN).</p>
-                  </div>
-                  <Building2 className="w-10 h-10 text-teal-300/80 shrink-0" />
-                </div>
-                <button
-                  onClick={() => setShowCacModal(true)}
-                  className="mt-4 py-2.5 px-4 rounded-xl bg-white text-[#0E2A47] text-xs font-black hover:bg-teal-50 shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>Start Business Filing</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
               <div className="grid grid-cols-2 gap-3.5">
                 {[
-                  { id: 'cac', label: 'CAC Register', desc: 'Business & Tax ID', icon: Building2, color: 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/10 dark:border-emerald-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-emerald-100/50' },
                   { id: 'ledger', label: 'Ledger Audit', desc: 'Double-entry log & statements', icon: Scale, color: 'bg-teal-50 border-teal-100 dark:bg-teal-950/10 dark:border-teal-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-teal-100/50' },
                   { id: 'milestones', label: 'Milestones', desc: 'Savings & goals tracker', icon: Target, color: 'bg-indigo-50 border-indigo-100 dark:bg-indigo-950/10 dark:border-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100/50' },
                   { id: 'reminders', label: 'Reminders', desc: 'Subscriptions & bills', icon: Bell, color: 'bg-amber-50 border-amber-100 dark:bg-amber-950/10 dark:border-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100/50' },
                   { id: 'calculators', label: 'Calculators', desc: 'Compound & loan schedules', icon: Calculator, color: 'bg-teal-50 border-teal-100 dark:bg-teal-950/10 dark:border-teal-900/20 text-teal-600 dark:text-teal-400 hover:bg-teal-100/50' },
                   { id: 'analytics', label: 'Analytics', desc: 'Income & spending insights', icon: BarChart3, color: 'bg-sky-50 border-sky-100 dark:bg-sky-950/10 dark:border-sky-900/20 text-sky-600 dark:text-sky-400 hover:bg-sky-100/50' },
+                  { id: 'cac', label: 'CAC Register', desc: 'Business & Tax ID', icon: Building2, color: 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/10 dark:border-emerald-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-emerald-100/50' },
                   { id: 'settings', label: 'Settings', desc: 'Configure account settings', icon: Settings, color: 'bg-gray-100 border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200/50 dark:hover:bg-zinc-850' },
                   { id: 'admin', label: 'Database', desc: 'Import or export local backups', icon: Database, color: 'bg-purple-50 border-purple-100 dark:bg-purple-950/10 dark:border-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100/50' },
                 ].map((item) => {
@@ -1794,13 +1774,7 @@ export function AuthenticatedApp({
                   return (
                     <button
                       key={item.id}
-                      onClick={() => {
-                        if (item.id === 'cac') {
-                          setShowCacModal(true);
-                        } else {
-                          setActiveTab(item.id);
-                        }
-                      }}
+                      onClick={() => setActiveTab(item.id)}
                       className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${item.color}`}
                     >
                       <div className="p-2 rounded-lg bg-white/80 dark:bg-zinc-900/80 w-fit">
@@ -1932,17 +1906,25 @@ export function AuthenticatedApp({
           {/* 3. BUCKETS TAB */}
           {activeTab === 'buckets' && (
             <div id="view-buckets-tab" className="space-y-4">
-              <div className="flex justify-between items-center px-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
                 <h2 className="text-base font-black text-gray-900 dark:text-zinc-50">
                   Budget Allocations Breakdown
                 </h2>
-                <button
-                  id="add-custom-bucket-trigger"
-                  onClick={() => setShowAddCustomBucketModal(true)}
-                  className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" /> Add Custom Bucket
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowDirectDepositModal(true)}
+                    className="py-1.5 px-3.5 rounded-xl bg-[#00A896] hover:bg-[#028072] text-white transition-all text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> + Direct Single-Bucket Deposit (100%)
+                  </button>
+                  <button
+                    id="add-custom-bucket-trigger"
+                    onClick={() => setShowAddCustomBucketModal(true)}
+                    className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Add Custom Bucket
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1957,6 +1939,7 @@ export function AuthenticatedApp({
                         bucket={bucket}
                         currency={userProfile.defaultCurrency}
                         hideBalance={hideBalance}
+                        onDeposit={() => setShowDirectDepositModal(true)}
                       />
                       
                       {/* Hover delete button for Custom Buckets */}
@@ -2102,6 +2085,35 @@ export function AuthenticatedApp({
                 currency={userProfile.defaultCurrency}
               />
               )}
+            </div>
+          )}
+
+          {/* 7.5 CAC BUSINESS REGISTRATION FULL MODULE PAGE */}
+          {activeTab === 'cac' && (
+            <div id="view-cac-tab">
+              <CacRegistrationModule 
+                userEmail={userProfile.email}
+                userName={userProfile.fullName}
+                defaultCurrency={userProfile.defaultCurrency}
+                buckets={buckets}
+                onAddNotification={addNotification}
+                onDeductFromBucket={(bucketId, amount, note) => {
+                  const targetBucket = buckets.find(b => b.id === bucketId);
+                  if (!targetBucket || targetBucket.balance < amount) return false;
+                  setBuckets(prev => prev.map(b => b.id === bucketId ? { ...b, balance: b.balance - amount } : b));
+                  
+                  const newExpense: Expense = {
+                    id: generateId(),
+                    bucketId: bucketId,
+                    amount: amount,
+                    note: note,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                  };
+                  setExpenses(prev => [newExpense, ...prev]);
+                  return true;
+                }}
+              />
             </div>
           )}
 

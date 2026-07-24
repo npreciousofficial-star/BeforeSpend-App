@@ -29,19 +29,12 @@ const EMAIL_STYLE_BLOCK = `
   </style>
 `;
 
-// Brand Header Layout: Uses official icon image + crisp white wordmark (No text filters, No "PLAN. ALLOCATE. PROTECT." tagline)
+// Brand Header Layout: Uses official White Brand Logo (Image 2 format) on Dark Navy background (#0E2A47)
 const BRAND_HEADER_HTML = `
-  <div style="background: linear-gradient(135deg, #0E2A47 0%, #061626 100%); padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;">
-    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; text-align: center;">
-      <tr>
-        <td style="vertical-align: middle; padding-right: 12px;">
-          <img src="https://beforespend.xyz/favicon.png" alt="BeforeSpend Icon" style="width: 38px; height: 38px; display: block; border-radius: 10px; border: 0;" />
-        </td>
-        <td style="vertical-align: middle;">
-          <span style="color: #ffffff; font-size: 26px; font-weight: 800; font-family: 'Plus Jakarta Sans', Inter, sans-serif; letter-spacing: -0.5px;">Before<span style="color: #00A896;">Spend</span></span>
-        </td>
-      </tr>
-    </table>
+  <div style="background-color: #0E2A47; padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;">
+    <div style="text-align: center;">
+      <img src="https://beforespend.xyz/logo.png" alt="BeforeSpend Logo" style="height: 48px; width: auto; display: inline-block; filter: brightness(0) invert(1); border: 0;" />
+    </div>
   </div>
 `;
 
@@ -62,11 +55,11 @@ const BRAND_FOOTER_HTML = `
   </div>
 `;
 
-// Premium Brand Icon Badge Container (Uses official brand logo icon image instead of single letters)
-function renderBrandIconBadge(bgColor: string = "#F0FDF4", borderColor: string = "#CCFBF1"): string {
+// Premium Flaticon Icon Badge Container (Image 3 requirement: Flaticon icon matching exact email type)
+function renderFlaticonBadge(iconUrl: string, bgColor: string = "#F0FDF4", borderColor: string = "#CCFBF1"): string {
   return `
-    <div style="width: 58px; height: 58px; background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 18px; margin: 0 auto 20px auto; text-align: center; padding: 9px; box-sizing: border-box;">
-      <img src="https://beforespend.xyz/favicon.png" alt="BeforeSpend" style="width: 38px; height: 38px; display: block; border: 0; margin: 0 auto;" />
+    <div style="width: 64px; height: 64px; background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 20px; margin: 0 auto 20px auto; text-align: center; padding: 12px; box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+      <img src="${iconUrl}" alt="Icon" style="width: 40px; height: 40px; display: block; border: 0; margin: 0 auto;" />
     </div>
   `;
 }
@@ -91,13 +84,12 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#EFF6FF", "#DBEAFE")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/1161/1161388.png", "#EFF6FF", "#DBEAFE")}
 
-                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">New Account Sign-in</h2>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">New Account Sign-in</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">We recorded a new authentication session for your BeforeSpend account. Here are the security audit details:</p>
                 
-                <!-- Audit Details Table -->
                 <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #00A896; border-radius: 14px; padding: 20px; margin: 0 auto 24px auto; text-align: center;">
                   <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #334155; text-align: left; width: 100%;">
                     <tr><td style="padding: 8px 12px; font-weight: 700; color: #64748B; width: 130px;">Device / Browser:</td><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47;">${device}</td></tr>
@@ -137,13 +129,12 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#FEF2F2", "#FECACA")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/10308/10308828.png", "#FEF2F2", "#FECACA")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Low Bucket Balance Warning</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Your allocation bucket <strong>${bucketName}</strong> has dropped below your set threshold limit.</p>
 
-                <!-- Metric Card -->
                 <div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 14px; padding: 24px; text-align: center; margin: 0 auto 24px auto;">
                   <div style="font-size: 11px; font-weight: 700; color: #991B1B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; text-align: center;">Current Available Balance</div>
                   <div style="font-size: 34px; font-weight: 900; color: #DC2626; margin-bottom: 8px; text-align: center;">${currentBalance}</div>
@@ -184,7 +175,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/3135/3135706.png", "#F0FDF4", "#CCFBF1")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Income Split Allocated</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -224,7 +215,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/2693/2693507.png", "#FFFBEB", "#FDE68A")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Bill & Subscription Reminder</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -266,7 +257,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", "#F0FDF4", "#CCFBF1")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Welcome to BeforeSpend, ${userName}!</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Your workspace is initialized. BeforeSpend enables you to split and assign every income deposit into custom budget buckets <em>before</em> any spending occurs.</p>
@@ -308,7 +299,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#EFF6FF", "#DBEAFE")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/6195/6195699.png", "#EFF6FF", "#DBEAFE")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Reset Your Password</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -344,7 +335,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
+                ${renderFlaticonBadge("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", "#F0FDF4", "#CCFBF1")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Monthly Financial Digest (${month})</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Here is your account progress summary for ${month}:</p>

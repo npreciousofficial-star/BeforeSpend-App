@@ -63,6 +63,7 @@ import {
   History, 
   BarChart3, 
   Settings, 
+  Building2, 
   ShieldAlert, 
   CheckCircle2, 
   RefreshCw, 

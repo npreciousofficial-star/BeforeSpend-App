@@ -59,7 +59,7 @@ function base64ToBlob(base64Data: string): Blob | null {
  * Upload a receipt or avatar file/base64 to Supabase Storage
  */
 export async function uploadToSupabaseStorage(
-  bucketName: 'avatars' | 'receipts',
+  bucketName: 'avatars' | 'receipts' | 'cac-documents',
   filePath: string,
   fileOrBase64: File | Blob | string
 ): Promise<string | null> {
@@ -76,6 +76,12 @@ export async function uploadToSupabaseStorage(
     }
 
     if (!fileToUpload) return null;
+
+    // Enforce 2MB (2,097,152 bytes) Max File Size System-Wide
+    if (fileToUpload.size > 2 * 1024 * 1024) {
+      console.warn(`Upload rejected: File size (${(fileToUpload.size / (1024 * 1024)).toFixed(1)}MB) exceeds 2MB limit.`);
+      return null;
+    }
 
     const { data, error } = await supabase.storage.from(bucketName).upload(filePath, fileToUpload, {
       upsert: true,

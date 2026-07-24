@@ -513,6 +513,51 @@ export const CacRegistrationModal: React.FC<CacRegistrationModalProps> = ({
                 />
               </div>
 
+              {/* CAC Document File Uploads (Passport Photo & ID Card) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                    Passport Photo Upload (Max 2MB)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                          alert(`File "${file.name}" exceeds the 2MB size limit (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please choose an image under 2MB.`);
+                          e.target.value = '';
+                        }
+                      }
+                    }}
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                  />
+                  <span className="text-[10px] text-slate-400">Clear white background passport photo</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                    ID Document Copy / NIN Slip (Max 2MB)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                          alert(`File "${file.name}" exceeds the 2MB size limit (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please choose an image under 2MB.`);
+                          e.target.value = '';
+                        }
+                      }
+                    }}
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                  />
+                  <span className="text-[10px] text-slate-400">Scanned copy of NIN slip or Passport page</span>
+                </div>
+              </div>
+
               {/* Order Summary Box */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 space-y-2">
                 <div className="flex justify-between text-xs text-slate-600 dark:text-zinc-400">

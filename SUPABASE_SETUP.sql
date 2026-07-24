@@ -15,9 +15,11 @@ create table if not exists public.profiles (
     id uuid primary key,
     name text not null,
     email text unique not null,
-    role text default 'Personal Budgeter / Other',
+    role text default 'Personal Budgeter',
     avatar text default 'preset-emerald',
     default_currency text default 'NGN' not null,
+    phone_number text,
+    onboarding_completed boolean default false,
     created_at timestamptz default timezone('utc'::text, now()) not null,
     updated_at timestamptz default timezone('utc'::text, now()) not null
 );
@@ -35,19 +37,36 @@ create policy "Public manage profiles" on public.profiles
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-    insert into public.profiles (id, name, email, role, avatar, default_currency)
+    insert into public.profiles (id, name, email, role, avatar, default_currency, phone_number, onboarding_completed)
     values (
         new.id,
-        coalesce(new.raw_user_meta_data->>'name', 'New BeforeSpend Member'),
+        coalesce(
+            new.raw_user_meta_data->>'full_name',
+            new.raw_user_meta_data->>'name',
+            new.raw_user_meta_data->>'preferred_username',
+            split_part(new.email, '@', 1)
+        ),
         new.email,
-        coalesce(new.raw_user_meta_data->>'role', 'Personal Budgeter / Other'),
-        coalesce(new.raw_user_meta_data->>'avatar', 'preset-emerald'),
-        coalesce(new.raw_user_meta_data->>'default_currency', 'NGN')
+        coalesce(new.raw_user_meta_data->>'role', 'Personal Budgeter'),
+        coalesce(
+            new.raw_user_meta_data->>'avatar_url',
+            new.raw_user_meta_data->>'picture',
+            new.raw_user_meta_data->>'avatar',
+            'preset-emerald'
+        ),
+        coalesce(new.raw_user_meta_data->>'default_currency', 'NGN'),
+        new.raw_user_meta_data->>'phone_number',
+        coalesce((new.raw_user_meta_data->>'onboarding_completed')::boolean, false)
     )
     on conflict (id) do update set
         name = excluded.name,
-        email = excluded.email;
+        email = excluded.email,
+        avatar = coalesce(excluded.avatar, public.profiles.avatar),
+        phone_number = coalesce(excluded.phone_number, public.profiles.phone_number);
     return new;
+exception
+    when others then
+        return new;
 end;
 $$ language plpgsql security definer;
 

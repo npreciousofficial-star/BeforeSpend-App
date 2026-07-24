@@ -3790,17 +3790,7 @@ export function AuthenticatedApp({
         }}
       />
 
-      {/* MODAL: CAC BUSINESS REGISTRATION TOOL */}
-      <CacRegistrationModal
-        isOpen={showCacModal}
-        onClose={() => setShowCacModal(false)}
-        userEmail={userProfile.email}
-        userName={userProfile.name}
-        defaultCurrency={userProfile.defaultCurrency}
-        onAddNotification={(n) => {
-          setNotifications((prev) => [{ ...n, id: generateId('notif'), time: 'Just now' }, ...prev]);
-        }}
-      />
+
 
     </div>
   );

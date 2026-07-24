@@ -261,6 +261,49 @@ export function AuthenticatedApp({
   const [showDirectDepositModal, setShowDirectDepositModal] = useState<boolean>(false);
   const [targetDepositBucketId, setTargetDepositBucketId] = useState<string | undefined>(undefined);
 
+  // Prevent background scrolling whenever ANY modal is active
+  useEffect(() => {
+    const isAnyModalOpen = Boolean(
+      showDirectDepositModal ||
+      showAddCustomBucketModal ||
+      showEditBucketModal ||
+      showReconciliationModal ||
+      showStatementParserModal ||
+      showGlobalSearch ||
+      showCookieModal ||
+      showImportDbModal ||
+      showBlueprintConfirmModal ||
+      editingBucket ||
+      adminEditingUser ||
+      adminEditingBucket ||
+      adminEditingTransaction
+    );
+
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [
+    showDirectDepositModal,
+    showAddCustomBucketModal,
+    showEditBucketModal,
+    showReconciliationModal,
+    showStatementParserModal,
+    showGlobalSearch,
+    showCookieModal,
+    showImportDbModal,
+    showBlueprintConfirmModal,
+    editingBucket,
+    adminEditingUser,
+    adminEditingBucket,
+    adminEditingTransaction
+  ]);
+
   // 1.1 Notification System State
   const [notifications, setNotifications] = useLocalStorage<AppNotification[]>(
     `${userPrefix}beforespend_notifications`,
@@ -3530,24 +3573,21 @@ export function AuthenticatedApp({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Color Palette Theme</label>
-                <select
-                  id="edit-bucket-color-select"
-                  value={tempBucketColor}
-                  onChange={(e) => setTempBucketColor(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200/80 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 hover:border-[#00A896]/50 focus:border-[#00A896] focus:outline-none shadow-2xs transition-all cursor-pointer"
-                >
-                  <option value="emerald">Emerald Green</option>
-                  <option value="blue">Blue Sky</option>
-                  <option value="amber">Amber Orange</option>
-                  <option value="red">Rose Red</option>
-                  <option value="purple">Purple Amethyst</option>
-                  <option value="teal">Teal Cyan</option>
-                  <option value="indigo">Indigo Slate</option>
-                  <option value="pink">Pink Punch</option>
-                </select>
-              </div>
+              <CustomSelect
+                label="Color Palette Theme"
+                value={tempBucketColor}
+                onChange={(val) => setTempBucketColor(val)}
+                options={[
+                  { value: 'emerald', label: 'Emerald Green' },
+                  { value: 'blue', label: 'Blue Sky' },
+                  { value: 'amber', label: 'Amber Orange' },
+                  { value: 'red', label: 'Rose Red' },
+                  { value: 'purple', label: 'Purple Amethyst' },
+                  { value: 'teal', label: 'Teal Cyan' },
+                  { value: 'indigo', label: 'Indigo Slate' },
+                  { value: 'pink', label: 'Pink Punch' }
+                ]}
+              />
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Description / Notes</label>

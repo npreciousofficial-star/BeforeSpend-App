@@ -256,10 +256,11 @@ export function AuthenticatedApp({
   const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
   const [pendingTemplateToLoad, setPendingTemplateToLoad] = useState<typeof BUCKET_TEMPLATES[0] | null>(null);
 
-  // CAC Registration & Direct Deposit Modals
+  // CAC Registration & Direct Deposit & Deep Search Modals
   const [showCacModal, setShowCacModal] = useState<boolean>(false);
   const [showDirectDepositModal, setShowDirectDepositModal] = useState<boolean>(false);
   const [targetDepositBucketId, setTargetDepositBucketId] = useState<string | undefined>(undefined);
+  const [showGlobalSearchModal, setShowGlobalSearchModal] = useState<boolean>(false);
 
   // Prevent background scrolling whenever ANY modal is active
   useEffect(() => {
@@ -1254,7 +1255,6 @@ export function AuthenticatedApp({
 
   // Standalone Admin Command Center overlay state - auto-open for admins on login
   const [showAdminCenter, setShowAdminCenter] = useState(false);
-  const [showGlobalSearchModal, setShowGlobalSearchModal] = useState(false);
 
   // Keyboard shortcut: Cmd+K / Ctrl+K opens Deep Search Engine
   useEffect(() => {

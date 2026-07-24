@@ -15,7 +15,7 @@ import {
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
   adminUpdateTransactionInSupabase, adminDeleteTransactionFromSupabase, adminBroadcastNotificationToAll, pingSupabaseDatabase,
-  uploadToSupabaseStorage, ensureUuid, supabase
+  uploadToSupabaseStorage, ensureUuid, supabase, sendEmailNotification
 } from './lib/supabase';
 import { triggerSystemPushNotification } from './lib/pushNotifications';
 
@@ -569,9 +569,81 @@ export function AuthenticatedApp({
         }
       });
 
+      // Bill & Subscription Due Notifications + Native Push & Email Dispatch
+      reminders.forEach((r) => {
+        if (r.done) return;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const dueStr = new Date(r.dueDate).toISOString().split('T')[0];
+        if (dueStr <= todayStr) {
+          const reminderNotifId = `n-reminder-due-${r.id}`;
+          const existingReminderNotif = updated.find(n => n.id === reminderNotifId);
+
+          if (!existingReminderNotif) {
+            const rTitle = `Bill Due: ${r.text}`;
+            const costFormatted = r.cost !== undefined ? formatCurrency(r.cost, userProfile.defaultCurrency) : '';
+            const rMessage = `${r.text} ${costFormatted ? `(${costFormatted}) ` : ''}is due. Keep your budget allocations up to date!`;
+
+            updated.unshift({
+              id: reminderNotifId,
+              title: rTitle,
+              message: rMessage,
+              time: new Date().toISOString(),
+              type: 'info',
+              read: false
+            });
+            changed = true;
+
+            // Dispatch native Push Notification
+            triggerSystemPushNotification({
+              title: `🔔 ${rTitle}`,
+              body: rMessage,
+              url: '/dashboard'
+            }).catch(() => {});
+
+            // Dispatch Email Notification
+            if (userProfile.email) {
+              sendEmailNotification({
+                to: userProfile.email,
+                type: 'reminder',
+                userName: userProfile.name || 'Valued Budgeter',
+                data: {
+                  reminderText: r.text,
+                  cost: costFormatted || 'Scheduled Amount',
+                  dueDate: r.dueDate,
+                  period: r.period || 'monthly'
+                }
+              }).catch(() => {});
+            }
+          }
+        }
+      });
+
+      // Daily Expense & Income Logging Reminder Check
+      const todayKey = `n-log-reminder-${new Date().toISOString().split('T')[0]}`;
+      const hasTodayLogReminder = updated.some(n => n.id === todayKey);
+      if (!hasTodayLogReminder) {
+        const logTitle = '💰 Daily Expense & Income Tracker';
+        const logMsg = 'Don\'t forget to log your latest daily expenses and split new income into your budget buckets!';
+        updated.unshift({
+          id: todayKey,
+          title: logTitle,
+          message: logMsg,
+          time: new Date().toISOString(),
+          type: 'info',
+          read: false
+        });
+        changed = true;
+
+        triggerSystemPushNotification({
+          title: logTitle,
+          body: logMsg,
+          url: '/dashboard'
+        }).catch(() => {});
+      }
+
       return changed ? updated : prev;
     });
-  }, [buckets, transactions, userProfile.defaultCurrency]);
+  }, [buckets, transactions, reminders, userProfile.defaultCurrency, userProfile.email, userProfile.name]);
 
   // Trigger dark mode effects
   useEffect(() => {

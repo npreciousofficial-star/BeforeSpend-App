@@ -54,7 +54,7 @@ export function ExpenseList({
   // Filter Expenses
   const filteredExpenses = expenses.filter((exp) => {
     // 1. Search Query
-    const matchesSearch = exp.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (exp.description || '').toLowerCase().includes((searchQuery || '').toLowerCase());
     
     // 2. Bucket filter
     const matchesBucket = selectedBucket === 'all' || exp.bucketId === selectedBucket;

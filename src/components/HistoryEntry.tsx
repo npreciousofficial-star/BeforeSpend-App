@@ -52,9 +52,7 @@ export function HistoryEntryList({
   // Filter history
   const filteredHistory = history.filter((entry) => {
     // 1. Search Query
-    const matchesSearch = entry.note 
-      ? entry.note.toLowerCase().includes(searchQuery.toLowerCase()) 
-      : true; // if no search, all match
+    const matchesSearch = (entry.note || '').toLowerCase().includes((searchQuery || '').toLowerCase());
     
     // 2. Currency Filter
     const matchesCurrency = currencyFilter === 'all' || entry.currency === currencyFilter;

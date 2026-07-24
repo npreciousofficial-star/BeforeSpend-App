@@ -73,43 +73,43 @@ export function GlobalSearchModal({
 
   // 1. Filtered Transactions
   const matchingTransactions = cleanQuery ? transactions.filter((t) => 
-    t.description.toLowerCase().includes(cleanQuery) ||
-    t.bucketName.toLowerCase().includes(cleanQuery) ||
-    t.amount.toString().includes(cleanQuery) ||
-    (t.deduplicationHash && t.deduplicationHash.toLowerCase().includes(cleanQuery))
+    (t.description || '').toLowerCase().includes(cleanQuery) ||
+    (t.bucketName || '').toLowerCase().includes(cleanQuery) ||
+    (t.amount || '').toString().includes(cleanQuery) ||
+    ((t.deduplicationHash || '').toLowerCase().includes(cleanQuery))
   ).slice(0, 5) : [];
 
   // 2. Filtered Payment History
   const matchingPayments = cleanQuery ? history.filter((p) =>
-    (p.note && p.note.toLowerCase().includes(cleanQuery)) ||
-    p.amount.toString().includes(cleanQuery) ||
-    p.currency.toLowerCase().includes(cleanQuery)
+    ((p.note || '').toLowerCase().includes(cleanQuery)) ||
+    (p.amount || '').toString().includes(cleanQuery) ||
+    (p.currency || '').toLowerCase().includes(cleanQuery)
   ).slice(0, 5) : [];
 
   // 3. Filtered Buckets
   const matchingBuckets = cleanQuery ? buckets.filter((b) =>
-    b.name.toLowerCase().includes(cleanQuery) ||
-    b.destinationAccount.toLowerCase().includes(cleanQuery) ||
-    (b.note && b.note.toLowerCase().includes(cleanQuery))
+    (b.name || '').toLowerCase().includes(cleanQuery) ||
+    (b.destinationAccount || '').toLowerCase().includes(cleanQuery) ||
+    ((b.note || '').toLowerCase().includes(cleanQuery))
   ).slice(0, 5) : [];
 
   // 4. Filtered Expenses
   const matchingExpenses = cleanQuery ? expenses.filter((e) =>
-    e.category.toLowerCase().includes(cleanQuery) ||
-    (e.note && e.note.toLowerCase().includes(cleanQuery)) ||
-    e.amount.toString().includes(cleanQuery)
+    (e.category || '').toLowerCase().includes(cleanQuery) ||
+    ((e.note || '').toLowerCase().includes(cleanQuery)) ||
+    (e.amount || '').toString().includes(cleanQuery)
   ).slice(0, 5) : [];
 
   // 5. Filtered Milestones
   const matchingMilestones = cleanQuery ? milestones.filter((m) =>
-    m.name.toLowerCase().includes(cleanQuery) ||
-    m.targetAmount.toString().includes(cleanQuery)
+    (m.name || '').toLowerCase().includes(cleanQuery) ||
+    (m.targetAmount || '').toString().includes(cleanQuery)
   ).slice(0, 5) : [];
 
   // 6. Filtered Reminders
   const matchingReminders = cleanQuery ? reminders.filter((r) =>
-    r.text.toLowerCase().includes(cleanQuery) ||
-    (r.note && r.note.toLowerCase().includes(cleanQuery))
+    (r.text || '').toLowerCase().includes(cleanQuery) ||
+    ((r.note || '').toLowerCase().includes(cleanQuery))
   ).slice(0, 5) : [];
 
   const totalResults = matchingTransactions.length + matchingPayments.length + matchingBuckets.length + matchingExpenses.length + matchingMilestones.length + matchingReminders.length;

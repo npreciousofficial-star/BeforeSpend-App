@@ -26,9 +26,9 @@ export function LedgerTable({
   const filteredTransactions = transactions.filter(txn => {
     // Search
     const matchesSearch =
-      txn.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (txn.bucketName && txn.bucketName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (txn.deduplicationHash && txn.deduplicationHash.toLowerCase().includes(searchTerm.toLowerCase()));
+      (txn.description || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+      (txn.bucketName && txn.bucketName.toLowerCase().includes((searchTerm || '').toLowerCase())) ||
+      (txn.deduplicationHash && txn.deduplicationHash.toLowerCase().includes((searchTerm || '').toLowerCase()));
 
     // Type filter
     let matchesType = true;

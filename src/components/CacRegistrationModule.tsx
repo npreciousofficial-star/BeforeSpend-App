@@ -90,6 +90,34 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
 
   const currentPrice = packagePrices[packageType];
 
+  const natureOfBusinessOptions = [
+    { value: 'General Contracts & Digital Services', label: 'General Contracts & Digital Services' },
+    { value: 'Information Technology & Software Development', label: 'Information Technology & Software Development' },
+    { value: 'E-Commerce & Retail Trading', label: 'E-Commerce & Retail Trading' },
+    { value: 'Financial Technology & Consulting', label: 'Financial Technology & Consulting' },
+    { value: 'Creative Arts, Design & Media Production', label: 'Creative Arts, Design & Media Production' },
+    { value: 'Agriculture & Food Processing', label: 'Agriculture & Food Processing' },
+    { value: 'Real Estate & Logistics', label: 'Real Estate & Logistics' }
+  ];
+
+  const idTypeOptions = [
+    { value: 'NIN (National Identification Number)', label: 'NIN (National Identification Number)' },
+    { value: 'International Passport', label: 'International Passport' },
+    { value: 'Drivers License', label: 'Drivers License' },
+    { value: 'Voters Card', label: 'Voters Card' }
+  ];
+
+  const genderOptions = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' }
+  ];
+
+  const bucketOptions = buckets.map((b) => ({
+    value: b.id,
+    label: b.name,
+    sublabel: `${formatCurrency(b.balance, defaultCurrency)} available`
+  }));
+
   const handleExecutePaymentAndSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentError(null);
@@ -170,11 +198,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
       {/* Module Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0E2A47] via-[#061626] to-[#00A896] text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-teal-200 border border-white/20 text-xs font-black uppercase tracking-widest">
-              <Building2 className="w-3.5 h-3.5 text-teal-300" />
-              <span>Official Enterprise Filing Module</span>
-            </div>
+          <div className="space-y-1.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">CAC Business Registration & TIN Service</h1>
             <p className="text-sm text-teal-100 max-w-xl font-medium">
               Register your Enterprise Name, Private Limited Company (LTD), or NGO directly with the Corporate Affairs Commission (CAC) and receive your FIRS Tax Identification Number (TIN).
@@ -360,7 +384,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   Proposed Business Name Option 1 *
                 </label>
                 <input
@@ -374,7 +398,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   Proposed Business Name Option 2 (Alternative) *
                 </label>
                 <input
@@ -388,28 +412,17 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
-                Nature of Business / Core Category *
-              </label>
-              <select
-                value={businessNature}
-                onChange={(e) => setBusinessNature(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm font-bold focus:ring-2 focus:ring-[#00A896] outline-none"
-              >
-                <option value="General Contracts & Digital Services">General Contracts & Digital Services</option>
-                <option value="Information Technology & Software Development">Information Technology & Software Development</option>
-                <option value="E-Commerce & Retail Trading">E-Commerce & Retail Trading</option>
-                <option value="Financial Technology & Consulting">Financial Technology & Consulting</option>
-                <option value="Creative Arts, Design & Media Production">Creative Arts, Design & Media Production</option>
-                <option value="Agriculture & Food Processing">Agriculture & Food Processing</option>
-                <option value="Real Estate & Logistics">Real Estate & Logistics</option>
-              </select>
-            </div>
+            {/* Custom Select for Nature of Business */}
+            <CustomSelect
+              label="Nature of Business / Core Category *"
+              options={natureOfBusinessOptions}
+              value={businessNature}
+              onChange={(val) => setBusinessNature(val)}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   Business Physical Operating Address *
                 </label>
                 <input
@@ -423,7 +436,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   Official Business Email *
                 </label>
                 <input
@@ -438,7 +451,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+              <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                 Business Phone Number *
               </label>
               <input
@@ -482,7 +495,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   Proprietor / Director Full Legal Name *
                 </label>
                 <input
@@ -496,7 +509,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   Date of Birth *
                 </label>
                 <input
@@ -510,24 +523,16 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
-                  Identity Document Type *
-                </label>
-                <select
-                  value={proprietorIdType}
-                  onChange={(e) => setProprietorIdType(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm font-bold focus:ring-2 focus:ring-[#00A896] outline-none"
-                >
-                  <option value="NIN (National Identification Number)">NIN (National Identification Number)</option>
-                  <option value="International Passport">International Passport</option>
-                  <option value="Drivers License">Drivers License</option>
-                  <option value="Voters Card">Voters Card</option>
-                </select>
-              </div>
+              {/* Custom Select for Identity Document Type */}
+              <CustomSelect
+                label="Identity Document Type *"
+                options={idTypeOptions}
+                value={proprietorIdType}
+                onChange={(val) => setProprietorIdType(val)}
+              />
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                   ID Number / NIN *
                 </label>
                 <input
@@ -542,7 +547,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2">
+              <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
                 Proprietor Personal Residential Address *
               </label>
               <input
@@ -558,7 +563,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
             {/* Document File Uploads with 2MB limit validation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               <div className="p-5 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 space-y-2">
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                   Passport Photograph Upload (Max 2MB Limit)
                 </label>
                 <input
@@ -581,7 +586,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
               </div>
 
               <div className="p-5 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 space-y-2">
-                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                   ID Copy / NIN Slip Upload (Max 2MB Limit)
                 </label>
                 <input
@@ -680,20 +685,12 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
 
                   {paymentMethod === 'bucket_deduction' && buckets.length > 0 && (
                     <div className="pt-2">
-                      <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 mb-1">
-                        Select Bucket:
-                      </label>
-                      <select
+                      <CustomSelect
+                        label="Select Bucket:"
+                        options={bucketOptions}
                         value={selectedBucketId}
-                        onChange={(e) => setSelectedBucketId(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-xs font-bold"
-                      >
-                        {buckets.map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.name} ({formatCurrency(b.balance, defaultCurrency)} available)
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setSelectedBucketId(val)}
+                      />
                     </div>
                   )}
                 </div>

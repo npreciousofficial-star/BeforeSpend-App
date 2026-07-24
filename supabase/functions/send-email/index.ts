@@ -29,12 +29,20 @@ const EMAIL_STYLE_BLOCK = `
   </style>
 `;
 
-// Brand Header Layout: Uses official White Brand Logo (Image 2 format) on Dark Navy background (#0E2A47)
+// Brand Header Layout: Uses 100% HTML inline white branding (No CSS filters so Gmail & Outlook render 100% fidelity)
 const BRAND_HEADER_HTML = `
   <div style="background-color: #0E2A47; padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;">
-    <div style="text-align: center;">
-      <img src="https://beforespend.xyz/logo.png" alt="BeforeSpend Logo" style="height: 48px; width: auto; display: inline-block; filter: brightness(0) invert(1); border: 0;" />
-    </div>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; text-align: center;">
+      <tr>
+        <td style="vertical-align: middle; padding-right: 12px;">
+          <img src="https://beforespend.xyz/favicon.png" alt="BeforeSpend Icon" style="width: 38px; height: 38px; display: block; border-radius: 10px; border: 0;" />
+        </td>
+        <td style="vertical-align: middle; text-align: left;">
+          <div style="color: #ffffff; font-size: 26px; font-weight: 800; font-family: 'Plus Jakarta Sans', Inter, sans-serif; letter-spacing: -0.5px; line-height: 1.1;">Before<span style="color: #00A896;">Spend</span></div>
+          <div style="color: #94A3B8; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-top: 2px;">Plan. Allocate. Protect.</div>
+        </td>
+      </tr>
+    </table>
   </div>
 `;
 
@@ -55,7 +63,7 @@ const BRAND_FOOTER_HTML = `
   </div>
 `;
 
-// Premium Flaticon Icon Badge Container (Image 3 requirement: Flaticon icon matching exact email type)
+// Premium Flaticon Icon Badge Container
 function renderFlaticonBadge(iconUrl: string, bgColor: string = "#F0FDF4", borderColor: string = "#CCFBF1"): string {
   return `
     <div style="width: 64px; height: 64px; background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 20px; margin: 0 auto 20px auto; text-align: center; padding: 12px; box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">

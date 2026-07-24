@@ -66,34 +66,54 @@ export function LedgerTable({
   return (
     <div className="space-y-5">
       {/* Top Banner: Income & Expenses Overview */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-900/10 via-teal-900/10 to-blue-900/10 dark:from-emerald-950/30 dark:via-zinc-900 dark:to-blue-950/30 border border-emerald-500/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-2xs">
-              Transaction Records Active
+      <div className="p-5 sm:p-6 rounded-3xl bg-slate-50 dark:bg-zinc-900/30 border border-gray-200/80 dark:border-zinc-800/80 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xs">
+        <div className="space-y-3 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-[11px] text-gray-500 dark:text-zinc-400 font-mono">
-              Total Inflows - Total Outflows
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Ledger Audit Status: Active
             </span>
           </div>
-          <h2 className="text-lg sm:text-2xl font-black text-gray-900 dark:text-zinc-50 tracking-tight">
-            Net Account Balance: <span className={netLedgerBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>{formatCurrency(netLedgerBalance, currency)}</span>
-          </h2>
-          <p className="text-xs text-gray-600 dark:text-zinc-400 pt-0.5">
-            Total Inflows: <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(totalCredits, currency)}</span> • Total Outflows: <span className="font-bold text-rose-600 dark:text-rose-400">{formatCurrency(totalDebits, currency)}</span>
-          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-250/60 dark:divide-zinc-800/50">
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Net Account Balance</p>
+              <h2 className={`text-lg sm:text-2xl font-black tracking-tight mt-0.5 ${netLedgerBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                {formatCurrency(netLedgerBalance, currency)}
+              </h2>
+            </div>
+            <div className="pt-2 sm:pt-0 sm:pl-4">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                <ArrowUpRight className="w-3 h-3 text-emerald-500" /> Total Inflows
+              </p>
+              <h3 className="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                {formatCurrency(totalCredits, currency)}
+              </h3>
+            </div>
+            <div className="pt-2 sm:pt-0 sm:pl-4">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                <ArrowDownRight className="w-3 h-3 text-rose-500" /> Total Outflows
+              </p>
+              <h3 className="text-sm sm:text-base font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">
+                {formatCurrency(totalDebits, currency)}
+              </h3>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-shrink-0">
           <button
             onClick={() => onOpenReconciliation()}
-            className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap min-h-[42px]"
+            className="px-4 py-2.5 bg-[#00A896] hover:bg-[#009685] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 min-h-[42px]"
           >
             <Scale className="w-4 h-4" /> Match Bank Balance
           </button>
           <button
             onClick={onOpenStatementParser}
-            className="flex-1 sm:flex-initial px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap min-h-[42px]"
+            className="px-4 py-2.5 bg-[#0E2A47] hover:bg-[#091e33] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 min-h-[42px]"
           >
             <FileText className="w-4 h-4" /> Import Bank Statement
           </button>

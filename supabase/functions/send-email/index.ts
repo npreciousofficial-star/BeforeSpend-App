@@ -31,9 +31,9 @@ const EMAIL_STYLE_BLOCK = `
 
 // Brand Header Layout: Uses official White Brand Logo PNG directly (No CSS filters, 100% email client compatibility)
 const BRAND_HEADER_HTML = `
-  <div style="background-color: #0E2A47; padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;">
+  <div style="background-color: #0E2A47; padding: 40px 24px; text-align: center; border-radius: 16px 16px 0 0;">
     <div style="text-align: center;">
-      <img src="https://beforespend.xyz/logo-white.png" alt="BeforeSpend" style="height: 48px; width: auto; display: inline-block; border: 0;" />
+      <img src="https://beforespend.xyz/logo-white.png" alt="BeforeSpend" style="height: 75px; max-width: 280px; width: auto; display: inline-block; border: 0;" />
     </div>
   </div>
 `;

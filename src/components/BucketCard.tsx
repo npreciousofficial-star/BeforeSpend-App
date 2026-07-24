@@ -137,9 +137,9 @@ export function BucketCard({ bucket, currency, onEdit, onDeposit, hideBalance = 
             <AnimatedNumber value={bucket.balance} currency={currency} />
           </span>
 
-          {bucket.description && (
+          {(bucket.description || bucket.note) && (
             <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium line-clamp-2 mt-1">
-              {bucket.description}
+              {bucket.description || bucket.note}
             </p>
           )}
         </div>

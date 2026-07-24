@@ -269,8 +269,7 @@ export function AuthenticatedApp({
       showEditBucketModal ||
       showReconciliationModal ||
       showStatementParserModal ||
-      showGlobalSearch ||
-      showCookieModal ||
+      showGlobalSearchModal ||
       showImportDbModal ||
       showBlueprintConfirmModal ||
       editingBucket ||
@@ -294,8 +293,7 @@ export function AuthenticatedApp({
     showEditBucketModal,
     showReconciliationModal,
     showStatementParserModal,
-    showGlobalSearch,
-    showCookieModal,
+    showGlobalSearchModal,
     showImportDbModal,
     showBlueprintConfirmModal,
     editingBucket,
@@ -1556,7 +1554,6 @@ export function AuthenticatedApp({
           {/* Secondary Navigation — Less frequent items */}
           <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold px-3 pb-1">Tools & Services</p>
           {[
-            { id: 'cac', label: 'CAC Business Register', icon: Building2 },
             { id: 'milestones', label: 'Savings Goals', icon: Target },
             { id: 'reminders', label: 'Bills & Reminders', icon: Bell },
             { id: 'analytics', label: 'Spending Insights', icon: BarChart3 },
@@ -1809,7 +1806,6 @@ export function AuthenticatedApp({
                   { id: 'reminders', label: 'Reminders', desc: 'Subscriptions & bills', icon: Bell, color: 'bg-amber-50 border-amber-100 dark:bg-amber-950/10 dark:border-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100/50' },
                   { id: 'calculators', label: 'Calculators', desc: 'Compound & loan schedules', icon: Calculator, color: 'bg-teal-50 border-teal-100 dark:bg-teal-950/10 dark:border-teal-900/20 text-teal-600 dark:text-teal-400 hover:bg-teal-100/50' },
                   { id: 'analytics', label: 'Analytics', desc: 'Income & spending insights', icon: BarChart3, color: 'bg-sky-50 border-sky-100 dark:bg-sky-950/10 dark:border-sky-900/20 text-sky-600 dark:text-sky-400 hover:bg-sky-100/50' },
-                  { id: 'cac', label: 'CAC Register', desc: 'Business & Tax ID', icon: Building2, color: 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/10 dark:border-emerald-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-emerald-100/50' },
                   { id: 'settings', label: 'Settings', desc: 'Configure account settings', icon: Settings, color: 'bg-gray-100 border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200/50 dark:hover:bg-zinc-850' },
                   { id: 'admin', label: 'Database', desc: 'Import or export local backups', icon: Database, color: 'bg-purple-50 border-purple-100 dark:bg-purple-950/10 dark:border-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100/50' },
                 ].map((item) => {

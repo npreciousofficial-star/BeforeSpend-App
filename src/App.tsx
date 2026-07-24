@@ -261,6 +261,35 @@ export function AuthenticatedApp({
   const [showDirectDepositModal, setShowDirectDepositModal] = useState<boolean>(false);
   const [targetDepositBucketId, setTargetDepositBucketId] = useState<string | undefined>(undefined);
   const [showGlobalSearchModal, setShowGlobalSearchModal] = useState<boolean>(false);
+  const [ledgerSearchTerm, setLedgerSearchTerm] = useState('');
+  const [expenseSearchQuery, setExpenseSearchQuery] = useState('');
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+
+  const handleGlobalSearchNavigate = (tabId: string, searchVal?: string) => {
+    setActiveTab(tabId);
+    if (searchVal) {
+      if (tabId === 'ledger') {
+        setLedgerSearchTerm(searchVal);
+      } else if (tabId === 'expenses') {
+        setExpenseSearchQuery(searchVal);
+      } else if (tabId === 'history') {
+        setHistorySearchQuery(searchVal);
+      } else if (tabId === 'buckets') {
+        // Highlight and scroll to the bucket card wrapper
+        setTimeout(() => {
+          const el = document.getElementById(`bucket-card-wrapper-${searchVal}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('ring-2', 'ring-[#00A896]', 'ring-offset-2', 'transition-all', 'duration-500');
+            setTimeout(() => {
+              el.classList.remove('ring-2', 'ring-[#00A896]', 'ring-offset-2');
+            }, 2500);
+          }
+        }, 300);
+      }
+    }
+  };
+
 
   // Prevent background scrolling whenever ANY modal is active
   useEffect(() => {
@@ -1854,6 +1883,8 @@ export function AuthenticatedApp({
                 transactions={transactions}
                 buckets={buckets}
                 currency={userProfile.defaultCurrency}
+                searchTerm={ledgerSearchTerm}
+                onSearchTermChange={setLedgerSearchTerm}
                 onOpenReconciliation={(bId) => {
                   setReconciliationBucketId(bId);
                   setShowReconciliationModal(true);
@@ -1932,6 +1963,8 @@ export function AuthenticatedApp({
                   expenses={expenses}
                   buckets={buckets}
                   currency={userProfile.defaultCurrency}
+                  searchQuery={expenseSearchQuery}
+                  onSearchQueryChange={setExpenseSearchQuery}
                   onDeleteExpense={handleDeleteExpense}
                   onClearAll={handleClearExpenses}
                   addToast={addToast}
@@ -1965,7 +1998,7 @@ export function AuthenticatedApp({
                   ))
                 ) : (
                   buckets.map((bucket) => (
-                    <div key={bucket.id} className="relative group">
+                    <div key={bucket.id} id={`bucket-card-wrapper-${bucket.id}`} className="relative group">
                       <BucketCard 
                         bucket={bucket}
                         currency={userProfile.defaultCurrency}
@@ -2095,6 +2128,8 @@ export function AuthenticatedApp({
               <HistoryEntryList 
                 history={history}
                 currency={userProfile.defaultCurrency}
+                searchQuery={historySearchQuery}
+                onSearchQueryChange={setHistorySearchQuery}
                 onDeleteHistory={handleDeleteHistory}
                 onClearAll={handleClearHistory}
                 addToast={addToast}
@@ -3766,7 +3801,7 @@ export function AuthenticatedApp({
         milestones={milestones}
         reminders={reminders}
         currency={userProfile.defaultCurrency}
-        onNavigate={(tabId) => setActiveTab(tabId)}
+        onNavigate={handleGlobalSearchNavigate}
       />
 
       {/* MODAL: DIRECT SINGLE BUCKET DEPOSIT */}

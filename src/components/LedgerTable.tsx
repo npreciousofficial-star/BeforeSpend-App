@@ -10,6 +10,8 @@ interface LedgerTableProps {
   currency: string;
   onOpenReconciliation: (bucketId?: string) => void;
   onOpenStatementParser: () => void;
+  searchTerm?: string;
+  onSearchTermChange?: (val: string) => void;
 }
 
 export function LedgerTable({
@@ -18,8 +20,13 @@ export function LedgerTable({
   currency,
   onOpenReconciliation,
   onOpenStatementParser,
+  searchTerm: controlledSearchTerm,
+  onSearchTermChange,
 }: LedgerTableProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const searchTerm = onSearchTermChange !== undefined ? controlledSearchTerm : localSearchTerm;
+  const setSearchTerm = onSearchTermChange !== undefined ? onSearchTermChange : setLocalSearchTerm;
+
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT' | 'MANUAL_ADJUSTMENT' | 'CSV_IMPORT'>('ALL');
   const [selectedBucketFilter, setSelectedBucketFilter] = useState<string>('ALL');
 

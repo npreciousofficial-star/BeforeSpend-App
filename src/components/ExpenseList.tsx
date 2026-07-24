@@ -28,6 +28,8 @@ interface ExpenseListProps {
   onDeleteExpense: (id: string) => void;
   onClearAll: () => void;
   addToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (val: string) => void;
 }
 
 export function ExpenseList({ 
@@ -36,10 +38,15 @@ export function ExpenseList({
   currency, 
   onDeleteExpense, 
   onClearAll, 
-  addToast 
+  addToast,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange,
 }: ExpenseListProps) {
   // Filter States
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const searchQuery = onSearchQueryChange !== undefined ? controlledSearchQuery : localSearchQuery;
+  const setSearchQuery = onSearchQueryChange !== undefined ? onSearchQueryChange : setLocalSearchQuery;
+
   const [selectedBucket, setSelectedBucket] = useState('all');
   const [dateFilter, setDateFilter] = useState('all'); // all, month, year, custom
   const [startDate, setStartDate] = useState('');

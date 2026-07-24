@@ -27,6 +27,8 @@ interface HistoryEntryListProps {
   onDeleteHistory: (id: string) => void;
   onClearAll: (revertBalances?: boolean) => void;
   addToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (val: string) => void;
 }
 
 export function HistoryEntryList({ 
@@ -34,10 +36,15 @@ export function HistoryEntryList({
   currency, 
   onDeleteHistory, 
   onClearAll, 
-  addToast 
+  addToast,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange,
 }: HistoryEntryListProps) {
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const searchQuery = onSearchQueryChange !== undefined ? controlledSearchQuery : localSearchQuery;
+  const setSearchQuery = onSearchQueryChange !== undefined ? onSearchQueryChange : setLocalSearchQuery;
+
   const [currencyFilter, setCurrencyFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all'); // all, this-month, this-year, custom
   const [startDate, setStartDate] = useState('');

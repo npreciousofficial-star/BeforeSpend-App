@@ -36,13 +36,13 @@ interface GlobalSearchModalProps {
 export function GlobalSearchModal({
   isOpen,
   onClose,
-  transactions,
-  history,
-  buckets,
-  expenses,
-  milestones,
-  reminders,
-  currency,
+  transactions = [],
+  history = [],
+  buckets = [],
+  expenses = [],
+  milestones = [],
+  reminders = [],
+  currency = 'NGN',
   onNavigate,
 }: GlobalSearchModalProps) {
   const [query, setQuery] = useState('');

@@ -3764,6 +3764,7 @@ export function AuthenticatedApp({
         buckets={buckets}
         expenses={expenses}
         milestones={milestones}
+        reminders={reminders}
         currency={userProfile.defaultCurrency}
         onNavigate={(tabId) => setActiveTab(tabId)}
       />

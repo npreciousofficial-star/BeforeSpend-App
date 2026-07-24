@@ -313,7 +313,7 @@ export function LandingPage({
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="absolute top-16 left-0 right-0 z-50 md:hidden bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800 px-4 pt-3 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top-2 duration-200">
+          <div className="absolute top-full left-0 right-0 z-50 md:hidden bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800 px-4 pt-3 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top-2 duration-200">
             <nav className="flex flex-col space-y-2 text-sm font-bold text-gray-700 dark:text-zinc-200">
               <a 
                 href="#features" 

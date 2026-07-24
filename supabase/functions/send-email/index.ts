@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
-const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "BeforeSpend Notifications <notifications@beforespend.xyz>";
+const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "BeforeSpend <onboarding@resend.dev>";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -249,6 +249,14 @@ serve(async (req) => {
       });
 
       const resendData = await resendRes.json();
+      if (!resendRes.ok) {
+        console.warn("Resend API error:", resendData);
+        return new Response(JSON.stringify({ success: false, provider: "resend", error: resendData }), {
+          status: resendRes.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify({ success: true, provider: "resend", data: resendData }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

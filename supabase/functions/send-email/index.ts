@@ -15,21 +15,41 @@ interface EmailPayload {
   data?: Record<string, any>;
 }
 
-// Brand Header Layout: Uses official website logo image (white variant) & center-aligned tagline
+// Global Fonts & Custom CSS Rules for HTML Email Clients
+const EMAIL_STYLE_BLOCK = `
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+    body, table, td, p, a, div, h1, h2, h3 {
+      font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    }
+    .btn-primary:hover {
+      background-color: #00A896 !important;
+      border-color: #00A896 !important;
+    }
+  </style>
+`;
+
+// Brand Header Layout: Uses official icon image + crisp white wordmark (No text filters, No "PLAN. ALLOCATE. PROTECT." tagline)
 const BRAND_HEADER_HTML = `
-  <div style="background: linear-gradient(135deg, #0E2A47 0%, #061626 100%); padding: 36px 24px; text-align: center; border-radius: 16px 16px 0 0;">
-    <div style="text-align: center; margin-bottom: 8px;">
-      <img src="https://beforespend.xyz/logo.png" alt="BeforeSpend" style="height: 46px; width: auto; display: inline-block; filter: brightness(0) invert(1);" />
-    </div>
-    <div style="color: #00A896; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-align: center; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">PLAN. ALLOCATE. PROTECT.</div>
+  <div style="background: linear-gradient(135deg, #0E2A47 0%, #061626 100%); padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; text-align: center;">
+      <tr>
+        <td style="vertical-align: middle; padding-right: 12px;">
+          <img src="https://beforespend.xyz/favicon.png" alt="BeforeSpend Icon" style="width: 38px; height: 38px; display: block; border-radius: 10px; border: 0;" />
+        </td>
+        <td style="vertical-align: middle;">
+          <span style="color: #ffffff; font-size: 26px; font-weight: 800; font-family: 'Plus Jakarta Sans', Inter, sans-serif; letter-spacing: -0.5px;">Before<span style="color: #00A896;">Spend</span></span>
+        </td>
+      </tr>
+    </table>
   </div>
 `;
 
-// Brand Footer Layout: Center-aligned legal & support navigation
+// Brand Footer Layout: Pure center-aligned legal & support navigation
 const BRAND_FOOTER_HTML = `
-  <div style="background-color: #F8FAFC; padding: 28px 24px; border-top: 1px solid #E2E8F0; text-align: center; border-radius: 0 0 16px 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;">
+  <div style="background-color: #F8FAFC; padding: 28px 24px; border-top: 1px solid #E2E8F0; text-align: center; border-radius: 0 0 16px 16px; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
     <p style="color: #64748B; font-size: 12px; line-height: 1.6; margin: 0 0 12px 0; text-align: center;">
-      This is an automated security & account notification from <strong>BeforeSpend</strong>. Please do not reply directly to this email.
+      This automated security alert was generated specifically for your BeforeSpend account. Please do not reply directly to this email.
     </p>
     <p style="color: #0E2A47; font-size: 12px; font-weight: 700; margin: 0 0 12px 0; text-align: center;">
       BeforeSpend &bull; <a href="https://beforespend.xyz" style="color: #00A896; text-decoration: none;">beforespend.xyz</a>
@@ -42,52 +62,61 @@ const BRAND_FOOTER_HTML = `
   </div>
 `;
 
-// Reliable Bulletproof Badge Icon (Renderable in Gmail, Outlook, Apple Mail)
-function renderCategoryBadge(color: string, label: string): string {
+// Premium Brand Icon Badge Container (Uses official brand logo icon image instead of single letters)
+function renderBrandIconBadge(bgColor: string = "#F0FDF4", borderColor: string = "#CCFBF1"): string {
   return `
-    <div style="display: inline-block; width: 56px; height: 56px; background-color: ${color}; border-radius: 16px; margin: 0 auto 16px auto; text-align: center; line-height: 56px;">
-      <span style="color: #ffffff; font-size: 22px; font-weight: 900; font-family: sans-serif;">${label}</span>
+    <div style="width: 58px; height: 58px; background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 18px; margin: 0 auto 20px auto; text-align: center; padding: 9px; box-sizing: border-box;">
+      <img src="https://beforespend.xyz/favicon.png" alt="BeforeSpend" style="width: 38px; height: 38px; display: block; border: 0; margin: 0 auto;" />
     </div>
   `;
 }
 
 function getEmailTemplate(payload: EmailPayload): { subject: string; html: string } {
-  const { type, userName = "Valued User", data = {} } = payload;
+  const { type, userName = "Valued Budgeter", data = {} } = payload;
 
   switch (type) {
     case "login_alert": {
-      const { ip = "Unknown IP", device = "Web Browser", timestamp = new Date().toUTCString(), location = "Active Session" } = data;
+      const { ip = "Unknown IP", device = "Mobile / Web Device", timestamp = new Date().toUTCString(), location = "Active Session" } = data;
       return {
         subject: `Security Alert: New sign-in detected on your BeforeSpend account`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#0E2A47", "S")}
-
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">New Account Sign-in</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">We recorded a new successful authentication session for your BeforeSpend account:</p>
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
               
-              <!-- Details Box -->
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #00A896; border-radius: 12px; padding: 20px; margin: 0 auto 24px auto; text-align: center;">
-                <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #334155; text-align: left;">
-                  <tr><td style="padding: 6px 12px; font-weight: 700; color: #64748B;">Device / Browser:</td><td style="padding: 6px 12px; font-weight: 700; color: #0E2A47;">${device}</td></tr>
-                  <tr><td style="padding: 6px 12px; font-weight: 700; color: #64748B;">IP Address:</td><td style="padding: 6px 12px; font-family: monospace; font-weight: 700; color: #0E2A47;">${ip}</td></tr>
-                  <tr><td style="padding: 6px 12px; font-weight: 700; color: #64748B;">Session Location:</td><td style="padding: 6px 12px; font-weight: 700; color: #0E2A47;">${location}</td></tr>
-                  <tr><td style="padding: 6px 12px; font-weight: 700; color: #64748B;">Timestamp:</td><td style="padding: 6px 12px; font-weight: 700; color: #0E2A47;">${timestamp}</td></tr>
-                </table>
-              </div>
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#EFF6FF", "#DBEAFE")}
 
-              <p style="font-size: 13px; color: #64748B; line-height: 1.6; margin: 0 0 28px 0; text-align: center;">If this sign-in was initiated by you, no action is required. If you did not perform this login, please update your password immediately.</p>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">New Account Sign-in</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">We recorded a new authentication session for your BeforeSpend account. Here are the security audit details:</p>
+                
+                <!-- Audit Details Table -->
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #00A896; border-radius: 14px; padding: 20px; margin: 0 auto 24px auto; text-align: center;">
+                  <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #334155; text-align: left; width: 100%;">
+                    <tr><td style="padding: 8px 12px; font-weight: 700; color: #64748B; width: 130px;">Device / Browser:</td><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47;">${device}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 700; color: #64748B;">IP Address:</td><td style="padding: 8px 12px; font-family: monospace; font-weight: 700; color: #0E2A47;">${ip}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 700; color: #64748B;">Session Location:</td><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47;">${location}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 700; color: #64748B;">Timestamp:</td><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47;">${timestamp}</td></tr>
+                  </table>
+                </div>
 
-              <div style="text-align: center;">
-                <a href="https://beforespend.xyz/dashboard" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center;">Go to Dashboard</a>
+                <p style="font-size: 13px; color: #64748B; line-height: 1.6; margin: 0 0 28px 0; text-align: center;">If this sign-in was performed by you, no further action is required. If you did not recognize this login, please update your account password immediately.</p>
+
+                <div style="text-align: center;">
+                  <a href="https://beforespend.xyz/dashboard" class="btn-primary" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 15px 34px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(14,42,71,0.25);">Go to Dashboard</a>
+                </div>
               </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -97,31 +126,40 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
       return {
         subject: `Low Balance Alert: ${bucketName} balance is below limit`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#DC2626", "!")}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
+              
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#FEF2F2", "#FECACA")}
 
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Low Bucket Balance Warning</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Your budget allocation bucket <strong>${bucketName}</strong> has dropped below your set threshold limit.</p>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Low Bucket Balance Warning</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Your allocation bucket <strong>${bucketName}</strong> has dropped below your set threshold limit.</p>
 
-              <!-- Metric Highlight Box -->
-              <div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 14px; padding: 24px; text-align: center; margin: 0 auto 24px auto;">
-                <div style="font-size: 11px; font-weight: 700; color: #991B1B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; text-align: center;">Current Available Balance</div>
-                <div style="font-size: 34px; font-weight: 900; color: #DC2626; margin-bottom: 8px; text-align: center;">${currentBalance}</div>
-                <div style="font-size: 12px; color: #7F1D1D; font-weight: 600; text-align: center;">Configured Low Threshold: <strong>${threshold}</strong></div>
+                <!-- Metric Card -->
+                <div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 14px; padding: 24px; text-align: center; margin: 0 auto 24px auto;">
+                  <div style="font-size: 11px; font-weight: 700; color: #991B1B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; text-align: center;">Current Available Balance</div>
+                  <div style="font-size: 34px; font-weight: 900; color: #DC2626; margin-bottom: 8px; text-align: center;">${currentBalance}</div>
+                  <div style="font-size: 12px; color: #7F1D1D; font-weight: 600; text-align: center;">Configured Low Threshold: <strong>${threshold}</strong></div>
+                </div>
+
+                <p style="font-size: 13px; color: #64748B; line-height: 1.6; margin: 0 0 28px 0; text-align: center;">You can route a new deposit into this bucket using the Income Splitter.</p>
+
+                <div style="text-align: center;">
+                  <a href="https://beforespend.xyz/dashboard" style="background-color: #00A896; color: #ffffff; text-decoration: none; padding: 15px 34px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(0,168,150,0.25);">Re-allocate Funds Now</a>
+                </div>
               </div>
-
-              <p style="font-size: 13px; color: #64748B; line-height: 1.6; margin: 0 0 28px 0; text-align: center;">You can route a new deposit into this bucket using the Income Splitter.</p>
-
-              <div style="text-align: center;">
-                <a href="https://beforespend.xyz/dashboard" style="background-color: #00A896; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center;">Re-allocate Funds Now</a>
-              </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -129,34 +167,43 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
     case "income_alert": {
       const { amount = "₦0.00", splitCount = 0, date = new Date().toLocaleDateString(), splits = [] } = data;
       const splitRows = Array.isArray(splits)
-        ? splits.map((s: any) => `<tr><td style="padding: 6px 12px; font-weight: 700; color: #0E2A47;">${s.bucketName}</td><td style="padding: 6px 12px; font-weight: 800; color: #00A896; text-align: right;">${s.amount}</td></tr>`).join('')
+        ? splits.map((s: any) => `<tr><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47;">${s.bucketName}</td><td style="padding: 8px 12px; font-weight: 800; color: #00A896; text-align: right;">${s.amount}</td></tr>`).join('')
         : '';
 
       return {
-        subject: `Income Allocation Deposit Received: ${amount}`,
+        subject: `Income Deposit Allocated: ${amount}`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#00A896", "+")}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
+              
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
 
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Income Split Allocated</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">A new income deposit of <strong>${amount}</strong> was split across ${splitCount} budget buckets on ${date}.</p>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Income Split Allocated</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">A new deposit of <strong>${amount}</strong> was allocated across ${splitCount} budget buckets on ${date}.</p>
 
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin: 0 auto 24px auto;">
-                <table align="center" style="width: 100%; margin: 0 auto; border-collapse: collapse; font-size: 13px; text-align: left;">
-                  ${splitRows}
-                </table>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; margin: 0 auto 24px auto;">
+                  <table align="center" style="width: 100%; margin: 0 auto; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    ${splitRows}
+                  </table>
+                </div>
+
+                <div style="text-align: center;">
+                  <a href="https://beforespend.xyz/dashboard" class="btn-primary" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 15px 34px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(14,42,71,0.25);">View Dashboard Ledger</a>
+                </div>
               </div>
-
-              <div style="text-align: center;">
-                <a href="https://beforespend.xyz/dashboard" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center;">View Dashboard Ledger</a>
-              </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -166,32 +213,40 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
       return {
         subject: `Bill Reminder: ${reminderText} is due soon`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#00A896", "R")}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
+              
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
 
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Bill & Subscription Reminder</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">This is a scheduled reminder for your upcoming recurring bill or subscription:</p>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Bill & Subscription Reminder</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">This is a scheduled reminder for your upcoming recurring bill deduction:</p>
 
-              <!-- Bill Card -->
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 24px; margin: 0 auto 24px auto; text-align: center;">
-                <h3 style="font-size: 18px; font-weight: 800; color: #0E2A47; margin: 0 0 14px 0; text-align: center;">${reminderText}</h3>
-                <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #334155; text-align: left;">
-                  <tr><td style="padding: 6px 12px; font-weight: 600; color: #64748B;">Scheduled Amount:</td><td style="padding: 6px 12px; font-weight: 800; color: #00A896; font-size: 15px;">${cost}</td></tr>
-                  <tr><td style="padding: 6px 12px; font-weight: 600; color: #64748B;">Due Date:</td><td style="padding: 6px 12px; font-weight: 700; color: #0E2A47;">${dueDate}</td></tr>
-                  <tr><td style="padding: 6px 12px; font-weight: 600; color: #64748B;">Frequency:</td><td style="padding: 6px 12px; font-weight: 600; color: #475569; text-transform: capitalize;">${period}</td></tr>
-                </table>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 24px; margin: 0 auto 24px auto; text-align: center;">
+                  <h3 style="font-size: 18px; font-weight: 800; color: #0E2A47; margin: 0 0 14px 0; text-align: center;">${reminderText}</h3>
+                  <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #334155; text-align: left; width: 100%;">
+                    <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Scheduled Amount:</td><td style="padding: 8px 12px; font-weight: 800; color: #00A896; font-size: 15px; text-align: right;">${cost}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Due Date:</td><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47; text-align: right;">${dueDate}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Frequency:</td><td style="padding: 8px 12px; font-weight: 600; color: #475569; text-transform: capitalize; text-align: right;">${period}</td></tr>
+                  </table>
+                </div>
+
+                <div style="text-align: center;">
+                  <a href="https://beforespend.xyz/dashboard" class="btn-primary" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 15px 34px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(14,42,71,0.25);">Review Reminders</a>
+                </div>
               </div>
-
-              <div style="text-align: center;">
-                <a href="https://beforespend.xyz/dashboard" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 800; font-size: 14px; display: inline-block; text-align: center;">Review Reminders</a>
-              </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -200,30 +255,39 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
       return {
         subject: `Welcome to BeforeSpend - Master your financial future`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#00A896", "W")}
-
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Welcome to BeforeSpend, ${userName}!</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Your workspace is ready. BeforeSpend enables you to split and assign every income deposit into custom budget buckets <em>before</em> any spending occurs.</p>
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
               
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 24px; margin: 0 auto 24px auto; text-align: center;">
-                <h4 style="color: #0E2A47; font-size: 15px; font-weight: 800; margin: 0 0 12px 0; text-align: center;">The BeforeSpend Framework:</h4>
-                <p style="color: #334155; font-size: 13px; line-height: 1.8; margin: 0; text-align: center;">
-                  <strong>Plan:</strong> Set target percentages for Needs, Savings, Investments, and Wants.<br />
-                  <strong>Allocate:</strong> Split incoming salary & freelance deposits automatically.<br />
-                  <strong>Protect:</strong> Monitor low-balance alert thresholds and recurring bill dues.
-                </p>
-              </div>
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
 
-              <div style="text-align: center;">
-                <a href="https://beforespend.xyz/dashboard" style="background-color: #00A896; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-align: center;">Launch My Workspace</a>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Welcome to BeforeSpend, ${userName}!</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Your workspace is initialized. BeforeSpend enables you to split and assign every income deposit into custom budget buckets <em>before</em> any spending occurs.</p>
+                
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 24px; margin: 0 auto 24px auto; text-align: center;">
+                  <h4 style="color: #0E2A47; font-size: 15px; font-weight: 800; margin: 0 0 12px 0; text-align: center;">The BeforeSpend Framework:</h4>
+                  <p style="color: #334155; font-size: 13px; line-height: 1.8; margin: 0; text-align: center;">
+                    <strong>Plan:</strong> Set target percentages for Needs, Savings, Investments, and Wants.<br />
+                    <strong>Allocate:</strong> Split incoming salary & freelance deposits automatically.<br />
+                    <strong>Protect:</strong> Monitor low-balance alert thresholds and recurring bill dues.
+                  </p>
+                </div>
+
+                <div style="text-align: center;">
+                  <a href="https://beforespend.xyz/dashboard" style="background-color: #00A896; color: #ffffff; text-decoration: none; padding: 16px 34px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(0,168,150,0.25);">Launch My Workspace</a>
+                </div>
               </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -233,24 +297,33 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
       return {
         subject: `Password Reset Request for your BeforeSpend account`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#0E2A47", "K")}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
+              
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#EFF6FF", "#DBEAFE")}
 
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Reset Your Password</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">We received a request to update the password for your BeforeSpend account. Click the button below to set a new password:</p>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Reset Your Password</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">We received a request to update the password for your BeforeSpend account. Click the button below to set a new password:</p>
 
-              <div style="text-align: center; margin: 0 auto 28px auto;">
-                <a href="${resetUrl}" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-align: center;">Set New Password</a>
+                <div style="text-align: center; margin: 0 auto 28px auto;">
+                  <a href="${resetUrl}" class="btn-primary" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 16px 34px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(14,42,71,0.25);">Set New Password</a>
+                </div>
+
+                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0; text-align: center;">If you did not initiate this request, you can safely disregard this email. Your password will remain unchanged.</p>
               </div>
-
-              <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0; text-align: center;">If you did not initiate this request, you can safely disregard this email. Your password will remain unchanged.</p>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -260,29 +333,38 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
       return {
         subject: `Monthly Financial Summary: ${month}`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            
-            <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-              ${renderCategoryBadge("#00A896", "M")}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(14,42,71,0.06);">
+              ${BRAND_HEADER_HTML}
+              
+              <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
+                ${renderBrandIconBadge("#F0FDF4", "#CCFBF1")}
 
-              <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Monthly Financial Digest (${month})</h2>
-              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Here is your account progress summary for ${month}:</p>
+                <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Monthly Financial Digest (${month})</h2>
+                <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Here is your account progress summary for ${month}:</p>
 
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 24px; margin: 0 auto 24px auto;">
-                <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; text-align: left; width: 100%;">
-                  <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Total Income Allocated:</td><td style="padding: 8px 12px; font-weight: 800; color: #00A896; text-align: right;">${totalAllocated}</td></tr>
-                  <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Total Expenses Logged:</td><td style="padding: 8px 12px; font-weight: 800; color: #DC2626; text-align: right;">${totalSpent}</td></tr>
-                  <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Net Reserve Balance:</td><td style="padding: 8px 12px; font-weight: 800; color: #0E2A47; text-align: right;">${netSavings}</td></tr>
-                </table>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 24px; margin: 0 auto 24px auto;">
+                  <table align="center" style="margin: 0 auto; border-collapse: collapse; font-size: 13px; text-align: left; width: 100%;">
+                    <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Total Income Allocated:</td><td style="padding: 8px 12px; font-weight: 800; color: #00A896; text-align: right;">${totalAllocated}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Total Expenses Logged:</td><td style="padding: 8px 12px; font-weight: 800; color: #DC2626; text-align: right;">${totalSpent}</td></tr>
+                    <tr><td style="padding: 8px 12px; font-weight: 600; color: #64748B;">Net Reserve Balance:</td><td style="padding: 8px 12px; font-weight: 800; color: #0E2A47; text-align: right;">${netSavings}</td></tr>
+                  </table>
+                </div>
+
+                <div style="text-align: center;">
+                  <a href="https://beforespend.xyz/dashboard" class="btn-primary" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-align: center; box-shadow: 0 4px 14px rgba(14,42,71,0.25);">View Insights Dashboard</a>
+                </div>
               </div>
-
-              <div style="text-align: center;">
-                <a href="https://beforespend.xyz/dashboard" style="background-color: #0E2A47; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 800; font-size: 15px; display: inline-block; text-align: center;">View Insights Dashboard</a>
-              </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }
@@ -291,14 +373,23 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
       return {
         subject: `Notification from BeforeSpend`,
         html: `
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; font-family: Inter, sans-serif; text-align: center;">
-            ${BRAND_HEADER_HTML}
-            <div style="padding: 32px 28px; text-align: center;">
-              <p style="color: #0E2A47; font-size: 14px; text-align: center;">Hello ${userName},</p>
-              <p style="color: #475569; font-size: 14px; text-align: center;">${data.message || "You have a new update in your BeforeSpend workspace."}</p>
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            ${EMAIL_STYLE_BLOCK}
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; text-align: center;">
+              ${BRAND_HEADER_HTML}
+              <div style="padding: 32px 28px; text-align: center;">
+                <p style="color: #0E2A47; font-size: 14px; text-align: center;">Hello ${userName},</p>
+                <p style="color: #475569; font-size: 14px; text-align: center;">${data.message || "You have a new update in your BeforeSpend workspace."}</p>
+              </div>
+              ${BRAND_FOOTER_HTML}
             </div>
-            ${BRAND_FOOTER_HTML}
-          </div>
+          </body>
+          </html>
         `,
       };
     }

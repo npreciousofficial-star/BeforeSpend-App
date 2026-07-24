@@ -564,6 +564,42 @@ export async function syncRemindersToSupabase(reminders: Reminder[], userId: str
 }
 
 /**
+ * Sync expenses to Supabase
+ */
+export async function syncExpensesToSupabase(expenses: Expense[], userId: string) {
+  try {
+    const validUuid = ensureUuid(userId);
+    
+    const records = await Promise.all(
+      expenses.map(async (e) => {
+        let imageUrl = e.receiptImage;
+        if (imageUrl && imageUrl.startsWith('data:image/')) {
+          const uploadedUrl = await uploadToSupabaseStorage('receipts', `${validUuid}/expenses/${e.id}.png`, imageUrl);
+          if (uploadedUrl) imageUrl = uploadedUrl;
+        }
+
+        return {
+          id: ensureUuid(e.id),
+          user_id: validUuid,
+          description: e.description,
+          amount: e.amount,
+          bucket_id: ensureUuid(e.bucketId),
+          bucket_name: e.bucketName,
+          date: e.date,
+          receipt_image: imageUrl || null
+        };
+      })
+    );
+
+    const { error } = await supabase.from('expenses').upsert(records);
+    if (error) console.warn('Supabase expenses sync error:', error.message);
+  } catch (err) {
+    console.warn('Supabase syncExpenses failed:', err);
+  }
+}
+
+
+/**
  * Fast network timeout promise wrapper to prevent slow cloud queries from blocking UI
  */
 function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 12000): Promise<T> {
@@ -784,6 +820,41 @@ export async function loadRemindersFromSupabase(userId: string): Promise<Reminde
     return null;
   }
 }
+
+/**
+ * Load expenses from Supabase
+ */
+export async function loadExpensesFromSupabase(userId: string): Promise<Expense[] | null> {
+  try {
+    const validUuid = ensureUuid(userId);
+    const { data, error } = await withTimeout(
+      supabase
+        .from('expenses')
+        .select('*')
+        .eq('user_id', validUuid)
+        .order('date', { ascending: false })
+    );
+
+    if (error) {
+      console.warn('Error loading expenses from Supabase:', error.message);
+      return null;
+    }
+
+    return data.map(e => ({
+      id: e.id,
+      description: e.description,
+      amount: Number(e.amount),
+      bucketId: e.bucket_id,
+      bucketName: e.bucket_name,
+      date: e.date,
+      receiptImage: e.receipt_image || undefined
+    }));
+  } catch (err) {
+    console.warn('loadExpensesFromSupabase failed:', err);
+    return null;
+  }
+}
+
 
 /**
  * Admin: Load all user profiles

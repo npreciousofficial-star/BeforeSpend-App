@@ -225,6 +225,28 @@ create policy "Public manage notifications" on public.notifications
 
 
 -- ---------------------------------------------------------------------
+-- 8.5 Expenses Table
+-- ---------------------------------------------------------------------
+create table if not exists public.expenses (
+    id uuid default gen_random_uuid() primary key,
+    user_id uuid not null references auth.users(id) on delete cascade,
+    description text not null,
+    amount numeric(15, 2) not null,
+    bucket_id uuid not null references public.buckets(id) on delete cascade,
+    bucket_name text not null,
+    date timestamptz not null,
+    receipt_image text,
+    created_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+alter table public.expenses enable row level security;
+
+drop policy if exists "Public manage expenses" on public.expenses;
+create policy "Public manage expenses" on public.expenses
+    for all using (true) with check (true);
+
+
+-- ---------------------------------------------------------------------
 -- 9. Supabase Storage Buckets & Policies
 -- ---------------------------------------------------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

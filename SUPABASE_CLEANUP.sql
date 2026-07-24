@@ -9,6 +9,7 @@ BEGIN;
 -- 1. Truncate all transactional & user state tables
 TRUNCATE TABLE public.payments CASCADE;
 TRUNCATE TABLE public.transactions CASCADE;
+TRUNCATE TABLE public.expenses CASCADE;
 TRUNCATE TABLE public.milestones CASCADE;
 TRUNCATE TABLE public.reminders CASCADE;
 TRUNCATE TABLE public.notifications CASCADE;
@@ -30,6 +31,8 @@ UNION ALL
 SELECT 'Payments Count', count(*) FROM public.payments
 UNION ALL
 SELECT 'Transactions Count', count(*) FROM public.transactions
+UNION ALL
+SELECT 'Expenses Count', count(*) FROM public.expenses
 UNION ALL
 SELECT 'Buckets Count', count(*) FROM public.buckets
 UNION ALL

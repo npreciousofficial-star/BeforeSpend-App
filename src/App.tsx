@@ -9,8 +9,8 @@ import { DEFAULT_BUCKETS, BUCKET_TEMPLATES } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
 import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastMessage, AppNotification, Transaction } from './types';
 import { 
-  syncProfileToSupabase, syncBucketsToSupabase, syncTransactionsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase,
-  loadProfileFromSupabase, loadBucketsFromSupabase, loadTransactionsFromSupabase, loadPaymentsFromSupabase, loadMilestonesFromSupabase, loadRemindersFromSupabase,
+  syncProfileToSupabase, syncBucketsToSupabase, syncTransactionsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase, syncExpensesToSupabase,
+  loadProfileFromSupabase, loadBucketsFromSupabase, loadTransactionsFromSupabase, loadPaymentsFromSupabase, loadMilestonesFromSupabase, loadRemindersFromSupabase, loadExpensesFromSupabase,
   loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase, deletePaymentFromSupabase, clearAllPaymentsFromSupabase, deleteTransactionsByTypeFromSupabase,
   adminLoadProfilesFromSupabase, adminLoadBucketsFromSupabase, adminLoadTransactionsFromSupabase, adminLoadPaymentsFromSupabase, adminLoadRemindersFromSupabase,
   adminUpdateProfileInSupabase, adminDeleteProfileFromSupabase, adminUpdateBucketInSupabase, adminDeleteBucketFromSupabase,
@@ -496,13 +496,14 @@ export function AuthenticatedApp({
         }
 
         // 2. Parallel data fetching via Promise.all for sub-second database load
-        const [dbBuckets, dbTxns, dbPayments, dbMilestones, dbReminders, dbNotifications] = await Promise.all([
+        const [dbBuckets, dbTxns, dbPayments, dbMilestones, dbReminders, dbNotifications, dbExpenses] = await Promise.all([
           loadBucketsFromSupabase(currentUserId),
           loadTransactionsFromSupabase(currentUserId),
           loadPaymentsFromSupabase(currentUserId),
           loadMilestonesFromSupabase(currentUserId),
           loadRemindersFromSupabase(currentUserId),
           loadNotificationsFromSupabase(currentUserId),
+          loadExpensesFromSupabase(currentUserId),
         ]);
 
         if (dbBuckets && dbBuckets.length > 0) {
@@ -545,6 +546,10 @@ export function AuthenticatedApp({
           setNotifications(dbNotifications);
         }
 
+        if (dbExpenses && dbExpenses.length > 0) {
+          setExpenses(dbExpenses);
+        }
+
         console.log('Supabase user data loaded successfully!');
       } catch (err) {
         console.warn('Failed to load user data from Supabase:', err);
@@ -578,11 +583,12 @@ export function AuthenticatedApp({
       await syncPaymentsToSupabase(history, currentUserId);
       await syncMilestonesToSupabase(milestones, currentUserId);
       await syncRemindersToSupabase(reminders, currentUserId);
+      await syncExpensesToSupabase(expenses, currentUserId);
       await syncNotificationsToSupabase(notifications, currentUserId);
     }
 
     runSequentialSync();
-  }, [userProfile, buckets, transactions, history, milestones, reminders, notifications, currentUserId, dataLoaded]);
+  }, [userProfile, buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded]);
 
   // Dynamic system notifications logic
   useEffect(() => {

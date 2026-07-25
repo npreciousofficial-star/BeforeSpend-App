@@ -3,6 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { UserProfile } from '../types';
 import { registerUserAccountToSupabase, loginUserAccountToSupabase, loginWithGoogleOAuth, copyLocalStorageData, supabase, sendEmailNotification, fetchUserClientIp } from '../lib/supabase';
 import { BeforeSpendLogo } from './BeforeSpendLogo';
+import { detectUserRegionAndCurrency } from '../data/defaultBuckets';
 import { 
   ShieldAlert, Key, Mail, User, Briefcase, DollarSign, ArrowRight, Eye, EyeOff, X,
   ChevronDown, Check, Layers, PieChart, Target, Bell, Phone
@@ -53,7 +54,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [role, setRole] = useState('Salaried Employee / Professional');
-  const [currency, setCurrency] = useState('NGN');
+  const [currency, setCurrency] = useState(() => detectUserRegionAndCurrency().currency);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');

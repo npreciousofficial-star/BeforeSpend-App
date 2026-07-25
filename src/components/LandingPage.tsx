@@ -93,7 +93,8 @@ export function LandingPage({
 
   const isAdmin = userProfile.role === 'Platform Administrator' || userProfile.email.toLowerCase() === 'admin@beforespend.app' || userProfile.email.toLowerCase() === 'admin@beforespend.xyz';
 
-  // Live Calculator state
+  // Live Calculator state & Geo Localization
+  const [detectedRegion, setDetectedRegion] = useState<'US' | 'NG'>('NG');
   const [sandboxIncome, setSandboxIncome] = useState<number>(500000);
   const [sandboxCurrency, setSandboxCurrency] = useState<string>('NGN');
   const [presetStrategy, setPresetStrategy] = useState<string>('balanced');
@@ -105,6 +106,44 @@ export function LandingPage({
     investment: 15,
     discretionary: 15
   });
+
+  useEffect(() => {
+    // 1. Initial browser timezone detection
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz && (
+        tz.startsWith('America') || 
+        tz.includes('US') || 
+        tz.includes('New_York') || 
+        tz.includes('Chicago') || 
+        tz.includes('Los_Angeles') || 
+        tz.includes('Phoenix') || 
+        tz.includes('Denver') ||
+        tz.includes('Anchorage') ||
+        tz.includes('Honolulu')
+      )) {
+        setDetectedRegion('US');
+        setSandboxCurrency('USD');
+        setSandboxIncome(5000);
+      }
+    } catch (e) {}
+
+    // 2. Refined Geolocation Lookup via secure HTTPS ipapi.co
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.country_code === 'US') {
+          setDetectedRegion('US');
+          setSandboxCurrency('USD');
+          setSandboxIncome(5000);
+        } else if (data.country_code === 'NG') {
+          setDetectedRegion('NG');
+          setSandboxCurrency('NGN');
+          setSandboxIncome(500000);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Handle Strategy Preset Changes
   const applyPreset = (preset: string) => {
@@ -141,8 +180,10 @@ export function LandingPage({
       a: 'Every deposit, expense, and transfer is tracked automatically with complete accuracy. You will never have missing records, mysterious math errors, or uncounted transactions.'
     },
     {
-      q: 'Can I import bank statements from OPay, GTBank, Kuda, Zenith, or Chase?',
-      a: 'Yes! You can easily upload bank statements from any major bank. The app automatically recognizes your income and expenses and places them into the right categories.'
+      q: 'Can I import bank statements from my local banks?',
+      a: detectedRegion === 'US'
+        ? 'Yes! You can easily upload bank statements from Chase, Bank of America, Capital One, Wells Fargo, or Citi. The app automatically recognizes your income and expenses and places them into the right categories.'
+        : 'Yes! You can easily upload bank statements from OPay, GTBank, Kuda, Zenith, or Chase. The app automatically recognizes your income and expenses and places them into the right categories.'
     },
     {
       q: 'Is my personal financial data safe and private?',
@@ -164,14 +205,16 @@ export function LandingPage({
 
   const testimonials = [
     {
-      name: 'Chidi Okechukwu',
-      role: 'UI/UX Designer & Senior Freelancer',
-      avatar: 'CO',
+      name: detectedRegion === 'US' ? 'Sarah Jennings' : 'Chidi Okechukwu',
+      role: detectedRegion === 'US' ? 'Senior Branding Consultant' : 'UI/UX Designer & Senior Freelancer',
+      avatar: detectedRegion === 'US' ? 'SJ' : 'CO',
       imgUrl: '/avatars/avatar1.jpg',
       color: 'bg-emerald-600',
       rating: 5,
-      impact: 'Saved ₦1.8M in Emergency Savings',
-      quote: 'Before BeforeSpend, I had income flowing in from multiple international clients, but at the end of every month, I couldn’t account for 30% of my earnings. BeforeSpend changed everything—now every invoice payment is split automatically before I touch it.'
+      impact: detectedRegion === 'US' ? 'Saved $4,200 in Emergency Savings' : 'Saved ₦1.8M in Emergency Savings',
+      quote: detectedRegion === 'US'
+        ? 'Before BeforeSpend, I had income flowing in from multiple retainer clients, but at the end of every month, I couldn’t account for 30% of my earnings. BeforeSpend changed everything—now every billing deposit is split automatically before I touch it.'
+        : 'Before BeforeSpend, I had income flowing in from multiple international clients, but at the end of every month, I couldn’t account for 30% of my earnings. BeforeSpend changed everything—now every invoice payment is split automatically before I touch it.'
     },
     {
       name: 'Amaka Vance',
@@ -184,14 +227,16 @@ export function LandingPage({
       quote: 'This app is a total game changer for anyone serious about building wealth. I used to rely on confusing spreadsheets that always broke. Having clear money categories gives me total peace of mind every month.'
     },
     {
-      name: 'Tunde Bakare',
-      role: 'Software Engineer & Agency Founder',
-      avatar: 'TB',
+      name: detectedRegion === 'US' ? 'Robert Miller' : 'Tunde Bakare',
+      role: detectedRegion === 'US' ? 'Creative Director & Agency Principal' : 'Software Engineer & Agency Founder',
+      avatar: detectedRegion === 'US' ? 'RM' : 'TB',
       imgUrl: '/avatars/avatar3.jpg',
       color: 'bg-blue-600',
       rating: 5,
       impact: 'Zero Wasted Cash',
-      quote: 'The bank statement feature imported months of OPay and GTBank statements in seconds. Allocating money into purpose buckets before spending gave our household complete financial control.'
+      quote: detectedRegion === 'US'
+        ? 'The bank statement feature imported months of Chase and Bank of America statements in seconds. Allocating money into purpose buckets before spending gave our household complete financial control.'
+        : 'The bank statement feature imported months of OPay and GTBank statements in seconds. Allocating money into purpose buckets before spending gave our household complete financial control.'
     }
   ];
 
@@ -488,7 +533,9 @@ export function LandingPage({
           {/* Key Trust Stats Grid */}
           <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto border-t border-gray-200/80 dark:border-zinc-800/80">
             <div className="p-3.5 sm:p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/60 border border-gray-100 dark:border-zinc-850/80">
-              <div className="text-xl sm:text-2xl font-black text-[#00A896] dark:text-[#00A896]">₦1.8B+</div>
+              <div className="text-xl sm:text-2xl font-black text-[#00A896] dark:text-[#00A896]">
+                {detectedRegion === 'US' ? '$1.5M+' : '₦1.8B+'}
+              </div>
               <div className="text-[11px] sm:text-xs text-gray-500 dark:text-zinc-400 font-medium">Organized Income</div>
             </div>
             <div className="p-3.5 sm:p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/60 border border-gray-100 dark:border-zinc-850/80">
@@ -512,17 +559,26 @@ export function LandingPage({
       <section className="py-10 bg-slate-50/80 dark:bg-zinc-950/60 border-y border-gray-200/60 dark:border-zinc-850">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-6">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-zinc-400">
-            Easily Import Bank Statements From All Major Banks
+            {detectedRegion === 'US'
+              ? 'Easily Import Bank Statements From All Major US Banks'
+              : 'Easily Import Bank Statements From All Major Nigerian Banks'}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
-            {[
+            {(detectedRegion === 'US' ? [
+              { src: '/banks/chase.png',        alt: 'Chase Bank' },
+              { src: '/banks/bofa.png',         alt: 'Bank of America' },
+              { src: '/banks/capitalone.png',   alt: 'Capital One' },
+              { src: '/banks/wellsfargo.png',   alt: 'Wells Fargo' },
+              { src: '/banks/citibank.png',     alt: 'Citi' },
+              { src: '/banks/fidelity-us.png',  alt: 'Fidelity Investments' },
+            ] : [
               { src: '/banks/opay.png',        alt: 'OPay Digital' },
               { src: '/banks/GTBank.jpg',       alt: 'GTBank' },
               { src: '/banks/Kuda Bank.png',    alt: 'Kuda Bank' },
               { src: '/banks/Zenith Bank.jpg',  alt: 'Zenith Bank' },
               { src: '/banks/Moniepoint.png',   alt: 'Moniepoint' },
               { src: '/banks/FirstBank.svg',    alt: 'First Bank' },
-            ].map(bank => (
+            ]).map(bank => (
               <div
                 key={bank.alt}
                 className="flex items-center justify-center px-5 py-3 rounded-2xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-[#00A896] hover:scale-105 transition-all duration-200 cursor-pointer group min-w-[125px] h-[54px]"

@@ -250,7 +250,7 @@ export function HistoryEntryList({
                       <button
                         id={`view-history-receipt-${entry.id}`}
                         onClick={() => setActiveReceiptUrl(entry.receiptImage || null)}
-                        className="w-10 h-10 rounded-lg overflow-hidden border border-gray-250 hover:border-[#00A896] dark:border-zinc-800 flex-shrink-0 relative group/thumb cursor-pointer"
+                        className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:border-[#00A896] dark:border-zinc-800 flex-shrink-0 relative group/thumb cursor-pointer"
                         title="View receipt"
                       >
                         <img referrerPolicy="no-referrer" src={entry.receiptImage} alt="Receipt Thumbnail" className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform" />
@@ -259,7 +259,7 @@ export function HistoryEntryList({
                         </div>
                       </button>
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-gray-50/50 dark:bg-zinc-900/30 border border-dashed border-gray-250 dark:border-zinc-800 flex items-center justify-center flex-shrink-0 text-gray-400 dark:text-zinc-650" title="No receipt uploaded">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50/50 dark:bg-zinc-900/30 border border-dashed border-gray-200 dark:border-zinc-800 flex items-center justify-center flex-shrink-0 text-gray-400 dark:text-zinc-650" title="No receipt uploaded">
                         <Receipt className="w-4 h-4 stroke-[1.5] opacity-60" />
                       </div>
                     )}
@@ -322,7 +322,7 @@ export function HistoryEntryList({
       {/* Clear History Modal */}
       {showConfirmClear && (
         <div id="clear-history-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-250 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div className="flex items-start gap-3">
               <div className="p-2.5 rounded-xl bg-amber-50 text-amber-500 dark:bg-amber-950/30 dark:text-amber-400 flex-shrink-0">
                 <AlertCircle className="w-6 h-6" />
@@ -376,7 +376,7 @@ export function HistoryEntryList({
                 id="cancel-clear-history"
                 type="button"
                 onClick={() => setShowConfirmClear(false)}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
               >
                 Cancel
               </button>

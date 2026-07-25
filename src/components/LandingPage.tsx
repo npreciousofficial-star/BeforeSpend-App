@@ -208,19 +208,19 @@ export function LandingPage({
       name: detectedRegion === 'US' ? 'Sarah Jennings' : 'Chidi Okechukwu',
       role: detectedRegion === 'US' ? 'Senior Branding Consultant' : 'UI/UX Designer & Senior Freelancer',
       avatar: detectedRegion === 'US' ? 'SJ' : 'CO',
-      imgUrl: '/avatars/avatar1.jpg',
+      imgUrl: detectedRegion === 'US' ? '' : '/avatars/avatar1.jpg',
       color: 'bg-emerald-600',
       rating: 5,
       impact: detectedRegion === 'US' ? 'Saved $4,200 in Emergency Savings' : 'Saved ₦1.8M in Emergency Savings',
       quote: detectedRegion === 'US'
-        ? 'Before BeforeSpend, I had income flowing in from multiple retainer clients, but at the end of every month, I couldn’t account for 30% of my earnings. BeforeSpend changed everything—now every billing deposit is split automatically before I touch it.'
-        : 'Before BeforeSpend, I had income flowing in from multiple international clients, but at the end of every month, I couldn’t account for 30% of my earnings. BeforeSpend changed everything—now every invoice payment is split automatically before I touch it.'
+        ? "Before BeforeSpend, I had income flowing in from multiple retainer clients, but at the end of every month, I couldn\u2019t account for 30% of my earnings. BeforeSpend changed everything\u2014now every billing deposit is split automatically before I touch it."
+        : "Before BeforeSpend, I had income flowing in from multiple international clients, but at the end of every month, I couldn\u2019t account for 30% of my earnings. BeforeSpend changed everything\u2014now every invoice payment is split automatically before I touch it."
     },
     {
-      name: 'Amaka Vance',
+      name: detectedRegion === 'US' ? 'Emily Vance' : 'Amaka Vance',
       role: 'Product Manager & Real Estate Investor',
-      avatar: 'AV',
-      imgUrl: '/avatars/avatar2.jpg',
+      avatar: detectedRegion === 'US' ? 'EV' : 'AV',
+      imgUrl: detectedRegion === 'US' ? '' : '/avatars/avatar2.jpg',
       color: 'bg-teal-600',
       rating: 5,
       impact: '100% Reliable Money Tracking',
@@ -230,7 +230,7 @@ export function LandingPage({
       name: detectedRegion === 'US' ? 'Robert Miller' : 'Tunde Bakare',
       role: detectedRegion === 'US' ? 'Creative Director & Agency Principal' : 'Software Engineer & Agency Founder',
       avatar: detectedRegion === 'US' ? 'RM' : 'TB',
-      imgUrl: '/avatars/avatar3.jpg',
+      imgUrl: detectedRegion === 'US' ? '' : '/avatars/avatar3.jpg',
       color: 'bg-blue-600',
       rating: 5,
       impact: 'Zero Wasted Cash',
@@ -563,7 +563,7 @@ export function LandingPage({
               ? 'Easily Import Bank Statements From All Major US Banks'
               : 'Easily Import Bank Statements From All Major Nigerian Banks'}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 max-w-5xl mx-auto">
             {(detectedRegion === 'US' ? [
               { src: '/banks/chase.png',        alt: 'Chase Bank' },
               { src: '/banks/bofa.png',         alt: 'Bank of America' },
@@ -581,18 +581,18 @@ export function LandingPage({
             ]).map(bank => (
               <div
                 key={bank.alt}
-                className="flex items-center justify-center px-5 py-3 rounded-2xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-[#00A896] hover:scale-105 transition-all duration-200 cursor-pointer group min-w-[125px] h-[54px]"
+                className="flex items-center justify-center p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-[#00A896] hover:scale-105 transition-all duration-200 cursor-pointer w-full h-16"
                 title={bank.alt}
               >
                 <img
                   src={bank.src}
                   alt={bank.alt}
-                  className="h-8 w-auto object-contain max-w-[100px] transition-all"
+                  className="h-full max-h-[85%] w-auto object-contain transition-all"
                   onError={e => {
                     (e.target as HTMLImageElement).style.display = 'none';
                     const span = document.createElement('span');
                     span.textContent = bank.alt;
-                    span.className = 'text-xs font-black text-gray-900';
+                    span.className = 'text-xs font-black text-gray-900 dark:text-zinc-100';
                     (e.target as HTMLImageElement).parentNode?.appendChild(span);
                   }}
                 />
@@ -1056,7 +1056,7 @@ export function LandingPage({
                       <img
                         src={item.imgUrl}
                         alt={item.name}
-                        className="w-10 h-10 rounded-full object-cover shadow-xs flex-shrink-0 border border-gray-250/60 dark:border-zinc-800"
+                        className="w-10 h-10 rounded-full object-cover shadow-xs flex-shrink-0 border border-gray-200/60 dark:border-zinc-800"
                       />
                     ) : (
                       <div className={`w-10 h-10 rounded-full ${item.color} text-white font-black text-xs flex items-center justify-center shadow-xs flex-shrink-0`}>

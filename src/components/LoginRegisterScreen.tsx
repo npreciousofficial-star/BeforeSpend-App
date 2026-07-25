@@ -407,7 +407,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
           </div>
 
           {/* Slide Tab Switcher */}
-          <div className="grid grid-cols-2 p-1.5 bg-gray-250/60 dark:bg-zinc-900/60 border border-gray-300/40 dark:border-zinc-800 rounded-2xl">
+          <div className="grid grid-cols-2 p-1.5 bg-gray-200/60 dark:bg-zinc-900/60 border border-gray-300/40 dark:border-zinc-800 rounded-2xl">
             <button
               type="button"
               onClick={() => {

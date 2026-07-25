@@ -179,7 +179,7 @@ export function GlobalSearchModal({
           ) : (
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 p-1.5 rounded-full hover:bg-gray-250/20 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               title="Close Search"
             >
               <X className="w-4.5 h-4.5" />

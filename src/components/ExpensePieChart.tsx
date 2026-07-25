@@ -58,7 +58,7 @@ export function ExpensePieChart({ expenses, buckets, currency }: ExpensePieChart
 
   if (expenses.length === 0) {
     return (
-      <div className="p-6 rounded-2xl border border-gray-250 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col items-center justify-center text-center space-y-2 h-64 shadow-xs">
+      <div className="p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col items-center justify-center text-center space-y-2 h-64 shadow-xs">
         <PieIcon className="w-8 h-8 text-gray-300 dark:text-zinc-700 animate-pulse" />
         <p className="text-xs font-bold text-gray-500 dark:text-zinc-400">No Expenses Recorded</p>
         <p className="text-[10px] text-gray-400 max-w-[200px]">Add your first expense to generate a dynamic visual breakdown.</p>

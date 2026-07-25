@@ -3074,7 +3074,7 @@ export function AuthenticatedApp({
                             <button onClick={() => setAdminActiveSubTab('ledger')} className="text-xs text-[#00A896] hover:underline font-bold">View Ledger</button>
                           </div>
                           
-                          <div className="overflow-x-auto rounded-xl border border-gray-250 dark:border-zinc-800">
+                          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
                             <table className="w-full text-xs text-left">
                               <thead className="bg-gray-50 dark:bg-zinc-900 text-gray-500 uppercase tracking-wider font-semibold text-[10px] border-b border-gray-200 dark:border-zinc-800">
                                 <tr>
@@ -3909,7 +3909,7 @@ export function AuthenticatedApp({
                 type="button"
                 id="cancel-add-bucket"
                 onClick={() => setShowAddCustomBucketModal(false)}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
               >
                 Cancel
               </button>
@@ -4050,7 +4050,7 @@ export function AuthenticatedApp({
                     setShowEditBucketModal(false);
                     setEditingBucket(null);
                   }}
-                  className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -4097,7 +4097,7 @@ export function AuthenticatedApp({
                 type="button"
                 id="cancel-import-db"
                 onClick={() => setShowImportDbModal(false)}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
               >
                 Cancel
               </button>
@@ -4169,7 +4169,7 @@ export function AuthenticatedApp({
                   setShowBlueprintConfirmModal(false);
                   setPendingTemplateToLoad(null);
                 }}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-250 text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 text-xs font-bold transition-all cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 text-xs font-bold transition-all cursor-pointer"
               >
                 Keep Current Buckets
               </button>
@@ -4306,7 +4306,7 @@ export function AuthenticatedApp({
                 <select
                   value={consolidationTargetId}
                   onChange={(e) => setConsolidationTargetId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
                 >
                   {buckets
                     .filter((b) => b.id !== bucketToConsolidate.id)
@@ -4341,7 +4341,7 @@ export function AuthenticatedApp({
                   setBucketToConsolidate(null);
                   setConsolidationTargetId('');
                 }}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-250 text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 text-xs font-bold transition-all cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 text-xs font-bold transition-all cursor-pointer"
               >
                 Cancel Deletion
               </button>

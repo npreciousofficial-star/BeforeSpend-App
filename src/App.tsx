@@ -1998,7 +1998,7 @@ export function AuthenticatedApp({
       <div className="flex-1 flex flex-col min-w-0 w-full px-4 md:px-8 lg:px-10 py-6 space-y-6 md:overflow-y-auto pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-6">
         
         {/* Mobile Header Banner showing balance */}
-        <div className="md:hidden p-4 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white shadow-xs flex justify-between items-center">
+        <div className="md:hidden p-4 rounded-2xl bg-gradient-to-r from-[#0E2A47] to-[#00A896] text-white border border-gray-200/80 dark:border-zinc-800 shadow-xs flex justify-between items-center">
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-teal-100 uppercase tracking-wider font-semibold">Total Managed Balance</span>
@@ -2467,7 +2467,7 @@ export function AuthenticatedApp({
                     {/* Interactive Avatar Selection */}
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-wider mb-2">Profile Avatar</label>
-                      <div className="flex items-center gap-3.5 p-3 bg-slate-50 dark:bg-zinc-900/40 rounded-xl border border-gray-250/80 dark:border-zinc-800">
+                      <div className="flex items-center gap-3.5 p-3 bg-white dark:bg-zinc-900 rounded-xl border border-gray-200/80 dark:border-zinc-800 shadow-2xs">
                         <Avatar avatar={editProfileAvatar} name={editProfileName} className="w-12 h-12 text-base flex-shrink-0" />
                         <div className="space-y-1 flex-1">
                           <input
@@ -2494,9 +2494,9 @@ export function AuthenticatedApp({
                           />
                           <label
                             htmlFor="avatar-upload-input"
-                            className="px-2.5 py-1.5 bg-[#00A896] hover:bg-[#0E2A47] text-white text-[10px] font-bold rounded-lg shadow-2xs cursor-pointer transition-colors inline-flex items-center gap-1 select-none"
+                            className="px-3 py-1.5 border border-gray-200 dark:border-zinc-800 hover:border-[#00A896]/50 dark:hover:border-[#00A896]/50 bg-white hover:bg-gray-50/50 dark:bg-zinc-900 dark:hover:bg-zinc-850 text-gray-750 dark:text-zinc-200 text-[10px] font-bold rounded-lg shadow-2xs cursor-pointer transition-all inline-flex items-center gap-1 select-none"
                           >
-                            <Upload className="w-3 h-3" /> Upload Device Image
+                            <Upload className="w-3.5 h-3.5 text-[#00A896]" /> Upload Avatar Image
                           </label>
                           <p className="text-[9px] text-gray-400 leading-tight">Supports PNG, JPEG or WebP (max 2MB).</p>
                         </div>
@@ -2750,7 +2750,7 @@ export function AuthenticatedApp({
                 {/* Right Column: Database Snapshot (raw backup JSON) */}
                 <div className="lg:col-span-7">
                   <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-sm space-y-4">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                       <div>
                         <h3 className="font-bold text-gray-900 dark:text-zinc-50 text-base">
                           Data Backup & Restore
@@ -3362,7 +3362,7 @@ export function AuthenticatedApp({
                       {/* Right Column: Database Backup Snapshot */}
                       <div className="lg:col-span-7">
                         <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-905 dark:border-zinc-805 shadow-sm space-y-4">
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                               <h3 className="font-bold text-gray-900 dark:text-zinc-50 text-base">
                                 Data Backup & Restore

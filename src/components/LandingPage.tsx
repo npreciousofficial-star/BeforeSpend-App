@@ -1117,17 +1117,23 @@ export function LandingPage({
                 <Award className="w-6 h-6" />
               </div>
               <blockquote className="text-xs sm:text-sm font-medium leading-relaxed text-zinc-200 italic">
-                "Before BeforeSpend, I had money flowing into my account from different clients, but at the end of the month, I couldn't account for where it went. BeforeSpend changed everything—now every payout is sorted before I touch it."
+                {detectedRegion === 'US'
+                  ? '"Routing incoming client payments directly into dedicated IRS tax vaults, emergency reserves, and payroll checking accounts has completely transformed how I run my consultancy."'
+                  : '"Splitting project retainers directly into company savings, contractor reserves, and operational buckets has given our design studio complete financial clarity. Highly recommended!"'}
               </blockquote>
               <div className="pt-2 border-t border-zinc-800 flex items-center gap-3">
                 <img
                   src="/testimonial-avatar.jpg"
-                  alt="Chidi Okechukwu"
+                  alt={detectedRegion === 'US' ? 'David Vance' : 'Ngozi Adebayo'}
                   className="w-11 h-11 rounded-full object-cover border-2 border-[#00A896] shadow-md flex-shrink-0"
                 />
                 <div>
-                  <div className="font-extrabold text-xs text-white">Chidi Okechukwu</div>
-                  <div className="text-[10px] text-zinc-400 font-medium">UI/UX Designer & Senior Freelancer</div>
+                  <div className="font-extrabold text-xs text-white">
+                    {detectedRegion === 'US' ? 'David Vance' : 'Ngozi Adebayo'}
+                  </div>
+                  <div className="text-[10px] text-zinc-400 font-medium">
+                    {detectedRegion === 'US' ? 'Independent Tech Consultant & Founder' : 'Senior Brand Consultant & Agency Lead'}
+                  </div>
                 </div>
               </div>
             </div>

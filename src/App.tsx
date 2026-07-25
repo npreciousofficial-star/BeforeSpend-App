@@ -205,6 +205,7 @@ export function AuthenticatedApp({
   const [newBucketColor, setNewBucketColor] = useState('emerald');
   const [newBucketNote, setNewBucketNote] = useState('');
   const [newBucketThreshold, setNewBucketThreshold] = useState<number | string>('');
+  const [draggedBucketId, setDraggedBucketId] = useState<string | null>(null);
   // Internal bucket transfer
   const [showTransferFundsModal, setShowTransferFundsModal] = useState(false);
   const [transferSourceId, setTransferSourceId] = useState('');
@@ -1568,6 +1569,38 @@ export function AuthenticatedApp({
     setTransferNote('');
   };
 
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedBucketId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedBucketId || draggedBucketId === targetId) return;
+
+    const sourceIndex = buckets.findIndex((b) => b.id === draggedBucketId);
+    const targetIndex = buckets.findIndex((b) => b.id === targetId);
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const rearrangedBuckets = [...buckets];
+    const [draggedBucket] = rearrangedBuckets.splice(sourceIndex, 1);
+    rearrangedBuckets.splice(targetIndex, 0, draggedBucket);
+
+    setBuckets(rearrangedBuckets);
+
+    // Sync rearranged order to Supabase
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      await syncBucketsToSupabase(rearrangedBuckets, currentUserId);
+    }
+    
+    setDraggedBucketId(null);
+  };
+
   // User Profile save
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -2449,7 +2482,17 @@ export function AuthenticatedApp({
                   ))
                 ) : (
                   buckets.map((bucket) => (
-                    <div key={bucket.id} id={`bucket-card-wrapper-${bucket.id}`} className="relative group">
+                    <div
+                      key={bucket.id}
+                      id={`bucket-card-wrapper-${bucket.id}`}
+                      className={`relative group cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                        draggedBucketId === bucket.id ? 'opacity-40 scale-95' : 'opacity-100 scale-100'
+                      }`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, bucket.id)}
+                      onDragOver={(e) => handleDragOver(e)}
+                      onDrop={(e) => handleDrop(e, bucket.id)}
+                    >
                       <BucketCard 
                         bucket={bucket}
                         currency={userProfile.defaultCurrency}

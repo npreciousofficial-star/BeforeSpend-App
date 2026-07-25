@@ -527,12 +527,12 @@ export function LandingPage({
 
               {/* Responsive App Preview Screenshots */}
               <img
-                src="/hero-dashboard-mobile.png"
+                src={detectedRegion === 'US' ? "/hero-dashboard-mobile-us.png" : "/hero-dashboard-mobile.png"}
                 alt="BeforeSpend Mobile Dashboard Overview"
                 className="block md:hidden w-full h-auto rounded-xl object-cover border border-zinc-800/80 shadow-inner"
               />
               <img
-                src="/hero-dashboard.png"
+                src={detectedRegion === 'US' ? "/hero-dashboard-us.png" : "/hero-dashboard.png"}
                 alt="BeforeSpend Desktop Dashboard Overview"
                 className="hidden md:block w-full h-auto rounded-2xl object-cover border border-zinc-800/80 shadow-inner"
               />

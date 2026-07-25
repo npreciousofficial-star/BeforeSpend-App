@@ -79,17 +79,46 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
   useEffect(() => {
     if (isRegister) {
-      const script = document.createElement('script');
-      script.src = `https://www.google.com/recaptcha/api.js?render=6LfwR2UtAAAAAKqaitvxwwOmpuS4GyySuc7ZvMo7`;
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        const badge = document.querySelector('.grecaptcha-badge');
-        if (badge && badge.parentNode) {
-          badge.parentNode.removeChild(badge);
+      const scriptId = 'recaptcha-v2-script';
+      let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+
+      const initRecaptcha = () => {
+        const grecaptcha = (window as any).grecaptcha;
+        if (grecaptcha && grecaptcha.render) {
+          try {
+            const container = document.getElementById('recaptcha-v2-container');
+            if (container) {
+              container.innerHTML = '';
+            }
+            (window as any).recaptchaWidgetId = grecaptcha.render('recaptcha-v2-container', {
+              sitekey: '6Lc_aGUtAAAAANAvRPQ7FunGpIQ6P_UXw_U5ENuh',
+              theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+            });
+          } catch (e) {
+            console.warn('reCAPTCHA render error:', e);
+          }
         }
-        document.body.removeChild(script);
       };
+
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          setTimeout(initRecaptcha, 250);
+        };
+        document.body.appendChild(script);
+      } else {
+        if ((window as any).grecaptcha && (window as any).grecaptcha.render) {
+          initRecaptcha();
+        } else {
+          script.onload = () => {
+            setTimeout(initRecaptcha, 250);
+          };
+        }
+      }
     }
   }, [isRegister]);
 
@@ -112,32 +141,31 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         return;
       }
 
-      // Execute reCAPTCHA V3
+      // Execute reCAPTCHA V2 Checkbox Verification
       setErrorMsg('Verifying security check (reCAPTCHA)...');
       try {
-        const token = await new Promise<string>((resolve, reject) => {
-          const grecaptcha = (window as any).grecaptcha;
-          if (!grecaptcha || !grecaptcha.ready) {
-            reject(new Error('reCAPTCHA not loaded'));
-            return;
-          }
-          grecaptcha.ready(() => {
-            grecaptcha
-              .execute('6LfwR2UtAAAAAKqaitvxwwOmpuS4GyySuc7ZvMo7', { action: 'signup' })
-              .then(resolve)
-              .catch(reject);
-          });
-        });
+        const grecaptcha = (window as any).grecaptcha;
+        if (!grecaptcha) {
+          setErrorMsg('Security check not loaded yet. Please refresh and try again.');
+          return;
+        }
+
+        const token = grecaptcha.getResponse((window as any).recaptchaWidgetId);
+        if (!token) {
+          setErrorMsg('Please click the "I\'m not a robot" security checkbox.');
+          return;
+        }
 
         const verifyEndpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(
-          `https://www.google.com/recaptcha/api/siteverify?secret=6LfwR2UtAAAAAJINDgFWdUSPWDKmLBYGmt2Y--q8&response=${token}`
+          `https://www.google.com/recaptcha/api/siteverify?secret=6Lc_aGUtAAAAANtQx6qs1qIFFRMoFa2aUErYwy3R&response=${token}`
         )}`;
         const response = await fetch(verifyEndpoint);
         const data = await response.json();
         const result = JSON.parse(data.contents);
 
-        if (!result.success || result.score < 0.5) {
-          setErrorMsg('Security check failed: Bot activity detected. Please try again from a valid browser.');
+        if (!result.success) {
+          setErrorMsg('Security check failed: Verification invalid. Please try checking the box again.');
+          grecaptcha.reset((window as any).recaptchaWidgetId);
           return;
         }
       } catch (captchaErr) {
@@ -691,6 +719,12 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
                 <span className="text-xs text-gray-600 dark:text-zinc-300 font-semibold group-hover:text-gray-900 dark:group-hover:text-zinc-100 transition-colors">
                   Keep me signed in
                 </span>
+              </div>
+            )}
+
+            {isRegister && (
+              <div className="flex justify-center py-2.5">
+                <div id="recaptcha-v2-container"></div>
               </div>
             )}
 

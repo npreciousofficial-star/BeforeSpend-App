@@ -328,3 +328,42 @@ drop policy if exists "Public Upload to Statements" on storage.objects;
 drop policy if exists "Public Manage Statements" on storage.objects;
 create policy "Public Manage Statements" on storage.objects
     for all using (bucket_id = 'statements') with check (bucket_id = 'statements');
+
+
+-- ---------------------------------------------------------------------
+-- 10. PgCron Inactivity Scheduler (Automated Engagement Reminders)
+-- ---------------------------------------------------------------------
+-- Scans daily for users inactive for 7+ days and sends email reminders
+create or replace function public.check_inactive_users_and_notify()
+returns void as $$
+declare
+    inactive_user record;
+begin
+    for inactive_user in
+        select p.id, p.name, p.email
+        from public.profiles p
+        where p.updated_at < now() - interval '7 days'
+          and p.email is not null
+    loop
+        -- Trigger edge function asynchronously using pg_net extension
+        perform net.http_post(
+            url := 'https://soqllmwmojyzvathirdd.supabase.co/functions/v1/send-email',
+            headers := '{"Content-Type": "application/json"}'::jsonb,
+            body := json_build_object(
+                'to', inactive_user.email,
+                'type', 'reminder',
+                'userName', inactive_user.name,
+                'data', json_build_object(
+                    'reminderText', 'It looks like you haven''t checked in on your budget allocations this week. Open BeforeSpend to stay on track and review your ledger!',
+                    'dueDate', to_char(now(), 'YYYY-MM-DD'),
+                    'period', 'weekly'
+                )
+            )
+        );
+    end loop;
+end;
+$$ language plpgsql security definer;
+
+-- Enable extensions and schedule job (uncomment in SQL Editor if needed)
+-- select cron.schedule('inactive-users-reminder-job', '0 2 * * *', 'select public.check_inactive_users_and_notify();');
+

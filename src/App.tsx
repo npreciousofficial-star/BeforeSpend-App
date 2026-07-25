@@ -568,6 +568,37 @@ export function AuthenticatedApp({
     loadData();
   }, [currentUserId]);
 
+  // Fetch dynamic exchange rates on load from a free public API
+  useEffect(() => {
+    async function fetchExchangeRates() {
+      try {
+        const response = await fetch('https://open.er-api.com/v6/latest/NGN');
+        if (!response.ok) throw new Error('API response failed');
+        const data = await response.json();
+        if (data && data.rates) {
+          const newRates: { [key: string]: number } = { NGN: 1 };
+          const currenciesToFetch = ['USD', 'EUR', 'GBP', 'CAD'];
+
+          currenciesToFetch.forEach((cc) => {
+            if (data.rates[cc] && data.rates[cc] > 0) {
+              newRates[cc] = parseFloat((1 / data.rates[cc]).toFixed(2));
+            }
+          });
+
+          setExchangeRates((prev) => ({
+            ...prev,
+            ...newRates
+          }));
+          console.log('Automated exchange rates fetched dynamically:', newRates);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch automated exchange rates, using cached default rates.', err);
+      }
+    }
+
+    fetchExchangeRates();
+  }, []);
+
   // Supabase background sync for cloud persistent storage (only after initial data load)
   useEffect(() => {
     if (!currentUserId || currentUserId.startsWith('00000000-') || !dataLoaded) {
@@ -1311,15 +1342,52 @@ export function AuthenticatedApp({
       balance: 0,
     }));
 
+    const firstNewBucket = loaded[0];
+
+    // Remap all existing transactions to the new primary bucket to prevent orphaned data
+    const updatedTransactions = transactions.map((t) => ({
+      ...t,
+      bucketId: firstNewBucket.id,
+      bucketName: firstNewBucket.name,
+    }));
+
+    // Remap all existing expenses to the new primary bucket
+    const updatedExpenses = expenses.map((e) => ({
+      ...e,
+      bucketId: firstNewBucket.id,
+      bucketName: firstNewBucket.name,
+    }));
+
+    // Remap all milestones
+    const updatedMilestones = milestones.map((m) => ({
+      ...m,
+      bucketId: firstNewBucket.id,
+    }));
+
+    // Save state
+    setTransactions(updatedTransactions);
+    setExpenses(updatedExpenses);
+    setMilestones(updatedMilestones);
     setBuckets(loaded);
+
     setUserProfile((prev) => ({ ...prev, selectedBlueprint: tmpl.name }));
-    if (currentUserId) {
-      syncBucketsToSupabase(loaded, currentUserId);
+
+    // Clean up old buckets in Supabase database before uploading new structure
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      const validUuid = ensureUuid(currentUserId);
+      supabase
+        .from('buckets')
+        .delete()
+        .eq('user_id', validUuid)
+        .then(() => {
+          syncBucketsToSupabase(loaded, currentUserId);
+        });
     }
+
     setShowBlueprintConfirmModal(false);
     setPendingTemplateToLoad(null);
 
-    addToast(`Successfully applied "${tmpl.name}" blueprint! Your historical transactions remain intact.`, 'success');
+    addToast(`Successfully applied "${tmpl.name}" blueprint! All historical balances consolidated to "${firstNewBucket.name}".`, 'success');
   };
 
   const handleResetToDefaultBuckets = () => {
@@ -2195,13 +2263,13 @@ export function AuthenticatedApp({
                         onDeposit={() => setShowDirectDepositModal(true)}
                       />
                       
-                      {/* Hover delete button for Custom Buckets */}
-                      {bucket.id.startsWith('custom-') && (
+                      {/* Hover delete button for all buckets */}
+                      {(!bucket.isSystem) && (
                         <button
                           id={`delete-custom-bucket-${bucket.id}`}
                           onClick={() => handleDeleteBucket(bucket.id)}
                           className="absolute bottom-4 right-4 p-1 rounded bg-zinc-100 hover:bg-rose-50 hover:text-rose-600 text-gray-400 dark:bg-zinc-900 dark:hover:bg-rose-950/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                          title="Delete custom bucket"
+                          title="Delete budget bucket"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -2599,6 +2667,14 @@ export function AuthenticatedApp({
                               >
                                 Configure
                               </button>
+                              {!b.isSystem && (
+                                <button
+                                  onClick={() => handleDeleteBucket(b.id)}
+                                  className="text-rose-500 hover:text-rose-750 font-bold hover:underline cursor-pointer ml-3.5"
+                                >
+                                  Delete
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -3837,25 +3913,37 @@ export function AuthenticatedApp({
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-3">
+            <div className="flex justify-between items-center pt-3 border-t border-gray-150 dark:border-zinc-900">
               <button
                 type="button"
-                id="cancel-edit-bucket"
                 onClick={() => {
                   setShowEditBucketModal(false);
-                  setEditingBucket(null);
+                  handleDeleteBucket(editingBucket.id);
                 }}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold rounded-xl text-rose-600 hover:text-white hover:bg-rose-600 dark:hover:bg-rose-950/30 cursor-pointer transition-all border border-rose-250 dark:border-rose-900/50"
               >
-                Cancel
+                Delete Category
               </button>
-              <button
-                type="submit"
-                id="submit-edit-bucket"
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-[#0E2A47] hover:bg-[#00A896] text-white cursor-pointer transition-colors"
-              >
-                Save Changes
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  id="cancel-edit-bucket"
+                  onClick={() => {
+                    setShowEditBucketModal(false);
+                    setEditingBucket(null);
+                  }}
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-250 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  id="submit-edit-bucket"
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-[#0E2A47] hover:bg-[#00A896] text-white cursor-pointer transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </form>
         </div>

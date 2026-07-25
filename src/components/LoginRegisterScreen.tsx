@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { UserProfile } from '../types';
 import { registerUserAccountToSupabase, loginUserAccountToSupabase, loginWithGoogleOAuth, copyLocalStorageData, supabase, sendEmailNotification, fetchUserClientIp } from '../lib/supabase';
@@ -77,6 +77,22 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   // Local storage list of registered users
   const [users, setUsers] = useLocalStorage<RegisteredUser[]>('before spend_registered_users', []);
 
+  useEffect(() => {
+    if (isRegister) {
+      const script = document.createElement('script');
+      script.src = `https://www.google.com/recaptcha/api.js?render=6LfwR2UtAAAAAKqaitvxwwOmpuS4GyySuc7ZvMo7`;
+      script.async = true;
+      document.body.appendChild(script);
+      return () => {
+        const badge = document.querySelector('.grecaptcha-badge');
+        if (badge && badge.parentNode) {
+          badge.parentNode.removeChild(badge);
+        }
+        document.body.removeChild(script);
+      };
+    }
+  }, [isRegister]);
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -95,6 +111,39 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         setErrorMsg('Password must be at least 6 characters long.');
         return;
       }
+
+      // Execute reCAPTCHA V3
+      setErrorMsg('Verifying security check (reCAPTCHA)...');
+      try {
+        const token = await new Promise<string>((resolve, reject) => {
+          const grecaptcha = (window as any).grecaptcha;
+          if (!grecaptcha || !grecaptcha.ready) {
+            reject(new Error('reCAPTCHA not loaded'));
+            return;
+          }
+          grecaptcha.ready(() => {
+            grecaptcha
+              .execute('6LfwR2UtAAAAAKqaitvxwwOmpuS4GyySuc7ZvMo7', { action: 'signup' })
+              .then(resolve)
+              .catch(reject);
+          });
+        });
+
+        const verifyEndpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(
+          `https://www.google.com/recaptcha/api/siteverify?secret=6LfwR2UtAAAAAJINDgFWdUSPWDKmLBYGmt2Y--q8&response=${token}`
+        )}`;
+        const response = await fetch(verifyEndpoint);
+        const data = await response.json();
+        const result = JSON.parse(data.contents);
+
+        if (!result.success || result.score < 0.5) {
+          setErrorMsg('Security check failed: Bot activity detected. Please try again from a valid browser.');
+          return;
+        }
+      } catch (captchaErr) {
+        console.warn('reCAPTCHA verification bypassed or failed:', captchaErr);
+      }
+      setErrorMsg('');
 
       const emailLower = email.toLowerCase().trim();
       const userExists = users.some((u) => u.email.toLowerCase().trim() === emailLower);

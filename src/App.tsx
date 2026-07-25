@@ -203,7 +203,12 @@ export function AuthenticatedApp({
   const [newBucketAccount, setNewBucketAccount] = useState('');
   const [newBucketColor, setNewBucketColor] = useState('emerald');
   const [newBucketNote, setNewBucketNote] = useState('');
-  const [newBucketThreshold, setNewBucketThreshold] = useState<number | string>('');
+  // Internal bucket transfer
+  const [showTransferFundsModal, setShowTransferFundsModal] = useState(false);
+  const [transferSourceId, setTransferSourceId] = useState('');
+  const [transferTargetId, setTransferTargetId] = useState('');
+  const [transferAmount, setTransferAmount] = useState<number | string>('');
+  const [transferNote, setTransferNote] = useState('');
 
   // Admin DB config raw code
   const [rawDbJson, setRawDbJson] = useState('');
@@ -1311,11 +1316,12 @@ export function AuthenticatedApp({
       return e;
     });
 
-    // 3. Update buckets list: delete source bucket and consolidate percentage
+    // 3. Update buckets list: delete source bucket, merge balance, and consolidate percentage
     const updatedBuckets = buckets.map((b) => {
       if (b.id === targetBucket.id) {
         return {
           ...b,
+          balance: Number((b.balance + sourceBucket.balance).toFixed(2)),
           percentage: consolidatePercentage
             ? Math.min(100, b.percentage + sourceBucket.percentage)
             : b.percentage,
@@ -1344,6 +1350,16 @@ export function AuthenticatedApp({
     // 6. Delete from Supabase cloud storage (so it's immediately removed from DB)
     if (currentUserId && !currentUserId.startsWith('00000000-')) {
       await adminDeleteBucketFromSupabase(sourceBucket.id);
+      await syncBucketsToSupabase(updatedBuckets, currentUserId);
+      if (updatedTransactions.length > 0) {
+        await syncTransactionsToSupabase(updatedTransactions, currentUserId);
+      }
+      if (updatedExpenses.length > 0) {
+        await syncExpensesToSupabase(updatedExpenses, currentUserId);
+      }
+      if (updatedMilestones.length > 0) {
+        await syncMilestonesToSupabase(updatedMilestones, currentUserId);
+      }
     }
 
     addToast(`Successfully merged ${sourceBucket.name} data into ${targetBucket.name}!`, 'success');
@@ -1364,15 +1380,27 @@ export function AuthenticatedApp({
     if (!pendingTemplateToLoad) return;
     const tmpl = pendingTemplateToLoad;
 
-    const loaded: Bucket[] = tmpl.buckets.map((b, idx) => ({
-      id: `t-${idx}-${generateId()}`,
-      name: b.name,
-      percentage: b.percentage,
-      color: b.color,
-      destinationAccount: b.destinationAccount,
-      note: b.note,
-      balance: 0,
-    }));
+    const totalPreviousBalance = buckets.reduce((sum, b) => sum + b.balance, 0);
+    let distributedSum = 0;
+
+    const loaded: Bucket[] = tmpl.buckets.map((b, idx) => {
+      let allocatedBalance = 0;
+      if (idx === tmpl.buckets.length - 1) {
+        allocatedBalance = totalPreviousBalance - distributedSum;
+      } else {
+        allocatedBalance = Number(((totalPreviousBalance * b.percentage) / 100).toFixed(2));
+        distributedSum += allocatedBalance;
+      }
+      return {
+        id: `t-${idx}-${generateId()}`,
+        name: b.name,
+        percentage: b.percentage,
+        color: b.color,
+        destinationAccount: b.destinationAccount,
+        note: b.note,
+        balance: Math.max(0, Number(allocatedBalance.toFixed(2))),
+      };
+    });
 
     const firstNewBucket = loaded[0];
 
@@ -1411,21 +1439,121 @@ export function AuthenticatedApp({
         .from('buckets')
         .delete()
         .eq('user_id', validUuid)
-        .then(() => {
-          syncBucketsToSupabase(loaded, currentUserId);
+        .then(async () => {
+          await syncBucketsToSupabase(loaded, currentUserId);
+          if (updatedTransactions.length > 0) {
+            await syncTransactionsToSupabase(updatedTransactions, currentUserId);
+          }
+          if (updatedExpenses.length > 0) {
+            await syncExpensesToSupabase(updatedExpenses, currentUserId);
+          }
+          if (updatedMilestones.length > 0) {
+            await syncMilestonesToSupabase(updatedMilestones, currentUserId);
+          }
         });
     }
 
     setShowBlueprintConfirmModal(false);
     setPendingTemplateToLoad(null);
 
-    addToast(`Successfully applied "${tmpl.name}" blueprint! All historical balances consolidated to "${firstNewBucket.name}".`, 'success');
+    addToast(`Successfully applied "${tmpl.name}" blueprint! All historical balances redistributed to your new categories.`, 'success');
   };
 
   const handleResetToDefaultBuckets = () => {
     const templates = getLocalizedTemplates(userProfile.defaultCurrency);
     setPendingTemplateToLoad(templates[0]);
     setShowBlueprintConfirmModal(true);
+  };
+
+  const handleTransferFunds = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountNum = Number(transferAmount);
+    if (!transferSourceId || !transferTargetId || isNaN(amountNum) || amountNum <= 0) {
+      addToast('Please specify source, target, and a positive amount.', 'warning');
+      return;
+    }
+    if (transferSourceId === transferTargetId) {
+      addToast('Source and target categories must be different!', 'warning');
+      return;
+    }
+
+    const sourceBucket = buckets.find(b => b.id === transferSourceId);
+    const targetBucket = buckets.find(b => b.id === transferTargetId);
+
+    if (!sourceBucket || !targetBucket) {
+      addToast('Bucket not found!', 'warning');
+      return;
+    }
+    if (sourceBucket.balance < amountNum) {
+      addToast(`Insufficient balance in ${sourceBucket.name}!`, 'warning');
+      return;
+    }
+
+    const now = new Date().toISOString();
+
+    // Update local bucket balances
+    const updatedBuckets = buckets.map(b => {
+      if (b.id === transferSourceId) {
+        return { ...b, balance: Number((b.balance - amountNum).toFixed(2)) };
+      }
+      if (b.id === transferTargetId) {
+        return { ...b, balance: Number((b.balance + amountNum).toFixed(2)) };
+      }
+      return b;
+    });
+
+    // Create 2 ledger transactions to ensure full double-entry accounting truth:
+    // 1. DEBIT from source
+    const debitTxnId = generateId('txn');
+    const debitTxn: Transaction = {
+      id: debitTxnId,
+      bucketId: sourceBucket.id,
+      bucketName: sourceBucket.name,
+      type: 'TRANSFER',
+      amount: amountNum,
+      direction: 'DEBIT',
+      description: transferNote ? `Transfer to ${targetBucket.name}: ${transferNote}` : `Internal Transfer to ${targetBucket.name}`,
+      sourceType: 'MANUAL_ENTRY',
+      createdAt: now,
+      deduplicationHash: ''
+    };
+    debitTxn.deduplicationHash = generateAuditHash(debitTxn);
+
+    // 2. CREDIT to target
+    const creditTxnId = generateId('txn');
+    const creditTxn: Transaction = {
+      id: creditTxnId,
+      bucketId: targetBucket.id,
+      bucketName: targetBucket.name,
+      type: 'TRANSFER',
+      amount: amountNum,
+      direction: 'CREDIT',
+      description: transferNote ? `Transfer from ${sourceBucket.name}: ${transferNote}` : `Internal Transfer from ${sourceBucket.name}`,
+      sourceType: 'MANUAL_ENTRY',
+      createdAt: now,
+      deduplicationHash: ''
+    };
+    creditTxn.deduplicationHash = generateAuditHash(creditTxn);
+
+    const updatedTransactions = [debitTxn, creditTxn, ...transactions];
+
+    setBuckets(updatedBuckets);
+    setTransactions(updatedTransactions);
+
+    // Sync to Supabase
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      await syncBucketsToSupabase(updatedBuckets, currentUserId);
+      await syncTransactionsToSupabase([debitTxn, creditTxn], currentUserId);
+    }
+
+    addToast(`Transferred ${formatCurrency(amountNum, userProfile.defaultCurrency)} from ${sourceBucket.name} to ${targetBucket.name}!`, 'success');
+
+    // Reset state
+    setShowTransferFundsModal(false);
+    setTransferSourceId('');
+    setTransferTargetId('');
+    setTransferAmount('');
+    setTransferNote('');
   };
 
   // User Profile save
@@ -2284,13 +2412,22 @@ export function AuthenticatedApp({
                 <h2 className="text-base font-black text-gray-900 dark:text-zinc-50">
                   Budget Allocations Breakdown
                 </h2>
-                <button
-                  id="add-custom-bucket-trigger"
-                  onClick={() => setShowAddCustomBucketModal(true)}
-                  className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" /> Add Custom Bucket
-                </button>
+                <div className="flex items-center gap-4">
+                  <button
+                    id="transfer-funds-trigger"
+                    onClick={() => setShowTransferFundsModal(true)}
+                    className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Reallocate / Transfer Funds
+                  </button>
+                  <button
+                    id="add-custom-bucket-trigger"
+                    onClick={() => setShowAddCustomBucketModal(true)}
+                    className="text-xs font-bold text-[#00A896] hover:text-[#0E2A47] flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Add Custom Bucket
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5">
@@ -3793,6 +3930,111 @@ export function AuthenticatedApp({
         </footer>
 
       </div>
+
+      {/* MODAL: TRANSFER / REALLOCATE FUNDS */}
+      {showTransferFundsModal && (
+        <div id="transfer-funds-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <form
+            onSubmit={handleTransferFunds}
+            className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
+          >
+            <div className="flex justify-between items-center pb-3">
+              <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Reallocate / Transfer Funds</h3>
+              <button
+                type="button"
+                id="close-transfer-funds-modal"
+                onClick={() => setShowTransferFundsModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Source Bucket (From) *</label>
+                <select
+                  required
+                  value={transferSourceId}
+                  onChange={(e) => setTransferSourceId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
+                >
+                  <option value="">-- Select Source Category --</option>
+                  {buckets.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} (Available: {formatCurrency(b.balance, userProfile.defaultCurrency)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Target Bucket (To) *</label>
+                <select
+                  required
+                  value={transferTargetId}
+                  onChange={(e) => setTransferTargetId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
+                >
+                  <option value="">-- Select Target Category --</option>
+                  {buckets
+                    .filter((b) => b.id !== transferSourceId)
+                    .map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} (Current: {formatCurrency(b.balance, userProfile.defaultCurrency)})
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">
+                  Amount to Transfer ({userProfile.defaultCurrency}) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0.01"
+                  step="any"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
+                  placeholder="e.g. 5000"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Note (Optional)</label>
+                <input
+                  type="text"
+                  value={transferNote}
+                  onChange={(e) => setTransferNote(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
+                  placeholder="Reason for transfer..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-3">
+              <button
+                type="button"
+                id="cancel-transfer-funds"
+                onClick={() => setShowTransferFundsModal(false)}
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 dark:border-zinc-850 dark:text-zinc-300 dark:hover:bg-zinc-900 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                id="submit-transfer-funds"
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-[#0E2A47] hover:bg-[#00A896] text-white cursor-pointer transition-colors shadow-md"
+              >
+                Execute Reallocation
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* MODAL 1: ADD CUSTOM BUCKET */}
       {showAddCustomBucketModal && (

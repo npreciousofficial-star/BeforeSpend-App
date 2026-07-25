@@ -205,10 +205,10 @@ export function LandingPage({
 
   const testimonials = [
     {
-      name: detectedRegion === 'US' ? 'Sarah Jennings' : 'Chidi Okechukwu',
+      name: detectedRegion === 'US' ? 'Steven Jennings' : 'Chidi Okechukwu',
       role: detectedRegion === 'US' ? 'Senior Branding Consultant' : 'UI/UX Designer & Senior Freelancer',
       avatar: detectedRegion === 'US' ? 'SJ' : 'CO',
-      imgUrl: detectedRegion === 'US' ? '' : '/avatars/avatar1.jpg',
+      imgUrl: '/avatars/avatar1.jpg',
       color: 'bg-emerald-600',
       rating: 5,
       impact: detectedRegion === 'US' ? 'Saved $4,200 in Emergency Savings' : 'Saved ₦1.8M in Emergency Savings',
@@ -220,7 +220,7 @@ export function LandingPage({
       name: detectedRegion === 'US' ? 'Emily Vance' : 'Amaka Vance',
       role: 'Product Manager & Real Estate Investor',
       avatar: detectedRegion === 'US' ? 'EV' : 'AV',
-      imgUrl: detectedRegion === 'US' ? '' : '/avatars/avatar2.jpg',
+      imgUrl: '/avatars/avatar2.jpg',
       color: 'bg-teal-600',
       rating: 5,
       impact: '100% Reliable Money Tracking',
@@ -230,7 +230,7 @@ export function LandingPage({
       name: detectedRegion === 'US' ? 'Robert Miller' : 'Tunde Bakare',
       role: detectedRegion === 'US' ? 'Creative Director & Agency Principal' : 'Software Engineer & Agency Founder',
       avatar: detectedRegion === 'US' ? 'RM' : 'TB',
-      imgUrl: detectedRegion === 'US' ? '' : '/avatars/avatar3.jpg',
+      imgUrl: '/avatars/avatar3.jpg',
       color: 'bg-blue-600',
       rating: 5,
       impact: 'Zero Wasted Cash',
@@ -581,13 +581,13 @@ export function LandingPage({
             ]).map(bank => (
               <div
                 key={bank.alt}
-                className="flex items-center justify-center p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-[#00A896] hover:scale-105 transition-all duration-200 cursor-pointer w-full h-16"
+                className="flex items-center justify-center p-1.5 sm:p-2 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-[#00A896] hover:scale-105 transition-all duration-200 cursor-pointer w-full h-16"
                 title={bank.alt}
               >
                 <img
                   src={bank.src}
                   alt={bank.alt}
-                  className="h-full max-h-[85%] w-auto object-contain transition-all"
+                  className="h-full max-h-[92%] w-auto object-contain transition-all"
                   onError={e => {
                     (e.target as HTMLImageElement).style.display = 'none';
                     const span = document.createElement('span');
@@ -1124,15 +1124,15 @@ export function LandingPage({
               <div className="pt-2 border-t border-zinc-800 flex items-center gap-3">
                 <img
                   src="/testimonial-avatar.jpg"
-                  alt={detectedRegion === 'US' ? 'David Vance' : 'Ngozi Adebayo'}
+                  alt={detectedRegion === 'US' ? 'David Vance' : 'Emeka Adebayo'}
                   className="w-11 h-11 rounded-full object-cover border-2 border-[#00A896] shadow-md flex-shrink-0"
                 />
                 <div>
                   <div className="font-extrabold text-xs text-white">
-                    {detectedRegion === 'US' ? 'David Vance' : 'Ngozi Adebayo'}
+                    {detectedRegion === 'US' ? 'David Vance' : 'Emeka Adebayo'}
                   </div>
                   <div className="text-[10px] text-zinc-400 font-medium">
-                    {detectedRegion === 'US' ? 'Independent Tech Consultant & Founder' : 'Senior Brand Consultant & Agency Lead'}
+                    {detectedRegion === 'US' ? 'Independent Tech Consultant & Founder' : 'Independent Brand Consultant & Creative Lead'}
                   </div>
                 </div>
               </div>

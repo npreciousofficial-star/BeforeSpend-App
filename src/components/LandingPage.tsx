@@ -72,6 +72,14 @@ export function LandingPage({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
+  const getLogoScaleClass = (alt: string) => {
+    if (alt === 'Capital One') return 'scale-[1.4]';
+    if (alt === 'Fidelity Investments') return 'scale-[1.4]';
+    if (alt === 'Zenith Bank') return 'scale-[1.4]';
+    if (alt === 'GTBank') return 'scale-[1.15]';
+    return 'scale-100';
+  };
+
   // Retrieve user profile if logged in
   let userProfile = { name: 'User', email: '', role: 'Member', avatar: 'preset-emerald' };
   if (isLoggedIn && currentUserId) {
@@ -251,7 +259,7 @@ export function LandingPage({
           <BeforeSpendLogo size="md" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
 
           {/* Simple Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-gray-600 dark:text-zinc-300">
+          <nav className="hidden lg:flex items-center gap-7 text-xs font-bold text-gray-600 dark:text-zinc-300">
             <a href="#features" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">Features</a>
             <a href="#sandbox" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">Calculator</a>
             <a href="#how-it-works" className="hover:text-[#00A896] dark:hover:text-[#00A896] transition-colors">How It Works</a>
@@ -347,7 +355,7 @@ export function LandingPage({
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 hover:text-[#00A896] min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+              className="lg:hidden p-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 hover:text-[#00A896] min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -358,7 +366,7 @@ export function LandingPage({
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 z-50 md:hidden bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800 px-4 pt-3 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top-2 duration-200">
+          <div className="absolute top-full left-0 right-0 z-50 lg:hidden bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800 px-4 pt-3 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top-2 duration-200">
             <nav className="flex flex-col space-y-2 text-sm font-bold text-gray-700 dark:text-zinc-200">
               <a 
                 href="#features" 
@@ -587,7 +595,7 @@ export function LandingPage({
                 <img
                   src={bank.src}
                   alt={bank.alt}
-                  className="h-full max-h-[92%] w-auto object-contain transition-all"
+                  className={`h-full max-h-[92%] w-auto object-contain transition-all ${getLogoScaleClass(bank.alt)}`}
                   onError={e => {
                     (e.target as HTMLImageElement).style.display = 'none';
                     const span = document.createElement('span');

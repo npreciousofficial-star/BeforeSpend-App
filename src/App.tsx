@@ -184,6 +184,7 @@ export function AuthenticatedApp({
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(true); // guards sync from firing before load completes
+  const [isCloudDataLoaded, setIsCloudDataLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true); // desktop sidebar visibility toggle
   
   // Settings bucket states
@@ -203,6 +204,7 @@ export function AuthenticatedApp({
   const [newBucketAccount, setNewBucketAccount] = useState('');
   const [newBucketColor, setNewBucketColor] = useState('emerald');
   const [newBucketNote, setNewBucketNote] = useState('');
+  const [newBucketThreshold, setNewBucketThreshold] = useState<number | string>('');
   // Internal bucket transfer
   const [showTransferFundsModal, setShowTransferFundsModal] = useState(false);
   const [transferSourceId, setTransferSourceId] = useState('');
@@ -421,6 +423,7 @@ export function AuthenticatedApp({
 
     async function loadData() {
       setDataLoaded(false);
+      setIsCloudDataLoaded(false);
       try {
         pingSupabaseDatabase();
         console.log('Fetching user data from Supabase database...');
@@ -564,6 +567,7 @@ export function AuthenticatedApp({
         }
 
         console.log('Supabase user data loaded successfully!');
+        setIsCloudDataLoaded(true);
       } catch (err) {
         console.warn('Failed to load user data from Supabase:', err);
       } finally {
@@ -607,20 +611,11 @@ export function AuthenticatedApp({
 
   // Supabase background sync for cloud persistent storage (only after initial data load)
   useEffect(() => {
-    if (!currentUserId || currentUserId.startsWith('00000000-') || !dataLoaded) {
+    if (!currentUserId || currentUserId.startsWith('00000000-') || !dataLoaded || !isCloudDataLoaded) {
       return; // Skip sync for guests and until load completes (prevents race condition)
     }
 
     async function runSequentialSync() {
-      const resolvedAvatar = await syncProfileToSupabase(userProfile, currentUserId);
-      if (
-        resolvedAvatar &&
-        userProfile.avatar?.startsWith('data:image/') &&
-        resolvedAvatar !== userProfile.avatar
-      ) {
-        setUserProfile((prev) => ({ ...prev, avatar: resolvedAvatar }));
-        setEditProfileAvatar(resolvedAvatar);
-      }
       await syncBucketsToSupabase(buckets, currentUserId);
       // Sequentially sync dependent tables after buckets exist in database
       await syncTransactionsToSupabase(transactions, currentUserId);
@@ -632,7 +627,7 @@ export function AuthenticatedApp({
     }
 
     runSequentialSync();
-  }, [userProfile, buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded]);
+  }, [buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded, isCloudDataLoaded]);
 
   // Under-the-hood Live Bank Sync Polling Worker (Prepared for Plaid / Mono integration)
   useEffect(() => {
@@ -3952,39 +3947,31 @@ export function AuthenticatedApp({
 
             <div className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Source Bucket (From) *</label>
-                <select
-                  required
+                <CustomSelect
+                  label="Source Bucket (From) *"
                   value={transferSourceId}
-                  onChange={(e) => setTransferSourceId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
-                >
-                  <option value="">-- Select Source Category --</option>
-                  {buckets.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} (Available: {formatCurrency(b.balance, userProfile.defaultCurrency)})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setTransferSourceId(val)}
+                  placeholder="Select source category..."
+                  options={buckets.map((b) => ({
+                    value: b.id,
+                    label: `${b.name} (Available: ${formatCurrency(b.balance, userProfile.defaultCurrency)})`
+                  }))}
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Target Bucket (To) *</label>
-                <select
-                  required
+                <CustomSelect
+                  label="Target Bucket (To) *"
                   value={transferTargetId}
-                  onChange={(e) => setTransferTargetId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
-                >
-                  <option value="">-- Select Target Category --</option>
-                  {buckets
+                  onChange={(val) => setTransferTargetId(val)}
+                  placeholder="Select target category..."
+                  options={buckets
                     .filter((b) => b.id !== transferSourceId)
-                    .map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name} (Current: {formatCurrency(b.balance, userProfile.defaultCurrency)})
-                      </option>
-                    ))}
-                </select>
+                    .map((b) => ({
+                      value: b.id,
+                      label: `${b.name} (Current: ${formatCurrency(b.balance, userProfile.defaultCurrency)})`
+                    }))}
+                />
               </div>
 
               <div>

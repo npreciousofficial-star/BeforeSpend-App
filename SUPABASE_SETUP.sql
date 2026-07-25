@@ -273,36 +273,36 @@ values (
     'avatars',
     'avatars',
     true,
-    5242880,
+    2097152,
     array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
 )
 on conflict (id) do update set
     public = true,
-    file_size_limit = 5242880;
+    file_size_limit = 2097152;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
     'receipts',
     'receipts',
     true,
-    10485760,
+    2097152,
     array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']
 )
 on conflict (id) do update set
     public = true,
-    file_size_limit = 10485760;
+    file_size_limit = 2097152;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
     'statements',
     'statements',
     true,
-    20971520,
+    2097152,
     array['text/csv', 'application/pdf', 'text/plain']
 )
 on conflict (id) do update set
     public = true,
-    file_size_limit = 20971520;
+    file_size_limit = 2097152;
 
 do $$
 begin

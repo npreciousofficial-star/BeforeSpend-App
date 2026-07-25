@@ -388,7 +388,7 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
 
           {/* Bar Charts Render */}
           <div className="space-y-4">
-            <div className="h-48 flex items-end justify-between gap-2 sm:gap-3 pt-6 pb-2 border-b border-gray-150 dark:border-zinc-900 bg-gray-50/50 dark:bg-zinc-900/30 p-3 sm:p-4 rounded-xl">
+            <div className="h-48 flex items-end justify-between gap-2 sm:gap-3 pt-6 pb-2 border-b border-gray-200 dark:border-zinc-900 bg-gray-50/50 dark:bg-zinc-900/30 p-3 sm:p-4 rounded-xl">
               {monthlyData.map((data, index) => {
                 const splitsPct = data.splits > 0 ? Math.max(10, (data.splits / maxVal) * 100) : 0;
                 const expensePct = data.expenses > 0 ? Math.max(10, (data.expenses / maxVal) * 100) : 0;
@@ -427,7 +427,7 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
 
         {/* Month-over-Month Net Savings Velocity & Trend Curve */}
         <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-150 dark:border-zinc-900">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-200 dark:border-zinc-900">
             <div className="space-y-0.5">
               <h3 className="font-bold text-gray-900 dark:text-zinc-50 text-sm flex items-center gap-2">
                 <Gauge className="w-4 h-4 text-teal-500" /> Month-over-Month Net Savings Velocity
@@ -449,7 +449,7 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* SVG Trend Line Chart */}
             <div className="md:col-span-2 space-y-2">
-              <div className="relative w-full h-40 bg-slate-50/70 dark:bg-zinc-900/40 rounded-xl p-3 border border-gray-150 dark:border-zinc-850 flex items-center justify-center">
+              <div className="relative w-full h-40 bg-slate-50/70 dark:bg-zinc-900/40 rounded-xl p-3 border border-gray-200 dark:border-zinc-850 flex items-center justify-center">
                 <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible">
                   <defs>
                     <linearGradient id="savingsGradient" x1="0" y1="0" x2="0" y2="1">
@@ -509,7 +509,7 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
             </div>
 
             {/* Velocity Summary Side Metrics */}
-            <div className="space-y-3 flex flex-col justify-center bg-gray-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-gray-150 dark:border-zinc-850">
+            <div className="space-y-3 flex flex-col justify-center bg-gray-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-gray-200 dark:border-zinc-850">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Current Month Net Savings</span>
                 <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(currentMonthNet, currency)}</p>

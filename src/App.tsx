@@ -2248,7 +2248,7 @@ export function AuthenticatedApp({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5">
                 {!dataLoaded ? (
                   Array.from({ length: 6 }).map((_, idx) => (
                     <SkeletonBucketCard key={idx} />
@@ -2261,19 +2261,17 @@ export function AuthenticatedApp({
                         currency={userProfile.defaultCurrency}
                         hideBalance={hideBalance}
                         onDeposit={() => setShowDirectDepositModal(true)}
+                        onEdit={() => {
+                          setEditingBucket(bucket);
+                          setTempBucketName(bucket.name);
+                          setTempBucketPercentage(bucket.percentage);
+                          setTempBucketAccount(bucket.destinationAccount);
+                          setTempBucketColor(bucket.color);
+                          setTempBucketNote(bucket.note || '');
+                          setTempBucketThreshold(bucket.lowBalanceThreshold !== undefined ? bucket.lowBalanceThreshold : '');
+                          setShowEditBucketModal(true);
+                        }}
                       />
-                      
-                      {/* Hover delete button for all buckets */}
-                      {(!bucket.isSystem) && (
-                        <button
-                          id={`delete-custom-bucket-${bucket.id}`}
-                          onClick={() => handleDeleteBucket(bucket.id)}
-                          className="absolute bottom-4 right-4 p-1 rounded bg-zinc-100 hover:bg-rose-50 hover:text-rose-600 text-gray-400 dark:bg-zinc-900 dark:hover:bg-rose-950/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                          title="Delete budget bucket"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   ))
                 )}
@@ -2469,7 +2467,7 @@ export function AuthenticatedApp({
                     {/* Interactive Avatar Selection */}
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-wider mb-2">Profile Avatar</label>
-                      <div className="flex items-center gap-3.5 p-3 bg-slate-50 dark:bg-zinc-900/40 rounded-xl border border-gray-150 dark:border-zinc-850">
+                      <div className="flex items-center gap-3.5 p-3 bg-slate-50 dark:bg-zinc-900/40 rounded-xl border border-gray-250/80 dark:border-zinc-800">
                         <Avatar avatar={editProfileAvatar} name={editProfileName} className="w-12 h-12 text-base flex-shrink-0" />
                         <div className="space-y-1 flex-1">
                           <input
@@ -2480,8 +2478,8 @@ export function AuthenticatedApp({
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (file.size > 5 * 1024 * 1024) {
-                                  addToast('Image size should be less than 5MB', 'error');
+                                if (file.size > 2 * 1024 * 1024) {
+                                  addToast('Image size should be less than 2MB', 'error');
                                   return;
                                 }
                                 try {
@@ -2634,7 +2632,7 @@ export function AuthenticatedApp({
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs text-gray-500">
                       <thead>
-                        <tr className="border-b border-gray-150 dark:border-zinc-900 pb-2 text-gray-400 font-bold">
+                        <tr className="border-b border-gray-200 dark:border-zinc-900 pb-2 text-gray-400 font-bold">
                           <th className="py-2 font-bold">Bucket Name</th>
                           <th className="py-2 font-bold">Account</th>
                           <th className="py-2 font-bold text-center">Percentage</th>
@@ -2650,7 +2648,7 @@ export function AuthenticatedApp({
                             </td>
                             <td className="py-2.5 font-semibold text-gray-600 dark:text-zinc-400">{b.destinationAccount}</td>
                             <td className="py-2.5 font-bold text-center text-gray-900 dark:text-zinc-50">{b.percentage}%</td>
-                            <td className="py-2.5 text-right space-x-2">
+                            <td className="py-2.5 text-right whitespace-nowrap space-x-2">
                               <button
                                 id={`edit-bucket-btn-${b.id}`}
                                 onClick={() => {
@@ -2848,7 +2846,7 @@ export function AuthenticatedApp({
                 <div className="flex-1 bg-white dark:bg-zinc-950 rounded-2xl p-4 sm:p-6 border border-gray-200/60 dark:border-zinc-900 shadow-xs flex flex-col gap-6 overflow-hidden">
                   
                   {/* Top Header of command center */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-150 dark:border-zinc-900">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200 dark:border-zinc-900">
                     <div>
                       <h2 className="text-xl font-black text-[#0E2A47] dark:text-zinc-50 flex items-center gap-2">
                         {adminActiveSubTab === 'overview' && 'System KPIs & Performance'}
@@ -2967,7 +2965,7 @@ export function AuthenticatedApp({
                                   <th className="py-2.5 px-3">Date</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-gray-150 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
+                              <tbody className="divide-y divide-gray-200 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
                                 {adminTransactions.slice(0, 6).map((txn) => (
                                   <tr key={txn.id} className="hover:bg-gray-55 dark:hover:bg-zinc-900/30">
                                     <td className="py-2.5 px-3 font-semibold truncate max-w-[200px]">{txn.description}</td>
@@ -2999,7 +2997,7 @@ export function AuthenticatedApp({
                                     <span className="text-gray-600 dark:text-zinc-400 truncate max-w-[150px]">{roleName}</span>
                                     <span className="font-black text-gray-800 dark:text-zinc-200">{count} ({percentage.toFixed(0)}%)</span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-gray-150 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                                     <div 
                                       style={{ width: `${percentage}%` }}
                                       className="h-full bg-[#00A896] rounded-full"
@@ -3029,7 +3027,7 @@ export function AuthenticatedApp({
                               <th className="py-3 px-4 text-center">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-150 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
+                          <tbody className="divide-y divide-gray-200 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
                             {adminProfiles
                               .filter(p => !adminSearchQuery || p.name?.toLowerCase().includes(adminSearchQuery.toLowerCase()) || p.email?.toLowerCase().includes(adminSearchQuery.toLowerCase()))
                               .map((profile) => (
@@ -3091,7 +3089,7 @@ export function AuthenticatedApp({
                               <th className="py-3 px-4 text-center">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-150 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
+                          <tbody className="divide-y divide-gray-200 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
                             {adminBuckets
                               .filter(b => !adminSearchQuery || b.name?.toLowerCase().includes(adminSearchQuery.toLowerCase()) || b.user_id?.toLowerCase().includes(adminSearchQuery.toLowerCase()))
                               .map((bucket) => (
@@ -3154,7 +3152,7 @@ export function AuthenticatedApp({
                               <th className="py-3 px-4 text-center">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-150 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
+                          <tbody className="divide-y divide-gray-200 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
                             {adminTransactions
                               .filter(t => !adminSearchQuery || t.description?.toLowerCase().includes(adminSearchQuery.toLowerCase()) || t.type?.toLowerCase().includes(adminSearchQuery.toLowerCase()))
                               .map((txn) => (
@@ -3219,7 +3217,7 @@ export function AuthenticatedApp({
                               <th className="py-3 px-4 text-center">Receipt File</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-150 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
+                          <tbody className="divide-y divide-gray-200 dark:divide-zinc-900 bg-white dark:bg-zinc-950 text-gray-700 dark:text-zinc-300">
                             {adminPayments
                               .filter(p => !adminSearchQuery || p.note?.toLowerCase().includes(adminSearchQuery.toLowerCase()) || p.user_id?.toLowerCase().includes(adminSearchQuery.toLowerCase()))
                               .map((payment) => (
@@ -3519,7 +3517,7 @@ export function AuthenticatedApp({
                 onSubmit={handleAdminSaveProfile}
                 className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
               >
-                <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
+                <div className="flex justify-between items-center pb-3">
                   <h3 className="text-base font-black text-[#0E2A47] dark:text-zinc-50">Edit User Profile</h3>
                   <button type="button" onClick={() => setAdminEditingUser(null)} className="text-gray-400 hover:text-gray-650 dark:hover:text-zinc-200">
                     <X className="w-5 h-5" />
@@ -3571,7 +3569,7 @@ export function AuthenticatedApp({
                 onSubmit={handleAdminSaveBucket}
                 className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
               >
-                <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
+                <div className="flex justify-between items-center pb-3">
                   <h3 className="text-base font-black text-[#0E2A47] dark:text-zinc-50">Edit Budget Bucket</h3>
                   <button type="button" onClick={() => setAdminEditingBucket(null)} className="text-gray-400 hover:text-gray-650 dark:hover:text-zinc-200">
                     <X className="w-5 h-5" />
@@ -3625,7 +3623,7 @@ export function AuthenticatedApp({
                 onSubmit={handleAdminSaveTransaction}
                 className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
               >
-                <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
+                <div className="flex justify-between items-center pb-3">
                   <h3 className="text-base font-black text-[#0E2A47] dark:text-zinc-50">Audit Transaction</h3>
                   <button type="button" onClick={() => setAdminEditingTransaction(null)} className="text-gray-400 hover:text-gray-650 dark:hover:text-zinc-200">
                     <X className="w-5 h-5" />
@@ -3683,7 +3681,7 @@ export function AuthenticatedApp({
             onSubmit={handleAddCustomBucket}
             className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
           >
-            <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
+            <div className="flex justify-between items-center pb-3">
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Create Custom Budget Bucket</h3>
               <button
                 type="button"
@@ -3814,7 +3812,7 @@ export function AuthenticatedApp({
             onSubmit={handleSaveEditedBucket}
             className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl"
           >
-            <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
+            <div className="flex justify-between items-center pb-3">
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Configure {editingBucket.name}</h3>
               <button
                 type="button"
@@ -3913,7 +3911,7 @@ export function AuthenticatedApp({
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-gray-150 dark:border-zinc-900">
+            <div className="flex justify-between items-center pt-4">
               <button
                 type="button"
                 onClick={() => {
@@ -3953,7 +3951,7 @@ export function AuthenticatedApp({
       {showImportDbModal && (
         <div id="import-db-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200/80 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center pb-2 border-b border-gray-150 dark:border-zinc-900">
+            <div className="flex justify-between items-center pb-3">
               <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">Import Database Snapshot</h3>
               <button
                 type="button"
@@ -4026,7 +4024,7 @@ export function AuthenticatedApp({
       {showBlueprintConfirmModal && (
         <div id="blueprint-confirm-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3 pb-3 border-b border-gray-150 dark:border-zinc-900">
+            <div className="flex items-center gap-3 pb-4">
               <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
                 <ShieldAlert className="w-5 h-5" />
               </div>
@@ -4155,7 +4153,7 @@ export function AuthenticatedApp({
       {bucketToConsolidate && (
         <div id="bucket-consolidate-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white dark:bg-zinc-950 rounded-3xl border border-gray-200 dark:border-zinc-800 p-6 max-w-md w-full space-y-5 shadow-2xl text-left">
-            <div className="flex items-center gap-3 pb-3 border-b border-gray-150 dark:border-zinc-900">
+            <div className="flex items-center gap-3 pb-4">
               <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>

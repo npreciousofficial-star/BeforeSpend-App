@@ -109,7 +109,7 @@ export function TermsOfService({
       <main className="max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16 text-left space-y-12">
         
         {/* Preamble */}
-        <div className="text-base leading-relaxed text-gray-700 dark:text-zinc-300 border-b border-gray-150 dark:border-zinc-800/80 pb-8 space-y-4">
+        <div className="text-base leading-relaxed text-gray-700 dark:text-zinc-300 border-b border-gray-200 dark:border-zinc-800/80 pb-8 space-y-4">
           <p>
             Welcome to <strong>BeforeSpend</strong> ("BeforeSpend", "Platform", "we", "us", or "our"). These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and BeforeSpend governing your access to and use of our financial allocation software, website, database tools, and mobile web services.
           </p>

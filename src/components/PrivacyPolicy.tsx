@@ -109,7 +109,7 @@ export function PrivacyPolicy({
       <main className="max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16 text-left space-y-12">
         
         {/* Preamble */}
-        <div className="text-base leading-relaxed text-gray-700 dark:text-zinc-300 border-b border-gray-150 dark:border-zinc-800/80 pb-8 space-y-4">
+        <div className="text-base leading-relaxed text-gray-700 dark:text-zinc-300 border-b border-gray-200 dark:border-zinc-800/80 pb-8 space-y-4">
           <p>
             At <strong>BeforeSpend</strong>, we respect your privacy and are committed to protecting the personal and financial information you entrust to us. This Privacy Policy outlines our practices regarding data collection, encryption, cloud synchronization, and user control rights.
           </p>

@@ -83,7 +83,7 @@ export function ExpensePieChart({ expenses, buckets, currency }: ExpensePieChart
 
   return (
     <div className="p-5 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-gray-150 dark:border-zinc-900">
+      <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-zinc-900">
         <div className="flex items-center gap-2">
           <TrendingDown className="w-4 h-4 text-rose-500" />
           <h3 className="font-extrabold text-sm text-gray-900 dark:text-zinc-50">Expenses Summary Breakdown</h3>

@@ -188,7 +188,7 @@ export function HistoryEntryList({
 
         {/* Custom Dates Inputs */}
         {dateFilter === 'custom' && (
-          <div id="history-custom-date-inputs" className="grid grid-cols-2 gap-2 p-2.5 bg-gray-50/50 dark:bg-zinc-900/50 rounded-xl border border-gray-150 dark:border-zinc-900">
+          <div id="history-custom-date-inputs" className="grid grid-cols-2 gap-2 p-2.5 bg-gray-50/50 dark:bg-zinc-900/50 rounded-xl border border-gray-200 dark:border-zinc-900">
             <div>
               <label className="block text-[10px] font-bold text-gray-400 mb-0.5">Start Date</label>
               <input
@@ -305,7 +305,7 @@ export function HistoryEntryList({
                   {entry.splits.map((split) => (
                     <span
                       key={split.bucketId}
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-150 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800/60 flex items-center gap-1.5"
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800/60 flex items-center gap-1.5"
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${getThemeColorClass(split.color)}`} />
                       {split.bucketName}: <strong className="font-extrabold text-gray-800 dark:text-zinc-300">{formatCurrency(split.amount, currency)}</strong>

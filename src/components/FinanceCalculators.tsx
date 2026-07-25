@@ -68,7 +68,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
     <div className="p-5 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm space-y-5">
       
       {/* Header and subtabs */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pb-3 border-b border-gray-150 dark:border-zinc-900">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pb-3 border-b border-gray-200 dark:border-zinc-900">
         <div>
           <h3 className="font-extrabold text-sm text-gray-900 dark:text-zinc-50 flex items-center gap-1.5">
             <Target className="w-4 h-4 text-emerald-500" />
@@ -186,7 +186,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
           </div>
 
           {/* Result card */}
-          <div className="md:col-span-5 p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-gray-150 dark:border-zinc-850 flex flex-col justify-between space-y-4">
+          <div className="md:col-span-5 p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 flex flex-col justify-between space-y-4">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Estimated Future Value</span>
               <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 block tracking-tight">
@@ -272,7 +272,7 @@ export function FinanceCalculators({ currency }: FinanceCalculatorsProps) {
           </div>
 
           {/* Result card */}
-          <div className="md:col-span-5 p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-gray-150 dark:border-zinc-850 flex flex-col justify-between space-y-4">
+          <div className="md:col-span-5 p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 flex flex-col justify-between space-y-4">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Estimated Monthly EMI</span>
               <span className="text-2xl font-black text-rose-600 dark:text-rose-400 block tracking-tight">

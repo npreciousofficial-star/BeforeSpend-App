@@ -295,7 +295,7 @@ export function NotificationBell({ notifications, setNotifications, onNavigate, 
                               onNavigate(redirectTab);
                               setIsOpen(false);
                             }}
-                            className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer mt-1 pt-1 border-t border-dashed border-gray-150 dark:border-zinc-800"
+                            className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer mt-1 pt-1 border-t border-dashed border-gray-200 dark:border-zinc-800"
                           >
                             <ExternalLink className="w-2.5 h-2.5" />
                             Open {redirectTab.charAt(0).toUpperCase() + redirectTab.slice(1)}
@@ -321,7 +321,7 @@ export function NotificationBell({ notifications, setNotifications, onNavigate, 
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="px-4 py-2 bg-slate-50 dark:bg-zinc-900/30 text-center text-[9px] text-gray-400 border-t border-gray-150 dark:border-zinc-850">
+              <div className="px-4 py-2 bg-slate-50 dark:bg-zinc-900/30 text-center text-[9px] text-gray-400 border-t border-gray-200 dark:border-zinc-850">
                 You have {unreadCount} unread workspace alerts.
               </div>
             )}

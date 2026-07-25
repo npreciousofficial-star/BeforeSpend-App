@@ -181,7 +181,7 @@ export function ExpenseList({
 
         {/* Custom Dates Inputs */}
         {dateFilter === 'custom' && (
-          <div id="custom-date-inputs" className="grid grid-cols-2 gap-2 p-2.5 bg-gray-50/50 dark:bg-zinc-900/50 rounded-xl border border-gray-150 dark:border-zinc-900">
+          <div id="custom-date-inputs" className="grid grid-cols-2 gap-2 p-2.5 bg-gray-50/50 dark:bg-zinc-900/50 rounded-xl border border-gray-200 dark:border-zinc-900">
             <div>
               <label className="block text-[10px] font-bold text-gray-400 mb-0.5">Start Date</label>
               <input

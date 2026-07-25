@@ -72,12 +72,14 @@ export function LandingPage({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-  const getLogoScaleClass = (alt: string) => {
-    if (alt === 'Capital One') return 'scale-[1.4]';
-    if (alt === 'Fidelity Investments') return 'scale-[1.4]';
-    if (alt === 'Zenith Bank') return 'scale-[1.4]';
-    if (alt === 'GTBank') return 'scale-[1.15]';
-    return 'scale-100';
+  const getLogoClass = (alt: string) => {
+    if (alt === 'Capital One' || alt === 'Fidelity Investments' || alt === 'Zenith Bank') {
+      return 'max-h-[60%] sm:max-h-[75%] scale-[1.3] sm:scale-[1.4]';
+    }
+    if (alt === 'GTBank') {
+      return 'max-h-[75%] sm:max-h-[85%] scale-[1.08] sm:scale-[1.15]';
+    }
+    return 'max-h-[75%] sm:max-h-[88%] scale-100';
   };
 
   // Retrieve user profile if logged in
@@ -595,7 +597,7 @@ export function LandingPage({
                 <img
                   src={bank.src}
                   alt={bank.alt}
-                  className={`h-full max-h-[92%] w-auto object-contain transition-all ${getLogoScaleClass(bank.alt)}`}
+                  className={`h-full w-auto object-contain transition-all ${getLogoClass(bank.alt)}`}
                   onError={e => {
                     (e.target as HTMLImageElement).style.display = 'none';
                     const span = document.createElement('span');

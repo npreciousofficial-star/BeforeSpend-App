@@ -529,19 +529,36 @@ export function AuthenticatedApp({
         if (dbTxns && dbTxns.length > 0) {
           const resolvedBuckets = (dbBuckets && dbBuckets.length > 0) ? dbBuckets : buckets;
           const enrichedTxns = dbTxns.map(txn => {
+            let bucketId = txn.bucketId;
             let bucketName = txn.bucketName;
-            if (!bucketName && txn.bucketId) {
-              const match = resolvedBuckets.find(b => b.id === txn.bucketId || b.name === txn.bucketId);
+
+            // Self-healing: if bucketId is missing or does not match any current bucket, try to match by name (case-insensitive)
+            const exists = resolvedBuckets.some(b => b.id === bucketId);
+            if (!exists && (bucketName || txn.description)) {
+              const searchName = (bucketName || txn.description || '').toLowerCase().trim();
+              const matchByName = resolvedBuckets.find(b => 
+                b.name.toLowerCase().trim() === searchName ||
+                searchName.includes(b.name.toLowerCase().trim())
+              );
+              if (matchByName) {
+                bucketId = matchByName.id;
+                bucketName = matchByName.name;
+              }
+            }
+
+            if (!bucketName && bucketId) {
+              const match = resolvedBuckets.find(b => b.id === bucketId);
               bucketName = match?.name;
             }
+
             const hash = txn.deduplicationHash || generateAuditHash({
               amount: txn.amount,
               description: txn.description,
-              bucketId: txn.bucketId,
+              bucketId: bucketId,
               direction: txn.direction,
               createdAt: txn.createdAt
             });
-            return { ...txn, bucketName, deduplicationHash: hash };
+            return { ...txn, bucketId, bucketName, deduplicationHash: hash };
           });
           setTransactions(enrichedTxns);
         }

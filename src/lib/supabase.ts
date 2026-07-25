@@ -256,45 +256,40 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       if (uploadedUrl) avatarUrl = uploadedUrl;
     }
 
-    // Check if profile exists by ID first to avoid throwing unique constraint conflicts in database
-    const { data: existingById } = await supabase
+    // 1. Check if a profile with this email already exists in the database to prevent unique constraint conflicts
+    const { data: existingByEmail } = await supabase
       .from('profiles')
-      .select('id')
-      .eq('id', validUuid)
+      .select('id, name, avatar, default_currency, phone_number, onboarding_completed')
+      .eq('email', profile.email)
       .maybeSingle();
 
     let error: any = null;
 
-    if (existingById) {
-      // Profile exists under this user's ID, update it
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          name: profile.name,
-          email: profile.email,
-          role: profile.role || 'Personal Budgeter',
-          avatar: avatarUrl || 'preset-emerald',
-          default_currency: profile.defaultCurrency || 'NGN',
-          phone_number: profile.phoneNumber || null,
-          onboarding_completed: profile.onboardingCompleted ?? true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', validUuid);
-      error = updateError;
-    } else {
-      // Profile does not exist by ID. Check if it exists by email to link it
-      const { data: existingByEmail } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', profile.email)
-        .maybeSingle();
+    if (existingByEmail) {
+      if (existingByEmail.id !== validUuid) {
+        // Link conflict: delete new placeholder profile under validUuid first to avoid primary key conflict
+        await supabase.from('profiles').delete().eq('id', validUuid);
 
-      if (existingByEmail) {
-        // Link existing profile record to the new authenticated user's ID
-        const { error: linkError } = await supabase
+        // Update the existing profile's ID to validUuid and update its details
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({
             id: validUuid,
+            name: profile.name || existingByEmail.name,
+            role: profile.role,
+            avatar: avatarUrl || existingByEmail.avatar || 'preset-emerald',
+            default_currency: profile.defaultCurrency || existingByEmail.default_currency || 'NGN',
+            phone_number: profile.phoneNumber || existingByEmail.phone_number || null,
+            onboarding_completed: profile.onboardingCompleted ?? existingByEmail.onboarding_completed ?? true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingByEmail.id);
+        error = updateError;
+      } else {
+        // Normal update for matching ID and email
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
             name: profile.name,
             role: profile.role || 'Personal Budgeter',
             avatar: avatarUrl || 'preset-emerald',
@@ -303,10 +298,34 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
             onboarding_completed: profile.onboardingCompleted ?? true,
             updated_at: new Date().toISOString()
           })
-          .eq('email', profile.email);
-        error = linkError;
+          .eq('id', validUuid);
+        error = updateError;
+      }
+    } else {
+      // Email is not registered yet. Check if the ID exists (e.g. they changed their email address)
+      const { data: existingById } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', validUuid)
+        .maybeSingle();
+
+      if (existingById) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            name: profile.name,
+            email: profile.email,
+            role: profile.role || 'Personal Budgeter',
+            avatar: avatarUrl || 'preset-emerald',
+            default_currency: profile.defaultCurrency || 'NGN',
+            phone_number: profile.phoneNumber || null,
+            onboarding_completed: profile.onboardingCompleted ?? true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', validUuid);
+        error = updateError;
       } else {
-        // Create new profile record
+        // Completely new profile: insert
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({

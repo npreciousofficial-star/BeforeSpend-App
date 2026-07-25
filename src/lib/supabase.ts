@@ -638,6 +638,8 @@ export async function loadProfileFromSupabase(userId: string): Promise<UserProfi
       defaultCurrency: data.default_currency || 'NGN',
       phoneNumber: data.phone_number || undefined,
       onboardingCompleted: data.onboarding_completed ?? Boolean(data.phone_number && data.phone_number.trim() !== '' && data.role),
+      createdAt: data.created_at || undefined,
+      updatedAt: data.updated_at || undefined,
     };
   } catch (err) {
     console.warn('loadProfileFromSupabase failed:', err);

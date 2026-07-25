@@ -2560,6 +2560,38 @@ export function AuthenticatedApp({
                       />
                     </div>
 
+                    {(userProfile.createdAt || userProfile.updatedAt) && (
+                      <div className="p-3 bg-gray-50/50 dark:bg-zinc-900/40 rounded-xl border border-gray-200 dark:border-zinc-800 flex justify-between gap-4 text-[10px] text-gray-500 font-semibold mt-1">
+                        {userProfile.createdAt && (
+                          <div>
+                            <span className="text-gray-400 block font-normal">Date Joined</span>
+                            <span className="font-bold text-gray-700 dark:text-zinc-350">
+                              {new Date(userProfile.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                        )}
+                        {userProfile.updatedAt && (
+                          <div className="text-right">
+                            <span className="text-gray-400 block font-normal">Last Active</span>
+                            <span className="font-bold text-gray-700 dark:text-zinc-350">
+                              {new Date(userProfile.updatedAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              }) + ' ' + new Date(userProfile.updatedAt).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       id="save-profile-button"
                       type="submit"

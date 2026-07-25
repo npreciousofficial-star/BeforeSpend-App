@@ -105,6 +105,8 @@ export interface UserProfile {
   defaultCurrency: string; // 'NGN' | 'USD' | 'EUR' | 'GBP'
   phoneNumber?: string;
   onboardingCompleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ExchangeRate {

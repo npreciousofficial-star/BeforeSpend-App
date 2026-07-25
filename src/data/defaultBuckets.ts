@@ -5,12 +5,12 @@
 
 import { Bucket, BucketTemplate } from '../types';
 
-export const DEFAULT_BUCKETS: Bucket[] = [
+export const DEFAULT_BUCKETS_NG: Bucket[] = [
   {
     id: 'salary',
     name: "Owner's salary",
     percentage: 35,
-    color: 'emerald', // We can use semantic color tags
+    color: 'emerald',
     destinationAccount: 'OPay',
     note: 'Personal salary and living allowance',
     balance: 0,
@@ -62,7 +62,46 @@ export const DEFAULT_BUCKETS: Bucket[] = [
   },
 ];
 
-export const BUCKET_TEMPLATES: BucketTemplate[] = [
+export const DEFAULT_BUCKETS_US: Bucket[] = [
+  {
+    id: 'salary',
+    name: "Primary Essentials",
+    percentage: 50,
+    color: 'emerald',
+    destinationAccount: 'Chase Checking',
+    note: 'Essential living expenses (housing, utilities, groceries)',
+    balance: 0,
+  },
+  {
+    id: 'growth',
+    name: 'Wants & Lifestyle',
+    percentage: 25,
+    color: 'blue',
+    destinationAccount: 'Capital One Checking',
+    note: 'Dining out, entertainment, and personal shopping',
+    balance: 0,
+  },
+  {
+    id: 'emergency',
+    name: 'Emergency Savings',
+    percentage: 15,
+    color: 'purple',
+    destinationAccount: 'Wells Fargo Savings',
+    note: 'High-yield savings for emergency buffer',
+    balance: 0,
+  },
+  {
+    id: 'growth-investment',
+    name: 'Wealth Brokerage',
+    percentage: 10,
+    color: 'teal',
+    destinationAccount: 'Fidelity Investments',
+    note: 'Retirement contributions, ETFs, index funds',
+    balance: 0,
+  },
+];
+
+export const BUCKET_TEMPLATES_NG: BucketTemplate[] = [
   {
     name: 'Freelance Designer (Default)',
     description: 'Perfect for solo creators balancing business reinvestment, personal income, and tax obligations.',
@@ -95,14 +134,56 @@ export const BUCKET_TEMPLATES: BucketTemplate[] = [
       { name: 'Client Entertainment', percentage: 5, color: 'pink', destinationAccount: 'Fidelity', note: 'Gifts & hosting clients' },
     ],
   },
+];
+
+export const BUCKET_TEMPLATES_US: BucketTemplate[] = [
   {
-    name: 'Aggressive Saver',
-    description: 'Designed for high-earning periods where you want to secure future financial independence quickly.',
+    name: 'US Balanced (50/30/20)',
+    description: 'Standard US personal finance blueprint for essentials, fun, and savings.',
     buckets: [
-      { name: 'Bare Minimum Living', percentage: 30, color: 'blue', destinationAccount: 'OPay', note: 'Frugal lifestyle pool' },
-      { name: 'Aggressive Investment', percentage: 40, color: 'emerald', destinationAccount: 'Kuda locked', note: 'Stocks, mutual funds, real estate' },
-      { name: 'Emergency & Opportunity Runway', percentage: 20, color: 'purple', destinationAccount: 'Fidelity savings', note: 'Runway build up' },
-      { name: 'Taxes', percentage: 10, color: 'red', destinationAccount: 'Kuda locked', note: 'Mandatory tax savings' },
+      { name: 'Needs & Essentials', percentage: 50, color: 'blue', destinationAccount: 'Chase Checking', note: 'Rent, mortgage, groceries' },
+      { name: 'Wants & Fun', percentage: 30, color: 'amber', destinationAccount: 'Capital One Checking', note: 'Shopping, vacations, leisure' },
+      { name: 'Emergency & Savings', percentage: 20, color: 'emerald', destinationAccount: 'Wells Fargo Savings', note: 'HYS yield reserves' },
+    ],
+  },
+  {
+    name: 'US Freelancer (1099 Creator)',
+    description: 'Designed for US independent contractors managing W-2 draw, 1040-ES tax pool, and business costs.',
+    buckets: [
+      { name: 'Founder Draw (Net)', percentage: 45, color: 'emerald', destinationAccount: 'Chase Checking', note: 'Personal monthly draw' },
+      { name: 'Tax Holdback (1040-ES)', percentage: 25, color: 'red', destinationAccount: 'Marcus Savings', note: 'Estimated tax holdback' },
+      { name: 'Business Expenses', percentage: 15, color: 'amber', destinationAccount: 'Capital One Business', note: 'Tools, ads, and software' },
+      { name: 'Retirement Growth (SEP-IRA)', percentage: 15, color: 'indigo', destinationAccount: 'Fidelity Investment', note: 'Tax-deferred savings' },
     ],
   },
 ];
+
+export const getLocalizedDefaultBuckets = (currency: string): Bucket[] => {
+  return currency === 'USD' ? DEFAULT_BUCKETS_US : DEFAULT_BUCKETS_NG;
+};
+
+export const getLocalizedTemplates = (currency: string): BucketTemplate[] => {
+  return currency === 'USD' ? BUCKET_TEMPLATES_US : BUCKET_TEMPLATES_NG;
+};
+
+export function detectUserRegionAndCurrency(): { currency: string; region: 'US' | 'NG' } {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && (
+      tz.startsWith('America') || 
+      tz.includes('US') || 
+      tz.includes('New_York') || 
+      tz.includes('Chicago') || 
+      tz.includes('Los_Angeles') || 
+      tz.includes('Phoenix') || 
+      tz.includes('Denver') ||
+      tz.includes('Anchorage') ||
+      tz.includes('Honolulu')
+    )) {
+      return { currency: 'USD', region: 'US' };
+    }
+  } catch (e) {
+    // Ignore timezone resolution failures
+  }
+  return { currency: 'NGN', region: 'NG' };
+}

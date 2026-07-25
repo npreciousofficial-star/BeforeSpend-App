@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { DEFAULT_BUCKETS, BUCKET_TEMPLATES } from './data/defaultBuckets';
+import { getLocalizedDefaultBuckets, getLocalizedTemplates, detectUserRegionAndCurrency } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
-import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastMessage, AppNotification, Transaction } from './types';
+import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastMessage, AppNotification, Transaction, BucketTemplate } from './types';
 import { 
   syncProfileToSupabase, syncBucketsToSupabase, syncTransactionsToSupabase, syncPaymentsToSupabase, syncMilestonesToSupabase, syncRemindersToSupabase, syncExpensesToSupabase,
   loadProfileFromSupabase, loadBucketsFromSupabase, loadTransactionsFromSupabase, loadPaymentsFromSupabase, loadMilestonesFromSupabase, loadRemindersFromSupabase, loadExpensesFromSupabase,
@@ -18,6 +18,7 @@ import {
   uploadToSupabaseStorage, ensureUuid, supabase, sendEmailNotification, fetchUserClientIp
 } from './lib/supabase';
 import { triggerSystemPushNotification } from './lib/pushNotifications';
+import { syncLiveBankTransactions } from './lib/bankSync';
 
 // Components
 import { ToastContainer } from './components/Toast';
@@ -154,7 +155,7 @@ export function AuthenticatedApp({
   const userPrefix = `user_${currentUserId}_`;
 
   // 1. Core State with LocalStorage Persistence
-  const [buckets, setBuckets] = useLocalStorage<Bucket[]>(`${userPrefix}before spend_buckets`, DEFAULT_BUCKETS);
+  const [buckets, setBuckets] = useLocalStorage<Bucket[]>(`${userPrefix}before spend_buckets`, getLocalizedDefaultBuckets(detectUserRegionAndCurrency().currency));
   
   // 1.0 Immutable Double-Entry Ledger Transactions
   const [transactions, setTransactions] = useLocalStorage<Transaction[]>(`${userPrefix}beforespend_transactions`, []);
@@ -172,7 +173,7 @@ export function AuthenticatedApp({
     name: '',
     email: '',
     role: 'Personal Budgeter',
-    defaultCurrency: 'NGN',
+    defaultCurrency: detectUserRegionAndCurrency().currency,
     avatar: 'preset-emerald',
   });
   const [exchangeRates, setExchangeRates] = useLocalStorage<{ [key: string]: number }>(`${userPrefix}beforespend_exchange_rates`, DEFAULT_EXCHANGE_RATES);
@@ -627,6 +628,37 @@ export function AuthenticatedApp({
 
     runSequentialSync();
   }, [userProfile, buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded]);
+
+  // Under-the-hood Live Bank Sync Polling Worker (Prepared for Plaid / Mono integration)
+  useEffect(() => {
+    if (!currentUserId || currentUserId.startsWith('00000000-')) return;
+
+    let isMounted = true;
+    async function runBackgroundBankSync() {
+      try {
+        console.log('[BankSync Background Worker] Verifying active connection status...');
+        // In the future: const connection = await fetchUserActiveConnection(currentUserId);
+        // if (connection) {
+        //   const liveTxns = await syncLiveBankTransactions(connection, buckets);
+        //   if (liveTxns.length > 0 && isMounted) {
+        //     setTransactions(prev => [...liveTxns, ...prev]);
+        //     addToast(`Auto-synced ${liveTxns.length} new transactions from your live bank account!`, 'info');
+        //   }
+        // }
+      } catch (err) {
+        console.warn('Background bank sync worker trace:', err);
+      }
+    }
+
+    // Runs a soft verification poll check in the background every 5 minutes
+    const intervalId = setInterval(runBackgroundBankSync, 5 * 60 * 1000);
+    runBackgroundBankSync();
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [currentUserId, buckets]);
 
   // Dynamic system notifications logic
   useEffect(() => {
@@ -1322,7 +1354,7 @@ export function AuthenticatedApp({
   };
 
   // Open custom modal before loading template
-  const handleLoadTemplate = (template: typeof BUCKET_TEMPLATES[0]) => {
+  const handleLoadTemplate = (template: BucketTemplate) => {
     setPendingTemplateToLoad(template);
     setShowBlueprintConfirmModal(true);
   };
@@ -1391,7 +1423,8 @@ export function AuthenticatedApp({
   };
 
   const handleResetToDefaultBuckets = () => {
-    setPendingTemplateToLoad(BUCKET_TEMPLATES[0]);
+    const templates = getLocalizedTemplates(userProfile.defaultCurrency);
+    setPendingTemplateToLoad(templates[0]);
     setShowBlueprintConfirmModal(true);
   };
 
@@ -1427,60 +1460,72 @@ export function AuthenticatedApp({
     const newCurrency = editProfileCurrency;
 
     if (oldCurrency !== newCurrency) {
-      addToast(`Converting workspace data from ${oldCurrency} to ${newCurrency}...`, 'info');
+      if (transactions.length === 0 && history.length === 0) {
+        // New user has no transactions yet, just fully switch layout to their target local currency preset (chase vs opay)
+        const freshBuckets = getLocalizedDefaultBuckets(newCurrency);
+        setBuckets(freshBuckets);
+        if (currentUserId && !currentUserId.startsWith('00000000-')) {
+          const validUuid = ensureUuid(currentUserId);
+          supabase.from('buckets').delete().eq('user_id', validUuid)
+            .then(() => syncBucketsToSupabase(freshBuckets, currentUserId));
+        }
+        addToast(`Restructured your budget layout to standard ${newCurrency === 'USD' ? 'US' : 'Nigerian'} banking presets.`, 'success');
+      } else {
+        addToast(`Converting workspace data from ${oldCurrency} to ${newCurrency}...`, 'info');
 
-      // 1. Convert Buckets
-      const updatedBuckets = buckets.map((b) => ({
-        ...b,
-        balance: convertCurrency(b.balance || 0, oldCurrency, newCurrency, exchangeRates),
-        lowBalanceThreshold: b.lowBalanceThreshold !== undefined && b.lowBalanceThreshold !== null
-          ? convertCurrency(b.lowBalanceThreshold, oldCurrency, newCurrency, exchangeRates)
-          : undefined
-      }));
-      setBuckets(updatedBuckets);
+        // 1. Convert Buckets
+        const updatedBuckets = buckets.map((b) => ({
+          ...b,
+          balance: convertCurrency(b.balance || 0, oldCurrency, newCurrency, exchangeRates),
+          lowBalanceThreshold: b.lowBalanceThreshold !== undefined && b.lowBalanceThreshold !== null
+            ? convertCurrency(b.lowBalanceThreshold, oldCurrency, newCurrency, exchangeRates)
+            : undefined
+        }));
+        setBuckets(updatedBuckets);
 
-      // 2. Convert Transactions
-      const updatedTransactions = transactions.map((t) => ({
-        ...t,
-        amount: convertCurrency(t.amount, oldCurrency, newCurrency, exchangeRates)
-      }));
-      setTransactions(updatedTransactions);
+        // 2. Convert Transactions
+        const updatedTransactions = transactions.map((t) => ({
+          ...t,
+          amount: convertCurrency(t.amount, oldCurrency, newCurrency, exchangeRates)
+        }));
+        setTransactions(updatedTransactions);
 
-      // 3. Convert Expenses
-      const updatedExpenses = expenses.map((ex) => ({
-        ...ex,
-        amount: convertCurrency(ex.amount, oldCurrency, newCurrency, exchangeRates)
-      }));
-      setExpenses(updatedExpenses);
+        // 3. Convert Expenses
+        const updatedExpenses = expenses.map((ex) => ({
+          ...ex,
+          amount: convertCurrency(ex.amount, oldCurrency, newCurrency, exchangeRates)
+        }));
+        setExpenses(updatedExpenses);
 
-      // 4. Convert Milestones
-      const updatedMilestones = milestones.map((m) => ({
-        ...m,
-        targetAmount: convertCurrency(m.targetAmount, oldCurrency, newCurrency, exchangeRates)
-      }));
-      setMilestones(updatedMilestones);
+        // 4. Convert Milestones
+        const updatedMilestones = milestones.map((m) => ({
+          ...m,
+          targetAmount: convertCurrency(m.targetAmount, oldCurrency, newCurrency, exchangeRates)
+        }));
+        setMilestones(updatedMilestones);
 
-      // 5. Convert Reminders
-      const updatedReminders = reminders.map((r) => ({
-        ...r,
-        cost: r.cost !== undefined && r.cost !== null
-          ? convertCurrency(r.cost, oldCurrency, newCurrency, exchangeRates)
-          : undefined
-      }));
-      setReminders(updatedReminders);
+        // 5. Convert Reminders
+        const updatedReminders = reminders.map((r) => ({
+          ...r,
+          cost: r.cost !== undefined && r.cost !== null
+            ? convertCurrency(r.cost, oldCurrency, newCurrency, exchangeRates)
+            : undefined
+        }));
+        setReminders(updatedReminders);
 
-      // 6. Convert Payments History
-      const updatedHistory = history.map((p) => ({
-        ...p,
-        convertedAmount: convertCurrency(p.convertedAmount, oldCurrency, newCurrency, exchangeRates),
-        splits: p.splits.map((s) => ({
-          ...s,
-          amount: convertCurrency(s.amount, oldCurrency, newCurrency, exchangeRates)
-        }))
-      }));
-      setHistory(updatedHistory);
+        // 6. Convert Payments History
+        const updatedHistory = history.map((p) => ({
+          ...p,
+          convertedAmount: convertCurrency(p.convertedAmount, oldCurrency, newCurrency, exchangeRates),
+          splits: p.splits.map((s) => ({
+            ...s,
+            amount: convertCurrency(s.amount, oldCurrency, newCurrency, exchangeRates)
+          }))
+        }));
+        setHistory(updatedHistory);
 
-      addToast('Workspace conversion complete!', 'success');
+        addToast('Workspace conversion complete!', 'success');
+      }
     }
 
     setUserProfile(updatedProfile);
@@ -2717,6 +2762,49 @@ export function AuthenticatedApp({
                     <span className={currentTotalAllocPercentage === 100 ? 'text-[#00A896]' : 'text-rose-500'}>
                       {currentTotalAllocPercentage}% / 100%
                     </span>
+                  </div>
+                </div>
+
+                {/* Localized Blueprint Templates */}
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-4 shadow-sm">
+                  <div>
+                    <h3 className="font-bold text-gray-900 dark:text-zinc-50 text-sm">
+                      Budget Blueprints & Frameworks
+                    </h3>
+                    <p className="text-[10px] text-gray-400">Apply a pre-configured allocation framework to restructure your budget categories.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {getLocalizedTemplates(userProfile.defaultCurrency).map((template) => (
+                      <div 
+                        key={template.name}
+                        className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/30 flex flex-col justify-between space-y-3"
+                      >
+                        <div>
+                          <p className="text-xs font-black text-gray-800 dark:text-zinc-200">{template.name}</p>
+                          <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">{template.description}</p>
+                          
+                          <div className="flex flex-wrap gap-1 mt-2.5">
+                            {template.buckets.map((b) => (
+                              <span 
+                                key={b.name} 
+                                className="text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-400"
+                              >
+                                {b.name} ({b.percentage}%)
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <button
+                          type="button"
+                          onClick={() => handleLoadTemplate(template)}
+                          className="w-full py-1.5 px-3 rounded-lg bg-teal-50 dark:bg-teal-950/30 text-[#00A896] hover:bg-[#00A896] hover:text-white dark:text-teal-400 dark:hover:bg-teal-950 text-[10px] font-black cursor-pointer transition-all border border-[#00A896]/10 text-center"
+                        >
+                          Apply Blueprint
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
 

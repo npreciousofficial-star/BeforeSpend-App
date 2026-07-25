@@ -1238,7 +1238,7 @@ export async function fetchUserClientIp(): Promise<string> {
  */
 export async function sendEmailNotification(payload: {
   to: string;
-  type: 'login_alert' | 'low_balance' | 'reminder' | 'welcome' | 'password_reset' | 'monthly_summary';
+  type: 'login_alert' | 'low_balance' | 'reminder' | 'welcome' | 'password_reset' | 'monthly_summary' | 'income_alert' | 'reconciliation_alert';
   userName?: string;
   data?: Record<string, any>;
 }): Promise<boolean> {

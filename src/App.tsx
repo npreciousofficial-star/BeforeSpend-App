@@ -256,6 +256,11 @@ export function AuthenticatedApp({
   const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
   const [pendingTemplateToLoad, setPendingTemplateToLoad] = useState<typeof BUCKET_TEMPLATES[0] | null>(null);
 
+  // Bucket Deletion & Consolidation Modal State
+  const [bucketToConsolidate, setBucketToConsolidate] = useState<Bucket | null>(null);
+  const [consolidationTargetId, setConsolidationTargetId] = useState<string>('');
+  const [consolidatePercentage, setConsolidatePercentage] = useState<boolean>(true);
+
   // CAC Registration & Direct Deposit & Deep Search Modals
   const [showCacModal, setShowCacModal] = useState<boolean>(false);
   const [showDirectDepositModal, setShowDirectDepositModal] = useState<boolean>(false);
@@ -305,7 +310,8 @@ export function AuthenticatedApp({
       editingBucket ||
       adminEditingUser ||
       adminEditingBucket ||
-      adminEditingTransaction
+      adminEditingTransaction ||
+      Boolean(bucketToConsolidate)
     );
 
     if (isAnyModalOpen) {
@@ -329,7 +335,8 @@ export function AuthenticatedApp({
     editingBucket,
     adminEditingUser,
     adminEditingBucket,
-    adminEditingTransaction
+    adminEditingTransaction,
+    bucketToConsolidate
   ]);
 
   // 1.1 Notification System State
@@ -944,6 +951,45 @@ export function AuthenticatedApp({
   const handleReconcileTransaction = (txn: Transaction) => {
     setTransactions((prev) => [txn, ...prev]);
     addToast(`Reconciliation adjustment recorded: ${txn.direction} of ${formatCurrency(txn.amount, userProfile.defaultCurrency)}`, 'success');
+
+    // Create system notification
+    const notifId = generateId('notif');
+    const title = 'Bank Account Reconciled';
+    const message = `A reconciliation adjustment of ${formatCurrency(txn.amount, userProfile.defaultCurrency)} (${txn.direction === 'CREDIT' ? 'Inflow' : 'Outflow'}) was recorded to align with your statement.`;
+
+    setNotifications((prev) => [
+      {
+        id: notifId,
+        title,
+        message,
+        time: new Date().toISOString(),
+        type: 'info',
+        read: false
+      },
+      ...prev
+    ]);
+
+    // Dispatch native Push Notification
+    triggerSystemPushNotification({
+      title: `⚖️ ${title}`,
+      body: message,
+      url: '/history'
+    }).catch(() => {});
+
+    // Dispatch Email Notification
+    if (userProfile.email) {
+      sendEmailNotification({
+        to: userProfile.email,
+        type: 'reconciliation_alert',
+        userName: userProfile.name || 'Valued Budgeter',
+        data: {
+          direction: txn.direction,
+          amount: formatCurrency(txn.amount, userProfile.defaultCurrency),
+          description: txn.description,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        }
+      }).catch(() => {});
+    }
   };
 
   // Handle batch statement import
@@ -1156,15 +1202,92 @@ export function AuthenticatedApp({
     const bucketToDelete = buckets.find((b) => b.id === id);
     if (!bucketToDelete) return;
 
-    if (bucketToDelete.balance !== 0) {
-      const confirmForce = window.confirm(
-        `This bucket currently holds ${formatCurrency(bucketToDelete.balance, userProfile.defaultCurrency)}. Deleting it will re-route these funds. Do you wish to proceed?`
-      );
-      if (!confirmForce) return;
+    // 1. Validation: Prevent deleting the last remaining bucket
+    if (buckets.length <= 1) {
+      addToast('Cannot delete the last remaining bucket. You must have at least one active bucket in your workspace.', 'error');
+      return;
     }
 
-    setBuckets(buckets.filter((b) => b.id !== id));
-    addToast('Bucket deleted successfully.', 'info');
+    // 2. Open consolidation selection modal
+    setBucketToConsolidate(bucketToDelete);
+    const firstOther = buckets.find((b) => b.id !== id);
+    setConsolidationTargetId(firstOther?.id || '');
+    setConsolidatePercentage(true);
+  };
+
+  const executeBucketConsolidation = async () => {
+    if (!bucketToConsolidate || !consolidationTargetId) return;
+
+    const sourceBucket = bucketToConsolidate;
+    const targetBucket = buckets.find((b) => b.id === consolidationTargetId);
+    if (!targetBucket) return;
+
+    addToast(`Consolidating and deleting ${sourceBucket.name}...`, 'info');
+
+    // 1. Re-assign all transactions from source bucket to target bucket
+    const updatedTransactions = transactions.map((t) => {
+      if (t.bucketId === sourceBucket.id) {
+        return {
+          ...t,
+          bucketId: targetBucket.id,
+          bucketName: targetBucket.name,
+        };
+      }
+      return t;
+    });
+
+    // 2. Re-assign all expenses from source bucket to target bucket
+    const updatedExpenses = expenses.map((e) => {
+      if (e.bucketId === sourceBucket.id) {
+        return {
+          ...e,
+          bucketId: targetBucket.id,
+          bucketName: targetBucket.name,
+        };
+      }
+      return e;
+    });
+
+    // 3. Update buckets list: delete source bucket and consolidate percentage
+    const updatedBuckets = buckets.map((b) => {
+      if (b.id === targetBucket.id) {
+        return {
+          ...b,
+          percentage: consolidatePercentage
+            ? Math.min(100, b.percentage + sourceBucket.percentage)
+            : b.percentage,
+        };
+      }
+      return b;
+    }).filter((b) => b.id !== sourceBucket.id);
+
+    // 4. Update milestones
+    const updatedMilestones = milestones.map((m) => {
+      if (m.bucketId === sourceBucket.id) {
+        return {
+          ...m,
+          bucketId: targetBucket.id,
+        };
+      }
+      return m;
+    });
+
+    // 5. Update state locally
+    setTransactions(updatedTransactions);
+    setExpenses(updatedExpenses);
+    setBuckets(updatedBuckets);
+    setMilestones(updatedMilestones);
+
+    // 6. Delete from Supabase cloud storage (so it's immediately removed from DB)
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      await adminDeleteBucketFromSupabase(sourceBucket.id);
+    }
+
+    addToast(`Successfully merged ${sourceBucket.name} data into ${targetBucket.name}!`, 'success');
+
+    // Reset consolidation state
+    setBucketToConsolidate(null);
+    setConsolidationTargetId('');
   };
 
   // Open custom modal before loading template
@@ -1231,6 +1354,66 @@ export function AuthenticatedApp({
       phoneNumber: editProfilePhone || userProfile.phoneNumber,
       onboardingCompleted: true,
     };
+
+    const oldCurrency = userProfile.defaultCurrency;
+    const newCurrency = editProfileCurrency;
+
+    if (oldCurrency !== newCurrency) {
+      addToast(`Converting workspace data from ${oldCurrency} to ${newCurrency}...`, 'info');
+
+      // 1. Convert Buckets
+      const updatedBuckets = buckets.map((b) => ({
+        ...b,
+        balance: convertCurrency(b.balance || 0, oldCurrency, newCurrency, exchangeRates),
+        lowBalanceThreshold: b.lowBalanceThreshold !== undefined && b.lowBalanceThreshold !== null
+          ? convertCurrency(b.lowBalanceThreshold, oldCurrency, newCurrency, exchangeRates)
+          : undefined
+      }));
+      setBuckets(updatedBuckets);
+
+      // 2. Convert Transactions
+      const updatedTransactions = transactions.map((t) => ({
+        ...t,
+        amount: convertCurrency(t.amount, oldCurrency, newCurrency, exchangeRates)
+      }));
+      setTransactions(updatedTransactions);
+
+      // 3. Convert Expenses
+      const updatedExpenses = expenses.map((ex) => ({
+        ...ex,
+        amount: convertCurrency(ex.amount, oldCurrency, newCurrency, exchangeRates)
+      }));
+      setExpenses(updatedExpenses);
+
+      // 4. Convert Milestones
+      const updatedMilestones = milestones.map((m) => ({
+        ...m,
+        targetAmount: convertCurrency(m.targetAmount, oldCurrency, newCurrency, exchangeRates)
+      }));
+      setMilestones(updatedMilestones);
+
+      // 5. Convert Reminders
+      const updatedReminders = reminders.map((r) => ({
+        ...r,
+        cost: r.cost !== undefined && r.cost !== null
+          ? convertCurrency(r.cost, oldCurrency, newCurrency, exchangeRates)
+          : undefined
+      }));
+      setReminders(updatedReminders);
+
+      // 6. Convert Payments History
+      const updatedHistory = history.map((p) => ({
+        ...p,
+        convertedAmount: convertCurrency(p.convertedAmount, oldCurrency, newCurrency, exchangeRates),
+        splits: p.splits.map((s) => ({
+          ...s,
+          amount: convertCurrency(s.amount, oldCurrency, newCurrency, exchangeRates)
+        }))
+      }));
+      setHistory(updatedHistory);
+
+      addToast('Workspace conversion complete!', 'success');
+    }
 
     setUserProfile(updatedProfile);
     setEditProfileAvatar(avatar);
@@ -3839,6 +4022,26 @@ export function AuthenticatedApp({
           newTxn.deduplicationHash = generateAuditHash(newTxn);
 
           setTransactions((prev) => [newTxn, ...prev]);
+
+          // Record to payment history as a direct deposit entry to show in history tab
+          const newPayment: PaymentEntry = {
+            id: generateId(),
+            date: now,
+            amount: depositData.amount,
+            currency: depositData.currency,
+            convertedAmount: depositData.convertedAmount,
+            note: depositData.note || `Direct Deposit to ${depositData.bucketName}`,
+            splits: [{
+              bucketId: depositData.bucketId,
+              bucketName: depositData.bucketName,
+              percentage: 100,
+              amount: depositData.convertedAmount,
+              color: buckets.find(b => b.id === depositData.bucketId)?.color || 'emerald',
+              destinationAccount: buckets.find(b => b.id === depositData.bucketId)?.destinationAccount || '',
+            }]
+          };
+          setHistory((prev) => [newPayment, ...prev]);
+
           addToast(`Deposited ${formatCurrency(depositData.amount, depositData.currency)} to ${depositData.bucketName}`, 'success');
 
           if (userProfile.email) {
@@ -3859,6 +4062,94 @@ export function AuthenticatedApp({
           }
         }}
       />
+
+      {/* MODAL: BUCKET DELETION & CONSOLIDATION */}
+      {bucketToConsolidate && (
+        <div id="bucket-consolidate-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-950 rounded-3xl border border-gray-200 dark:border-zinc-800 p-6 max-w-md w-full space-y-5 shadow-2xl text-left">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-150 dark:border-zinc-900">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-gray-900 dark:text-zinc-50">
+                  Delete & Consolidate Bucket?
+                </h3>
+                <p className="text-[11px] text-gray-400 font-medium">Re-route Category: {bucketToConsolidate.name}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3.5">
+              <p className="text-xs text-gray-600 dark:text-zinc-300 leading-relaxed">
+                Deleting this category requires consolidating its historical data and current funds to another active bucket. This keeps your ledger truth clean and prevents data loss.
+              </p>
+
+              {/* Balance information */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-900 flex justify-between items-center text-xs">
+                <span className="font-bold text-gray-500">Current Balance:</span>
+                <span className="font-black text-rose-600 dark:text-rose-400">
+                  {formatCurrency(bucketToConsolidate.balance, userProfile.defaultCurrency)}
+                </span>
+              </div>
+
+              {/* Target bucket selection */}
+              <div>
+                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">
+                  Select Consolidation Destination Bucket *
+                </label>
+                <select
+                  value={consolidationTargetId}
+                  onChange={(e) => setConsolidationTargetId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-250 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
+                >
+                  {buckets
+                    .filter((b) => b.id !== bucketToConsolidate.id)
+                    .map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} (Allocation: {b.percentage}%)
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Percentage checkbox option */}
+              {bucketToConsolidate.percentage > 0 && (
+                <label className="flex items-center gap-2.5 p-1 cursor-pointer select-none text-xs text-gray-600 dark:text-zinc-350">
+                  <input
+                    type="checkbox"
+                    checked={consolidatePercentage}
+                    onChange={(e) => setConsolidatePercentage(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 dark:border-zinc-850 text-[#00A896] focus:ring-[#00A896]"
+                  />
+                  <span>
+                    Merge percentage allocation (+{bucketToConsolidate.percentage}%) into target bucket
+                  </span>
+                </label>
+              )}
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setBucketToConsolidate(null);
+                  setConsolidationTargetId('');
+                }}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-250 text-gray-700 hover:bg-gray-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 text-xs font-bold transition-all cursor-pointer"
+              >
+                Cancel Deletion
+              </button>
+              <button
+                type="button"
+                onClick={executeBucketConsolidation}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-md transition-all cursor-pointer"
+              >
+                Confirm Delete & Consolidate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
 
 

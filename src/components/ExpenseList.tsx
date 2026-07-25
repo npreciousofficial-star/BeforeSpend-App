@@ -17,7 +17,8 @@ import {
   FileImage,
   Layers,
   ChevronDown,
-  Info
+  Info,
+  Receipt
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -250,8 +251,8 @@ export function ExpenseList({
                       </div>
                     </button>
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 flex items-center justify-center flex-shrink-0 text-gray-400">
-                      <FolderMinus className="w-4 h-4 opacity-40" />
+                    <div className="w-10 h-10 rounded-lg bg-gray-50/50 dark:bg-zinc-900/30 border border-dashed border-gray-250 dark:border-zinc-800 flex items-center justify-center flex-shrink-0 text-gray-400 dark:text-zinc-650" title="No receipt uploaded">
+                      <Receipt className="w-4 h-4 stroke-[1.5] opacity-60" />
                     </div>
                   )}
 

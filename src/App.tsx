@@ -2867,6 +2867,16 @@ export function AuthenticatedApp({
 
           {/* Desktop Controls (Beside Theme and Profile) */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Deep Search Engine Button */}
+            <button
+              onClick={() => setShowGlobalSearchModal(true)}
+              className="h-10 px-3.5 rounded-2xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-[#00A896]/50 text-gray-700 dark:text-zinc-300 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              title="Deep Search Engine (Cmd+K / Ctrl+K)"
+            >
+              <Search className="w-4.5 h-4.5 text-[#00A896]" />
+              <span className="text-xs font-extrabold text-gray-700 dark:text-zinc-200">Search (⌘K)</span>
+            </button>
+
             {/* Advanced Notification System */}
             <NotificationBell 
               notifications={notifications} 
@@ -2899,8 +2909,8 @@ export function AuthenticatedApp({
 
           {/* 0. MOBILE HUB TAB (Mobile portal for sub-menus) */}
           {activeTab === 'hub' && (
-            <div id="view-hub-tab" className="space-y-6 md:hidden">
-              <div className="grid grid-cols-2 gap-3.5">
+            <div id="view-hub-tab" className="space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[
                   { id: 'ledger', label: 'Ledger Audit', desc: 'Double-entry log & statements', icon: Scale, color: 'bg-teal-50 border-teal-100 dark:bg-teal-950/10 dark:border-teal-900/20 text-[#00A896] dark:text-[#00A896] hover:bg-teal-100/50' },
                   { id: 'milestones', label: 'Milestones', desc: 'Savings & goals tracker', icon: Target, color: 'bg-indigo-50 border-indigo-100 dark:bg-indigo-950/10 dark:border-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100/50' },
@@ -4603,7 +4613,7 @@ export function AuthenticatedApp({
             <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-black aspect-video shadow-md">
               <iframe
                 className="absolute inset-0 w-full h-full"
-                src="https://www.youtube.com/embed/KIf8ev8bVNk?autoplay=1&rel=0"
+                src="https://www.youtube.com/embed/Yc5Wes-PEfU?autoplay=1&rel=0"
                 title="BeforeSpend Onboarding Video"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

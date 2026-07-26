@@ -251,7 +251,7 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
       </div>
 
       {/* 3 Major Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Metric 1 */}
         <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 flex items-center justify-between">
           <div>
@@ -446,9 +446,9 @@ export function FinanceCharts({ buckets, history, expenses, currency }: FinanceC
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* SVG Trend Line Chart */}
-            <div className="md:col-span-2 space-y-2">
+            <div className="lg:col-span-2 space-y-2">
               <div className="relative w-full h-40 bg-slate-50/70 dark:bg-zinc-900/40 rounded-xl p-3 border border-gray-200 dark:border-zinc-850 flex items-center justify-center">
                 <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible">
                   <defs>

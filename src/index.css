@@ -61,3 +61,8 @@ body {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 168, 150, 0.7);
 }
+
+/* Hide Google reCAPTCHA v3 Badge */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}

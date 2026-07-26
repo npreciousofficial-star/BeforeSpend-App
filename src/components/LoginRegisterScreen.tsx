@@ -79,45 +79,16 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
   useEffect(() => {
     if (isRegister) {
-      const scriptId = 'recaptcha-v2-script';
+      const scriptId = 'recaptcha-v3-script';
       let script = document.getElementById(scriptId) as HTMLScriptElement | null;
-
-      const initRecaptcha = () => {
-        const grecaptcha = (window as any).grecaptcha;
-        if (grecaptcha && grecaptcha.render) {
-          try {
-            const container = document.getElementById('recaptcha-v2-container');
-            if (container) {
-              container.innerHTML = '';
-            }
-            (window as any).recaptchaWidgetId = grecaptcha.render('recaptcha-v2-container', {
-              sitekey: '6Lc_aGUtAAAAANAvRPQ7FunGpIQ6P_UXw_U5ENuh',
-              theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-            });
-          } catch (e) {
-            console.warn('reCAPTCHA render error:', e);
-          }
-        }
-      };
 
       if (!script) {
         script = document.createElement('script');
         script.id = scriptId;
-        script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+        script.src = 'https://www.google.com/recaptcha/api.js?render=6LeHOWYtAAAAAEFgffBiRfH9xQ7U6w_i6ArRzqfe';
         script.async = true;
         script.defer = true;
-        script.onload = () => {
-          setTimeout(initRecaptcha, 250);
-        };
         document.body.appendChild(script);
-      } else {
-        if ((window as any).grecaptcha && (window as any).grecaptcha.render) {
-          initRecaptcha();
-        } else {
-          script.onload = () => {
-            setTimeout(initRecaptcha, 250);
-          };
-        }
       }
     }
   }, [isRegister]);
@@ -141,7 +112,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         return;
       }
 
-      // Execute reCAPTCHA V2 Checkbox Verification
+      // Execute reCAPTCHA V3 Invisible Verification
       setErrorMsg('Verifying security check (reCAPTCHA)...');
       try {
         const grecaptcha = (window as any).grecaptcha;
@@ -150,22 +121,28 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
           return;
         }
 
-        const token = grecaptcha.getResponse((window as any).recaptchaWidgetId);
+        const token = await new Promise<string>((resolve, reject) => {
+          grecaptcha.ready(() => {
+            grecaptcha.execute('6LeHOWYtAAAAAEFgffBiRfH9xQ7U6w_i6ArRzqfe', { action: 'register' })
+              .then(resolve)
+              .catch(reject);
+          });
+        });
+
         if (!token) {
-          setErrorMsg('Please click the "I\'m not a robot" security checkbox.');
+          setErrorMsg('Security check failed: No token generated.');
           return;
         }
 
         const verifyEndpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(
-          `https://www.google.com/recaptcha/api/siteverify?secret=6Lc_aGUtAAAAANtQx6qs1qIFFRMoFa2aUErYwy3R&response=${token}`
+          `https://www.google.com/recaptcha/api/siteverify?secret=6LeHOWYtAAAAABqKxdp6J1_B9e3__tSrOHtolTMA&response=${token}`
         )}`;
         const response = await fetch(verifyEndpoint);
         const data = await response.json();
         const result = JSON.parse(data.contents);
 
         if (!result.success) {
-          setErrorMsg('Security check failed: Verification invalid. Please try checking the box again.');
-          grecaptcha.reset((window as any).recaptchaWidgetId);
+          setErrorMsg('Security check failed: Verification invalid.');
           return;
         }
       } catch (captchaErr) {
@@ -724,9 +701,11 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
             )}
 
             {isRegister && (
-              <div className="flex justify-center py-2.5">
-                <div id="recaptcha-v2-container"></div>
-              </div>
+              <p className="text-[10px] text-center text-gray-400 dark:text-zinc-500 leading-normal max-w-xs mx-auto pt-1">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline hover:text-[#00A896]">Privacy Policy</a> and{' '}
+                <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline hover:text-[#00A896]">Terms of Service</a> apply.
+              </p>
             )}
 
             {/* Submit Action Button */}

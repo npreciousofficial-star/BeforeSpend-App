@@ -538,6 +538,7 @@ export async function syncMilestonesToSupabase(milestones: Milestone[], userId: 
     const records = milestones.map(m => ({
       id: ensureUuid(m.id),
       user_id: validUuid,
+      title: m.name,
       name: m.name,
       target_amount: m.targetAmount,
       bucket_id: m.bucketId ? ensureUuid(m.bucketId) : null,
@@ -568,11 +569,10 @@ export async function syncRemindersToSupabase(reminders: Reminder[], userId: str
       user_id: validUuid,
       text: r.text,
       due_date: r.dueDate,
-      done: r.done,
+      completed: r.done ?? false,
       type: r.type || 'manual',
       period: r.period || null,
       note: r.note || null,
-      cost: r.cost || null
     }));
 
     const { error } = await supabase.from('reminders').upsert(records);
@@ -796,7 +796,7 @@ export async function loadMilestonesFromSupabase(userId: string): Promise<Milest
 
     return data.map(m => ({
       id: m.id,
-      name: m.name,
+      name: m.title || m.name || 'Untitled Goal',
       targetAmount: Number(m.target_amount),
       bucketId: m.bucket_id,
       createdDate: m.created_date,
@@ -830,7 +830,7 @@ export async function loadRemindersFromSupabase(userId: string): Promise<Reminde
       id: r.id,
       text: r.text,
       dueDate: r.due_date,
-      done: r.done,
+      done: r.done ?? r.completed ?? false,
       type: r.type,
       period: r.period || undefined,
       note: r.note || undefined,

@@ -12,7 +12,10 @@ alter table public.profiles add column if not exists avatar text default 'preset
 alter table public.profiles add column if not exists default_currency text default 'NGN';
 alter table public.buckets add column if not exists low_balance_threshold numeric(15, 2);
 alter table public.reminders add column if not exists cost numeric(15, 2);
+alter table public.reminders add column if not exists done boolean default false;
+alter table public.reminders add column if not exists completed boolean default false;
 alter table public.milestones add column if not exists name text;
+alter table public.milestones add column if not exists title text;
 
 -- 2. Drop legacy foreign key constraints that block custom UUID sync
 alter table public.buckets drop constraint if exists buckets_user_id_fkey;

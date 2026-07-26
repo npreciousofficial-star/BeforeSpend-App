@@ -219,6 +219,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         phoneNumber: newUser.phoneNumber,
       };
       window.localStorage.setItem(profileKey, JSON.stringify(profileData));
+      window.localStorage.setItem(`user_${finalId}_just_registered`, 'true');
       onLogin(finalId);
     } else {
       const emailLower = email.toLowerCase().trim();

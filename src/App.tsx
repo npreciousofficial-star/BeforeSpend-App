@@ -83,6 +83,8 @@ import {
   X,
   LogOut,
   LayoutGrid,
+  Play,
+  Video,
   Eye,
   EyeOff,
   Calculator,
@@ -381,11 +383,13 @@ export function AuthenticatedApp({
 
   // Modal State for profile setup on onboarding
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showOnboardingVideoModal, setShowOnboardingVideoModal] = useState(false);
 
   // Lock body scrolling when any full modal or overlay drawer is active
   useEffect(() => {
     const isAnyModalActive = Boolean(
       showOnboardingModal ||
+      showOnboardingVideoModal ||
       showBlueprintConfirmModal ||
       showImportDbModal ||
       showAddCustomBucketModal ||
@@ -406,6 +410,7 @@ export function AuthenticatedApp({
     };
   }, [
     showOnboardingModal,
+    showOnboardingVideoModal,
     showBlueprintConfirmModal,
     showImportDbModal,
     showAddCustomBucketModal,
@@ -586,6 +591,13 @@ export function AuthenticatedApp({
 
         console.log('Supabase user data loaded successfully!');
         setIsCloudDataLoaded(true);
+
+        const justRegistered = localStorage.getItem(`user_${currentUserId}_just_registered`) === 'true';
+        const videoSeen = localStorage.getItem(`user_${currentUserId}_onboarding_video_seen`) === 'true';
+        if (justRegistered && !videoSeen) {
+          setShowOnboardingVideoModal(true);
+          localStorage.removeItem(`user_${currentUserId}_just_registered`);
+        }
       } catch (err) {
         console.warn('Failed to load user data from Supabase:', err);
       } finally {
@@ -2849,6 +2861,24 @@ export function AuthenticatedApp({
                   </div>
                 </form>
 
+                {/* Onboarding Video Guide Section */}
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-3 shadow-sm">
+                  <h4 className="font-bold text-gray-900 dark:text-zinc-50 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Video className="w-4 h-4 text-[#00A896]" /> Getting Started Video Guide
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
+                    Watch our step-by-step onboarding walkthrough video to learn how to plan, allocate, and protect your finances.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowOnboardingVideoModal(true)}
+                    className="w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 text-xs font-black cursor-pointer transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Play className="w-4 h-4 text-[#00A896] fill-[#00A896]" />
+                    Watch Onboarding Video
+                  </button>
+                </div>
+
                 {/* Account Mapping Reference Info Card */}
                 <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-sm space-y-3">
                   <h4 className="font-bold text-gray-900 dark:text-zinc-50 text-xs uppercase tracking-wider">
@@ -3716,6 +3746,54 @@ export function AuthenticatedApp({
             )
           )}
 
+      {/* ONBOARDING VIDEO WALKTHROUGH MODAL */}
+      {showOnboardingVideoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative space-y-4 text-left">
+            <button
+              onClick={() => {
+                setShowOnboardingVideoModal(false);
+                if (currentUserId) {
+                  localStorage.setItem(`user_${currentUserId}_onboarding_video_seen`, 'true');
+                }
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 cursor-pointer p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="space-y-1 pr-8">
+              <h3 className="text-xl font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2 tracking-tight">
+                🎬 Welcome Onboard!
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                Watch our quick getting started guide to learn how BeforeSpend helps you plan and save.
+              </p>
+            </div>
+            <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-black aspect-video shadow-md">
+              <iframe
+                className="absolute inset-0 w-full h-full"
+                src="https://www.youtube.com/embed/KIf8ev8bVNk?autoplay=1&rel=0"
+                title="BeforeSpend Onboarding Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <button
+              onClick={() => {
+                setShowOnboardingVideoModal(false);
+                if (currentUserId) {
+                  localStorage.setItem(`user_${currentUserId}_onboarding_video_seen`, 'true');
+                }
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#0E2A47] hover:bg-[#00A896] text-white text-xs font-black cursor-pointer transition-colors shadow-md flex items-center justify-center gap-1.5"
+            >
+              Start Planning Your Budget 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* POST-LOGIN GOOGLE OAUTH ONBOARDING PROFILE SETUP MODAL */}
       {showOnboardingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
@@ -3744,6 +3822,7 @@ export function AuthenticatedApp({
                   localStorage.setItem(`user_${currentUserId}_onboarding_completed`, 'true');
                 }
                 setShowOnboardingModal(false);
+                setShowOnboardingVideoModal(true);
                 addToast('Welcome! Your workspace preferences have been saved.', 'success');
               }}
               className="space-y-4 text-xs"

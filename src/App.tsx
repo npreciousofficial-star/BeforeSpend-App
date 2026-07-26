@@ -95,7 +95,8 @@ import {
   Send,
   Menu,
   PanelLeftOpen,
-  Search
+  Search,
+  HelpCircle
 } from 'lucide-react';
 
 const PAGE_TITLES: Record<string, { title: string; subtext: string }> = {
@@ -145,6 +146,119 @@ const PAGE_TITLES: Record<string, { title: string; subtext: string }> = {
   }
 };
 
+const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: string[]; tip: string }> = {
+  buckets: {
+    title: "🏡 Dashboard (Your Financial Buckets)",
+    concept: "Think of this as a virtual chest of drawers. Instead of keeping all your money in one big pile (where it's easy to overspend), you divide your money into different 'buckets' for specific needs—like rent, groceries, emergency savings, or fun.",
+    steps: [
+      "Create buckets for your major expenses and savings categories.",
+      "Add income and split it across these buckets using the 'Split Income' tool.",
+      "See at a glance exactly how much money you have left to spend in each area."
+    ],
+    tip: "Keep an 'Emergency Fund' bucket with a small buffer. It gives you peace of mind when unexpected bills arrive!"
+  },
+  ledger: {
+    title: "📖 Transaction Ledger (Your Financial Diary)",
+    concept: "This is a chronological diary of every single cent that enters or leaves your accounts. It records incomes, expenses, and internal transfers between your buckets, ensuring your books always balance.",
+    steps: [
+      "Review the list to see where your money has gone over time.",
+      "Use the search and filter options to quickly find specific past transactions.",
+      "Click 'Reconcile' or import bank statements to double-check that your real bank balance matches your app balance."
+    ],
+    tip: "Categorize your transactions accurately. This helps the analytics page generate correct insights about your habits!"
+  },
+  split: {
+    title: "💸 Income Splitter (Your Money Allocator)",
+    concept: "This tool takes any new income (like salary, gifts, or gig work) and divides it into your buckets based on percentages you choose. It makes budgeting instant and stress-free.",
+    steps: [
+      "Type in the amount of money you just received.",
+      "Review how much gets allocated to each of your buckets automatically.",
+      "Click 'Apply Split' to update your balances instantly."
+    ],
+    tip: "Create a template for your regular salary so you can allocate it in just one click next time!"
+  },
+  expenses: {
+    title: "📉 Expense Tracker (Your Spending Log)",
+    concept: "This page is where you record everything you buy. Tracking expenses lets you see exactly where your hard-earned money is going and prevents you from spending more than is in your buckets.",
+    steps: [
+      "Log your expenses as they happen with the simple form.",
+      "Select which bucket the money is coming from.",
+      "Keep an eye on bucket balances so you know when to stop spending in a category."
+    ],
+    tip: "Try tracking every single small purchase for one week. You will be amazed at the small leaks you find!"
+  },
+  history: {
+    title: "📜 Payment History (Your Audit Log)",
+    concept: "This is a simple historical record of your transaction ledger operations, displaying previous splits, automated deposits, and historical system entries.",
+    steps: [
+      "Scan the records to trace previous payments or manual adjustments.",
+      "Filter entries by date to audit your cash flows.",
+      "Verify historical entries to reconcile discrepancies."
+    ],
+    tip: "Use this log if you need to trace back exactly how a specific bucket was funded in the past."
+  },
+  milestones: {
+    title: "🎯 Milestones & Goals (Your Financial Dreams)",
+    concept: "This page helps you track big financial goals—like buying a laptop, saving for a vacation, or building a 6-month safety net. You lock these goals to specific buckets and watch your progress grow.",
+    steps: [
+      "Create a milestone by setting a target amount and a deadline.",
+      "Link it to a bucket where you will be accumulating the savings.",
+      "Save money into that bucket, and watch the progress bar fill up as you get closer to your goal!"
+    ],
+    tip: "Start with small, highly achievable milestones. Reaching your first goal builds momentum and confidence!"
+  },
+  reminders: {
+    title: "⏰ Reminders & Subscriptions (Your Bill Calendar)",
+    concept: "Never get caught off-guard by a bill or subscription renewal again. This page keeps track of recurring payments like Netflix, gym memberships, electricity bills, and rent, sending you alerts before they are due.",
+    steps: [
+      "Add your recurring subscriptions, bills, or debt repayments.",
+      "Set the due date and the recurring cycle (monthly, weekly, yearly).",
+      "Check the status to ensure you have allocated enough funds in the right bucket before the payment day."
+    ],
+    tip: "Mark reminders as completed once paid. This moves them to the next cycle automatically!"
+  },
+  calculators: {
+    title: "🧮 Financial Calculators (Your Wealth Planner)",
+    concept: "These are interactive math tools that let you peer into the future. You can calculate how your savings will multiply over time with compound interest, or plan how to pay off loans faster.",
+    steps: [
+      "Select a calculator (e.g. Compound Interest or Loan Payoff Schedule).",
+      "Type in your details—like starting amount, interest rate, and duration.",
+      "Review the visual chart and monthly schedule to see how minor changes can save you thousands of dollars."
+    ],
+    tip: "Even saving an extra ₦5,000 a month can result in millions over 15 years due to compound interest. Try it out!"
+  },
+  analytics: {
+    title: "📊 Spending Insights (Your Financial Mirror)",
+    concept: "This page turns your transaction numbers into colorful charts. It acts as a mirror, showing you exactly what percentage of your income goes to expenses versus savings, and which categories consume the most cash.",
+    steps: [
+      "Look at the pie charts to see your top spending categories.",
+      "Check the income vs. expense bar graph to make sure you are spending less than you earn.",
+      "Analyze your monthly trend lines to find areas where you can easily cut back."
+    ],
+    tip: "Review this page once a month. It helps you catch subconscious spending leaks before they drain your bank account!"
+  },
+  settings: {
+    title: "⚙️ Settings & Sync (Your Workspace Controls)",
+    concept: "This is the control panel for your account. You can update your profile details, customize your tagline, lock in your localization presets, and sync your workspace safely with the secure cloud database.",
+    steps: [
+      "Update your profile name, phone number, role, or avatar.",
+      "Link your workspace with Supabase to make sure your financial logs are automatically backed up.",
+      "View your registered country and locked base currency settings."
+    ],
+    tip: "Link your Google account or set up a secure cloud sync so you never lose your financial ledger if you lose your phone!"
+  },
+  admin: {
+    title: "🛡️ Administrator Portal (Database & System Console)",
+    concept: "This is a secure area for system maintenance. It allows administrators to import raw database files, inspect diagnostic logs, test system variables, and manage active users safely.",
+    steps: [
+      "Use backup tools to export your entire ledger configuration.",
+      "Inspect database sync statuses for troubleshooting.",
+      "Configure global system alerts if necessary."
+    ],
+    tip: "Only use database import tools if you are restoring a verified backup, as it will overwrite current local structures."
+  }
+};
+
 export function AuthenticatedApp({ 
   currentUserId, 
   onLogout, 
@@ -188,6 +302,7 @@ export function AuthenticatedApp({
   const [dataLoaded, setDataLoaded] = useState(true); // guards sync from firing before load completes
   const [isCloudDataLoaded, setIsCloudDataLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true); // desktop sidebar visibility toggle
+  const [showHelpModal, setShowHelpModal] = useState(false);
   
   // Settings bucket states
   const [editingBucket, setEditingBucket] = useState<Bucket | null>(null);
@@ -2281,16 +2396,34 @@ export function AuthenticatedApp({
             )}
             {activeTab !== 'buckets' && PAGE_TITLES[activeTab] ? (
               <div className="space-y-1">
-                <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 tracking-tight">
-                  {PAGE_TITLES[activeTab].title}
-                </h2>
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-lg font-black text-gray-900 dark:text-zinc-50 tracking-tight">
+                    {PAGE_TITLES[activeTab].title}
+                  </h2>
+                  <button
+                    onClick={() => setShowHelpModal(true)}
+                    className="p-1 rounded-full text-gray-400 hover:text-[#00A896] hover:bg-gray-100 dark:hover:bg-zinc-800/80 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                    title="Explain how to use this page"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                </div>
                 <p className="text-xs text-gray-400">
                   {PAGE_TITLES[activeTab].subtext}
                 </p>
               </div>
             ) : (
               <div>
-                <span className="text-[10px] text-gray-400 uppercase tracking-widest font-black">Workspace Dashboard</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-gray-400 uppercase tracking-widest font-black">Workspace Dashboard</span>
+                  <button
+                    onClick={() => setShowHelpModal(true)}
+                    className="p-0.5 rounded-full text-gray-400 hover:text-[#00A896] hover:bg-gray-100 dark:hover:bg-zinc-800/80 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                    title="Explain how to use this page"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 <h2 className="text-sm font-bold text-gray-800 dark:text-zinc-300">Welcome, {userProfile.name}</h2>
               </div>
             )}
@@ -3786,6 +3919,69 @@ export function AuthenticatedApp({
               </div>
             )
           )}
+
+      {/* PAGE HELP GUIDE MODAL */}
+      {showHelpModal && (() => {
+        const guide = PAGE_GUIDES[activeTab] || PAGE_GUIDES['buckets'];
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white dark:bg-zinc-955 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 text-left">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="space-y-1.5 pr-8">
+                <h3 className="text-lg font-black text-gray-900 dark:text-zinc-50 flex items-center gap-2">
+                  {guide.title}
+                </h3>
+                <p className="text-[11px] text-[#00A896] uppercase tracking-wider font-bold">
+                  💡 The Simple Concept
+                </p>
+                <p className="text-xs text-gray-600 dark:text-zinc-400 leading-relaxed">
+                  {guide.concept}
+                </p>
+              </div>
+
+              <hr className="border-gray-100 dark:border-zinc-900" />
+
+              <div className="space-y-2.5">
+                <p className="text-[11px] text-[#00A896] uppercase tracking-wider font-bold">
+                  🚀 How to use this page:
+                </p>
+                <ul className="space-y-2">
+                  {guide.steps.map((step, idx) => (
+                    <li key={idx} className="flex gap-2.5 text-xs text-gray-600 dark:text-zinc-400 leading-normal">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-[#00A896] font-bold text-[10px] shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-955/15 border border-amber-200/50 dark:border-amber-900/30 space-y-1">
+                <p className="text-[10px] font-black text-amber-800 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  ⭐ Pro-Tip:
+                </p>
+                <p className="text-xs text-amber-900/80 dark:text-amber-400/90 leading-normal">
+                  {guide.tip}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="w-full py-3 px-4 rounded-xl bg-[#0E2A47] hover:bg-[#00A896] text-white text-xs font-black cursor-pointer transition-colors shadow-md flex items-center justify-center gap-2"
+              >
+                Got it, thanks! 👍
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ONBOARDING VIDEO WALKTHROUGH MODAL */}
       {showOnboardingVideoModal && (

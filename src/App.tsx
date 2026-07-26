@@ -262,6 +262,7 @@ export function AuthenticatedApp({
   const [editProfileCurrency, setEditProfileCurrency] = useState(userProfile.defaultCurrency);
   const [editProfileAvatar, setEditProfileAvatar] = useState(userProfile.avatar || 'preset-chidi');
   const [editProfilePhone, setEditProfilePhone] = useState(userProfile.phoneNumber || '');
+  const [editProfileCountry, setEditProfileCountry] = useState(userProfile.country || detectUserCountry());
 
   // Custom Blueprint Confirmation Modal State
   const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
@@ -483,6 +484,7 @@ export function AuthenticatedApp({
           setEditProfileRole(profile.role || 'Personal Budgeter');
           setEditProfileCurrency(profile.defaultCurrency || 'NGN');
           setEditProfilePhone(profile.phoneNumber || '');
+          setEditProfileCountry(finalCountry);
 
           // Check database profile onboarding completion status
           const isDatabaseOnboarded = Boolean(
@@ -515,6 +517,7 @@ export function AuthenticatedApp({
           setEditProfileRole(newProfile.role);
           setEditProfileCurrency(newProfile.defaultCurrency);
           setEditProfilePhone('');
+          setEditProfileCountry(detectedCountry);
 
           if (isGoogleAuth && !isAlreadyOnboarded) {
             setShowOnboardingModal(true);
@@ -1643,7 +1646,7 @@ export function AuthenticatedApp({
       avatar,
       phoneNumber: editProfilePhone || userProfile.phoneNumber,
       onboardingCompleted: true,
-      country: userProfile.country || detectUserCountry(),
+      country: editProfileCountry || detectUserCountry(),
     };
 
     const oldCurrency = userProfile.defaultCurrency;
@@ -3878,18 +3881,44 @@ export function AuthenticatedApp({
                 />
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={editProfilePhone}
-                  onChange={(e) => setEditProfilePhone(e.target.value)}
-                  placeholder="+234 801 234 5678"
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896]"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={editProfilePhone}
+                    onChange={(e) => setEditProfilePhone(e.target.value)}
+                    placeholder="+234 801 234 5678"
+                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#00A896]"
+                  />
+                </div>
+
+                <div>
+                  <CustomSelect
+                    label="Country of Residence"
+                    options={[
+                      { value: 'Nigeria', label: 'Nigeria (NG)' },
+                      { value: 'United States', label: 'United States (US)' },
+                      { value: 'United Kingdom', label: 'United Kingdom (UK)' },
+                      { value: 'Canada', label: 'Canada (CA)' },
+                      { value: 'Germany', label: 'Germany (DE)' },
+                      { value: 'France', label: 'France (FR)' },
+                      { value: 'Italy', label: 'Italy (IT)' },
+                      { value: 'Spain', label: 'Spain (ES)' },
+                      { value: 'Netherlands', label: 'Netherlands (NL)' },
+                      { value: 'Ireland', label: 'Ireland (IE)' }
+                    ]}
+                    value={editProfileCountry}
+                    onChange={(val) => {
+                      setEditProfileCountry(val);
+                      const mappedCurr = val === 'Nigeria' ? 'NGN' : val === 'United States' ? 'USD' : val === 'United Kingdom' ? 'GBP' : val === 'Canada' ? 'CAD' : 'EUR';
+                      setEditProfileCurrency(mappedCurr);
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

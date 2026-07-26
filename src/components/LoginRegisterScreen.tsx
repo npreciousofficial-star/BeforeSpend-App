@@ -474,16 +474,32 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
             <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
               {isRegister 
                 ? 'Create an account' 
-                : (users.length > 0 && users[users.length - 1]?.name 
-                    ? `Welcome back, ${users[users.length - 1].name.split(' ')[0]}! 👋` 
-                    : 'Sign in to account')}
+                : (() => {
+                    const cleanEmail = email.toLowerCase().trim();
+                    const matched = users.find(u => u.email.toLowerCase().trim() === cleanEmail);
+                    if (matched) {
+                      return `Welcome back, ${matched.name.split(' ')[0]}! 👋`;
+                    }
+                    if (email === '' && users.length > 0) {
+                      return `Welcome back, ${users[users.length - 1].name.split(' ')[0]}! 👋`;
+                    }
+                    return 'Sign in to account';
+                  })()}
             </h1>
             <p className="text-sm text-gray-550 dark:text-zinc-400">
               {isRegister 
                 ? 'Register now to configure, protect, and track your visual wealth ledger.' 
-                : (users.length > 0 && users[users.length - 1]?.email
-                    ? `Enter your password to access your ${users[users.length - 1].email} workspace.`
-                    : 'Enter your credentials to access your BeforeSpend workspace.')}
+                : (() => {
+                    const cleanEmail = email.toLowerCase().trim();
+                    const matched = users.find(u => u.email.toLowerCase().trim() === cleanEmail);
+                    if (matched) {
+                      return `Enter your password to access your ${matched.email} workspace.`;
+                    }
+                    if (email === '' && users.length > 0) {
+                      return `Enter your password to access your ${users[users.length - 1].email} workspace.`;
+                    }
+                    return 'Enter your credentials to access your BeforeSpend workspace.';
+                  })()}
             </p>
           </div>
 

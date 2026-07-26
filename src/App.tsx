@@ -3596,7 +3596,7 @@ export function AuthenticatedApp({
                                 key={key}
                                 type="button"
                                 onClick={() => setNotificationSettings(prev => ({ ...prev, [key]: !isChecked }))}
-                                className="w-full flex items-start gap-3 p-2 bg-gray-50/30 hover:bg-gray-50/80 dark:bg-zinc-900/20 dark:hover:bg-zinc-900/60 border border-gray-150/40 dark:border-zinc-800/40 rounded-xl text-left transition-all cursor-pointer group"
+                                className="w-full flex items-start gap-3 p-3 bg-white dark:bg-zinc-900/40 border border-gray-200/80 dark:border-zinc-800/80 rounded-2xl text-left transition-all cursor-pointer group hover:border-[#00A896]/50 hover:shadow-2xs"
                               >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
                                   isChecked 

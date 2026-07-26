@@ -33,9 +33,12 @@ const COUNTRY_OPTIONS = [
   { value: 'United States', label: 'United States (US)', currency: 'USD' },
   { value: 'United Kingdom', label: 'United Kingdom (UK)', currency: 'GBP' },
   { value: 'Canada', label: 'Canada (CA)', currency: 'CAD' },
-  { value: 'South Africa', label: 'South Africa (ZA)', currency: 'ZAR' },
-  { value: 'Kenya', label: 'Kenya (KE)', currency: 'KES' },
-  { value: 'Ghana', label: 'Ghana (GH)', currency: 'GHS' }
+  { value: 'Germany', label: 'Germany (DE)', currency: 'EUR' },
+  { value: 'France', label: 'France (FR)', currency: 'EUR' },
+  { value: 'Italy', label: 'Italy (IT)', currency: 'EUR' },
+  { value: 'Spain', label: 'Spain (ES)', currency: 'EUR' },
+  { value: 'Netherlands', label: 'Netherlands (NL)', currency: 'EUR' },
+  { value: 'Ireland', label: 'Ireland (IE)', currency: 'EUR' }
 ];
 
 const ROLE_OPTIONS = [

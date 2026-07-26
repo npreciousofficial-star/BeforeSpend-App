@@ -2037,7 +2037,11 @@ export function AuthenticatedApp({
             </button>
           </div>
           <p className={`text-lg font-black text-[#00A896] transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
-            <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
+            {!dataLoaded || !isCloudDataLoaded ? (
+              <span className="inline-block h-6 w-24 bg-teal-500/20 rounded-md animate-pulse mt-1" />
+            ) : (
+              <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
+            )}
           </p>
         </div>
 
@@ -2246,7 +2250,11 @@ export function AuthenticatedApp({
               </button>
             </div>
             <p className={`text-xl font-black transition-all duration-300 ${hideBalance ? 'blur-md select-none' : ''}`}>
-              <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
+              {!dataLoaded || !isCloudDataLoaded ? (
+                <span className="inline-block h-6 w-24 bg-white/20 rounded-md animate-pulse mt-1" />
+              ) : (
+                <AnimatedNumber value={buckets.reduce((sum, b) => sum + b.balance, 0)} currency={userProfile.defaultCurrency} />
+              )}
             </p>
           </div>
           <div className="text-right text-[10px] text-teal-100">
@@ -4831,8 +4839,11 @@ export default function App() {
                           sessionUser.email?.toLowerCase() === 'admin@beforespend.app' ||
                           sessionUser.email?.toLowerCase() === 'admin@beforespend.xyz';
 
-      // Ensure activeTab defaults to Dashboard ('buckets') on login
-      window.localStorage.setItem(`user_${validId}_beforespend_active_tab`, JSON.stringify('buckets'));
+      // Ensure activeTab defaults to Dashboard ('buckets') ONLY if it hasn't been set yet
+      const activeTabKey = `user_${validId}_beforespend_active_tab`;
+      if (!window.localStorage.getItem(activeTabKey)) {
+        window.localStorage.setItem(activeTabKey, JSON.stringify('buckets'));
+      }
 
       const targetPath = isUserAdmin ? '/admin' : '/dashboard';
       if (window.location.hash || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register') {

@@ -303,6 +303,28 @@ export function AuthenticatedApp({
     avatar: 'preset-emerald',
   });
   const [exchangeRates, setExchangeRates] = useLocalStorage<{ [key: string]: number }>(`${userPrefix}beforespend_exchange_rates`, DEFAULT_EXCHANGE_RATES);
+  const [notificationSettings, setNotificationSettings] = useLocalStorage<Record<string, any>>(`${userPrefix}beforespend_notification_preferences`, {
+    remindToSplit: 'Weekly', // Daily, Weekly, Only when I forget
+    paydayFriday: true,
+    inactivity14d: true,
+    openWithoutSaving: true,
+    sundayCheckIn: true,
+    staleBucket7d: true,
+    inactivityLogging5d: true,
+    recurringExpense2d: true,
+    lowBalance20pct: true,
+    quarterlyTax7d: true,
+    annualTaxJan1: true,
+    cacRenewal30d: true,
+    milestone50pct: true,
+    milestone90pct: true,
+    milestoneAchieved: true,
+    leakSalary90pct: true,
+    leakSmallExpenses24h: true,
+    monthlyReviewLastDay: true,
+    monthlyReviewFirstDay: true,
+    inactivity7d: true,
+  });
   const [hideBalance, setHideBalance] = useLocalStorage<boolean>(`${userPrefix}beforespend_hide_balance`, false);
 
   // 2. Local App UI state - Context Aware Tab Persistence across Browser Refreshes
@@ -935,32 +957,415 @@ export function AuthenticatedApp({
         }
       });
 
-      // Daily Expense & Income Logging Reminder Check
-      const todayKey = `n-log-reminder-${new Date().toISOString().split('T')[0]}`;
-      const hasTodayLogReminder = updated.some(n => n.id === todayKey);
-      if (!hasTodayLogReminder) {
-        const logTitle = '💰 Daily Expense & Income Tracker';
-        const logMsg = 'Don\'t forget to log your latest daily expenses and split new income into your budget buckets!';
-        updated.unshift({
-          id: todayKey,
-          title: logTitle,
-          message: logMsg,
-          time: new Date().toISOString(),
-          type: 'info',
-          read: false
-        });
-        changed = true;
+      // ==========================================
+      // SMART SYSTEM CONTEXTUAL NOTIFICATIONS ENGINE
+      // ==========================================
+      const snoozeUntilStr = localStorage.getItem('beforespend_notifications_snoozed_until');
+      const isSnoozed = snoozeUntilStr ? new Date() < new Date(snoozeUntilStr) : false;
 
-        triggerSystemPushNotification({
-          title: logTitle,
-          body: logMsg,
-          url: '/dashboard'
-        }).catch(() => {});
+      if (!isSnoozed) {
+        const sentKeysStr = localStorage.getItem('beforespend_sent_notifications_keys') || '[]';
+        let sentKeys: string[] = [];
+        try { sentKeys = JSON.parse(sentKeysStr); } catch (e) {}
+
+        const triggerSmartNotification = (key: string, title: string, body: string, type: 'info' | 'success' | 'warning' | 'alert' = 'info') => {
+          if (sentKeys.includes(key)) return;
+          
+          updated.unshift({
+            id: `n-smart-${key}`,
+            title,
+            message: body,
+            time: new Date().toISOString(),
+            type,
+            read: false
+          });
+          changed = true;
+
+          sentKeys.push(key);
+          localStorage.setItem('beforespend_sent_notifications_keys', JSON.stringify(sentKeys));
+
+          triggerSystemPushNotification({
+            title,
+            body,
+            url: '/dashboard'
+          }).catch(() => {});
+        };
+
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const currentHour = today.getHours();
+        const currentDayOfWeek = today.getDay();
+
+        // 1. Payday Friday Split Reminder
+        const isFriday = currentDayOfWeek === 5;
+        const wantsFriday = notificationSettings.paydayFriday && notificationSettings.remindToSplit === 'Weekly';
+        if (isFriday && wantsFriday && currentHour >= 18) {
+          const hasTodayPayment = history.some(p => p.date.startsWith(todayStr));
+          if (!hasTodayPayment) {
+            triggerSmartNotification(
+              `payday-friday-${todayStr}`,
+              '💸 Payday Allocation Split Nudge',
+              'Did money land this week? Split it before you spend it →',
+              'info'
+            );
+          }
+        }
+
+        // Daily Split Reminder (if set to Daily)
+        if (notificationSettings.remindToSplit === 'Daily' && currentHour >= 18) {
+          const hasTodayPayment = history.some(p => p.date.startsWith(todayStr));
+          if (!hasTodayPayment) {
+            triggerSmartNotification(
+              `payday-daily-${todayStr}`,
+              '💸 Daily Income Split Nudge',
+              'Did money land today? Split it before you spend it →',
+              'info'
+            );
+          }
+        }
+
+        // 2. 14 Days Inactivity split nudge
+        if (notificationSettings.inactivity14d) {
+          const lastPaymentDate = history.length > 0 ? new Date(history[0].date) : new Date(userProfile.createdAt || today);
+          const daysDiff = (today.getTime() - lastPaymentDate.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysDiff >= 14) {
+            triggerSmartNotification(
+              `inactivity-14d-${todayStr.slice(0, 7)}`,
+              '⏳ Split Inactivity Alert',
+              'No payments logged in 2 weeks. Slow month or did you forget?',
+              'warning'
+            );
+          }
+        }
+
+        // 4. Sunday Check-In
+        const isSunday = currentDayOfWeek === 0;
+        if (isSunday && notificationSettings.sundayCheckIn && currentHour >= 19) {
+          triggerSmartNotification(
+            `sunday-checkin-${todayStr}`,
+            '📊 Weekly Reconciliation Check-In',
+            'Weekly check-in: Confirm your bucket balances match your bank apps →',
+            'info'
+          );
+        }
+
+        // 5. Stale Bucket 7 Days Alert
+        if (notificationSettings.staleBucket7d) {
+          const sevenDaysAgo = today.getTime() - (7 * 24 * 60 * 60 * 1000);
+          const staleBucket = buckets.find(b => {
+            const bucketTxns = transactions.filter(t => t.bucketId === b.id);
+            const reconciles = bucketTxns.filter(t => t.type === 'MANUAL_ADJUSTMENT');
+            if (reconciles.length === 0) {
+              return true; 
+            }
+            const lastReconcile = new Date(reconciles[0].createdAt).getTime();
+            return lastReconcile < sevenDaysAgo;
+          });
+          if (staleBucket) {
+            triggerSmartNotification(
+              `stale-bucket-${staleBucket.id}-${todayStr}`,
+              '🔄 Reconcile Bucket Alert',
+              `Your ${staleBucket.name} bucket hasn't been checked in a week. Quick confirm?`,
+              'warning'
+            );
+          }
+        }
+
+        // 6. 5 Days Expense Logging Inactivity
+        if (notificationSettings.inactivityLogging5d) {
+          const lastExpenseDate = expenses.length > 0 ? new Date(expenses[0].date) : new Date(userProfile.createdAt || today);
+          const daysDiff = (today.getTime() - lastExpenseDate.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysDiff >= 5) {
+            triggerSmartNotification(
+              `inactivity-logging-5d-${todayStr.slice(0, 7)}`,
+              '📉 Spending Tracker Nudge',
+              'Any expenses this week? Rent, data, transport — log them now →',
+              'info'
+            );
+          }
+        }
+
+        // 7. Recurring Expense due alert (2 days before)
+        if (notificationSettings.recurringExpense2d) {
+          reminders.forEach(r => {
+            if (r.done) return;
+            const dueDate = new Date(r.dueDate);
+            const timeDiff = dueDate.getTime() - today.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            if (daysDiff === 2) {
+              triggerSmartNotification(
+                `reminder-2d-${r.id}`,
+                '⏰ Subscription Due Soon',
+                `${r.text} subscription due soon. Log it to your Ops bucket?`,
+                'info'
+              );
+            }
+          });
+        }
+
+        // 8. Low Balance < 20% of monthly average spend
+        if (notificationSettings.lowBalance20pct) {
+          buckets.forEach(b => {
+            const bucketExpenses = expenses.filter(e => e.bucketId === b.id);
+            const last30Days = today.getTime() - (30 * 24 * 60 * 60 * 1000);
+            const recentExpenses = bucketExpenses.filter(e => new Date(e.date).getTime() > last30Days);
+            const monthlyAverage = recentExpenses.reduce((sum, e) => sum + e.amount, 0);
+            
+            const currentBalance = transactions
+              .filter((t) => t.bucketId === b.id)
+              .reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), b.balance || 0);
+
+            if (monthlyAverage > 0 && currentBalance < 0.2 * monthlyAverage) {
+              triggerSmartNotification(
+                `low-balance-20pct-${b.id}-${todayStr}`,
+                '⚠️ Low Reserve Nudge',
+                `Your ${b.name} bucket is running low. Pause non-essential spending?`,
+                'warning'
+              );
+            }
+          });
+        }
+
+        // 9. US-style Quarterly Tax estimate due
+        if (notificationSettings.quarterlyTax7d) {
+          const currentMonth = today.getMonth();
+          const currentDay = today.getDate();
+          const isTaxNoticeDay = (currentMonth === 0 && currentDay === 8) || 
+                                 (currentMonth === 3 && currentDay === 8) || 
+                                 (currentMonth === 5 && currentDay === 8) || 
+                                 (currentMonth === 8 && currentDay === 8);
+          if (isTaxNoticeDay) {
+            const taxBucket = buckets.find(b => b.name.toLowerCase().includes('tax')) || buckets[0];
+            const taxVal = taxBucket 
+              ? transactions.filter(t => t.bucketId === taxBucket.id).reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), taxBucket.balance || 0)
+              : 0;
+            triggerSmartNotification(
+              `quarterly-tax-7d-${todayStr}`,
+              '💼 Quarterly Estimated Tax Due',
+              `Estimated tax due in 7 days. Your Tax bucket: ${formatCurrency(taxVal, userProfile.defaultCurrency)}. Ready?`,
+              'warning'
+            );
+          }
+        }
+
+        // 10. Annual Tax Filing Season (January 1st)
+        if (notificationSettings.annualTaxJan1) {
+          const currentMonth = today.getMonth();
+          const currentDay = today.getDate();
+          if (currentMonth === 0 && currentDay === 1) {
+            const taxBucket = buckets.find(b => b.name.toLowerCase().includes('tax')) || buckets[0];
+            const taxVal = taxBucket 
+              ? transactions.filter(t => t.bucketId === taxBucket.id).reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), taxBucket.balance || 0)
+              : 0;
+            triggerSmartNotification(
+              `annual-tax-jan1-${today.getFullYear()}`,
+              '💼 Annual Tax season Alert',
+              `Tax season is here. Your reserve: ${formatCurrency(taxVal, userProfile.defaultCurrency)}. Need an accountant?`,
+              'info'
+            );
+          }
+        }
+
+        // 11. CAC business registration expires (30 days before default or matching reminder)
+        if (notificationSettings.cacRenewal30d) {
+          const cacReminder = reminders.find(r => !r.done && (r.text.toLowerCase().includes('cac') || r.text.toLowerCase().includes('business registration')));
+          if (cacReminder) {
+            const dueDate = new Date(cacReminder.dueDate);
+            const timeDiff = dueDate.getTime() - today.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            if (daysDiff === 30) {
+              const renewalCost = cacReminder.cost !== undefined ? formatCurrency(cacReminder.cost, userProfile.defaultCurrency) : '₦15,000';
+              triggerSmartNotification(
+                `cac-renewal-30d-${cacReminder.id}`,
+                '🛡️ Business CAC Renewal Alert',
+                `Your business registration expires soon. Budget ${renewalCost} from Growth?`,
+                'warning'
+              );
+            }
+          }
+        }
+
+        // 12. Milestone Progress Alerts
+        milestones.forEach(m => {
+          const b = buckets.find(bucket => bucket.id === m.bucketId);
+          if (!b) return;
+          const currentBalance = transactions
+            .filter((t) => t.bucketId === b.id)
+            .reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), b.balance || 0);
+
+          if (currentBalance >= m.targetAmount) {
+            triggerSmartNotification(
+              `milestone-achieved-${m.id}`,
+              '🎉 Savings Milestone Achieved!',
+              `Milestone reached: ${m.name}! Time to cash out?`,
+              'success'
+            );
+          } else if (currentBalance >= 0.9 * m.targetAmount) {
+            const remaining = m.targetAmount - currentBalance;
+            triggerSmartNotification(
+              `milestone-90pct-${m.id}`,
+              '🎯 Goal In Sight!',
+              `Almost there! ${formatCurrency(remaining, userProfile.defaultCurrency)} more and your ${m.name} is yours.`,
+              'success'
+            );
+          } else if (currentBalance >= 0.5 * m.targetAmount) {
+            triggerSmartNotification(
+              `milestone-50pct-${m.id}`,
+              '🎯 Milestone Halfway Funded',
+              `New ${m.name} is 50% funded! Keep going.`,
+              'success'
+            );
+          }
+        });
+
+        // 13. Leak Detection (Salary/First bucket spent > 90% in first 10 days)
+        if (notificationSettings.leakSalary90pct && today.getDate() <= 10) {
+          const firstBucket = buckets[0];
+          if (firstBucket) {
+            const firstBucketExpenses = expenses.filter(e => e.bucketId === firstBucket.id);
+            const currentMonthExpenses = firstBucketExpenses.filter(e => {
+              const eDate = new Date(e.date);
+              return eDate.getMonth() === today.getMonth() && eDate.getFullYear() === today.getFullYear();
+            });
+            const totalSpent = currentMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+            
+            const recentSplits = history.filter(h => {
+              const hDate = new Date(h.date);
+              return hDate.getMonth() === today.getMonth() && hDate.getFullYear() === today.getFullYear();
+            });
+            const totalMonthlyIncome = recentSplits.reduce((sum, h) => sum + h.convertedAmount, 0);
+            const firstBucketMonthlyBudget = (totalMonthlyIncome * firstBucket.percentage) / 100;
+
+            if (firstBucketMonthlyBudget > 0 && totalSpent > 0.9 * firstBucketMonthlyBudget) {
+              triggerSmartNotification(
+                `leak-salary-90pct-${todayStr.slice(0, 7)}`,
+                '🚨 Spending Leak Detected',
+                `You've burned 90% of your salary budget in 10 days. Slow down →`,
+                'alert'
+              );
+            }
+          }
+        }
+
+        // 14. Multiple small expenses in 24h
+        if (notificationSettings.leakSmallExpenses24h) {
+          buckets.forEach(b => {
+            const bucketExpenses = expenses.filter(e => e.bucketId === b.id);
+            const oneDayAgo = today.getTime() - (24 * 60 * 60 * 1000);
+            const dailyExpenses = bucketExpenses.filter(e => new Date(e.date).getTime() > oneDayAgo);
+            if (dailyExpenses.length >= 5) {
+              const totalAmount = dailyExpenses.reduce((sum, e) => sum + e.amount, 0);
+              triggerSmartNotification(
+                `leak-small-${b.id}-${todayStr}`,
+                '🚨 High Transaction Frequency',
+                `${dailyExpenses.length} expenses from ${b.name} today. Total: ${formatCurrency(totalAmount, userProfile.defaultCurrency)}. Intentional?`,
+                'warning'
+              );
+            }
+          });
+        }
+
+        // 15. Monthly Financial Review
+        const tomorrow = new Date(today.getTime() + (24 * 60 * 60 * 1000));
+        const isLastDayOfMonth = tomorrow.getDate() === 1;
+        if (isLastDayOfMonth && notificationSettings.monthlyReviewLastDay && currentHour >= 20) {
+          const thisMonth = today.getMonth();
+          const thisYear = today.getFullYear();
+          const monthIncome = history.filter(h => {
+            const d = new Date(h.date);
+            return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+          }).reduce((sum, h) => sum + h.convertedAmount, 0);
+          const monthExpenses = expenses.filter(e => {
+            const d = new Date(e.date);
+            return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+          }).reduce((sum, e) => sum + e.amount, 0);
+
+          const monthName = today.toLocaleString('en-US', { month: 'long' });
+          triggerSmartNotification(
+            `monthly-review-end-${todayStr}`,
+            `📊 ${monthName} Financial Summary`,
+            `Month ends tomorrow. Your ${monthName}: ${formatCurrency(monthIncome, userProfile.defaultCurrency)} in, ${formatCurrency(monthExpenses, userProfile.defaultCurrency)} out. See breakdown →`,
+            'info'
+          );
+        }
+
+        const isFirstDayOfMonth = today.getDate() === 1;
+        if (isFirstDayOfMonth && notificationSettings.monthlyReviewFirstDay && currentHour >= 9) {
+          const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          const growthBucket = buckets.find(b => b.name.toLowerCase().includes('growth')) || buckets[0];
+          let growthSavings = 0;
+          if (growthBucket) {
+            const growthTxns = transactions.filter(t => t.bucketId === growthBucket.id);
+            growthSavings = growthTxns.filter(t => {
+              const d = new Date(t.createdAt);
+              return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
+            }).reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), 0);
+          }
+          triggerSmartNotification(
+            `monthly-review-start-${todayStr}`,
+            '📊 New Month Growth Target',
+            `New month. Last month you saved ${formatCurrency(growthSavings, userProfile.defaultCurrency)} in Growth. Ready to set this month's goals?`,
+            'info'
+          );
+        }
+
+        // 17. App Inactivity (App not opened in 7 days)
+        if (notificationSettings.inactivity7d) {
+          const lastOpenDateStr = localStorage.getItem('beforespend_last_open_date');
+          if (lastOpenDateStr) {
+            const lastOpenDate = new Date(lastOpenDateStr);
+            const timeDiff = today.getTime() - lastOpenDate.getTime();
+            const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+            if (daysDiff >= 7) {
+              triggerSmartNotification(
+                `app-inactivity-7d-${todayStr}`,
+                '👋 Welcome Back!',
+                'Your money misses you. 30 seconds to check your buckets →',
+                'info'
+              );
+            }
+          }
+        }
+        localStorage.setItem('beforespend_last_open_date', today.toISOString());
       }
 
       return changed ? updated : prev;
     });
-  }, [buckets, transactions, reminders, userProfile.defaultCurrency, userProfile.email, userProfile.name]);
+  }, [
+    buckets, 
+    transactions, 
+    reminders, 
+    expenses, 
+    milestones, 
+    history, 
+    userProfile.defaultCurrency,
+    userProfile.email, 
+    userProfile.name, 
+    userProfile.createdAt, 
+    notificationSettings
+  ]);
+
+  // 10-minute app open without saving notification check
+  useEffect(() => {
+    if (!dataLoaded || !notificationSettings.openWithoutSaving) return;
+    const timer = setTimeout(() => {
+      const now = Date.now();
+      const hasNewTxn = transactions.some(t => now - new Date(t.createdAt).getTime() < 10 * 60 * 1000);
+      const hasNewExpense = expenses.some(e => now - new Date(e.date).getTime() < 10 * 60 * 1000);
+      if (!hasNewTxn && !hasNewExpense) {
+        const snoozeUntilStr = localStorage.getItem('beforespend_notifications_snoozed_until');
+        const isSnoozed = snoozeUntilStr ? new Date() < new Date(snoozeUntilStr) : false;
+        if (!isSnoozed) {
+          triggerSystemPushNotification({
+            title: 'BeforeSpend Split Alert',
+            body: 'Still there? Tap save and lock in your split.',
+            url: '/dashboard'
+          }).catch(() => {});
+        }
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+    return () => clearTimeout(timer);
+  }, [dataLoaded, notificationSettings.openWithoutSaving, transactions, expenses]);
 
   // Trigger dark mode effects
   useEffect(() => {
@@ -1394,7 +1799,7 @@ export function AuthenticatedApp({
       : undefined;
 
     const newBucket: Bucket = {
-      id: 'custom-' + generateId(),
+      id: generateId(),
       name: newBucketName.trim(),
       percentage: parsedPercent,
       color: newBucketColor,
@@ -1549,7 +1954,7 @@ export function AuthenticatedApp({
         distributedSum += allocatedBalance;
       }
       return {
-        id: `t-${idx}-${generateId()}`,
+        id: generateId(),
         name: b.name,
         percentage: b.percentage,
         color: b.color,
@@ -1746,6 +2151,27 @@ export function AuthenticatedApp({
   };
 
   // User Profile save
+  // Snooze notifications handler
+  const handleSnoozeNotifications = (duration: string) => {
+    let snoozeUntil: Date | null = null;
+    if (duration === '1d') {
+      snoozeUntil = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    } else if (duration === '3d') {
+      snoozeUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    } else if (duration === '1w') {
+      snoozeUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    }
+
+    if (snoozeUntil) {
+      localStorage.setItem('beforespend_notifications_snoozed_until', snoozeUntil.toISOString());
+      addToast(`Notifications snoozed until ${snoozeUntil.toLocaleDateString()}`, 'success');
+    } else {
+      localStorage.removeItem('beforespend_notifications_snoozed_until');
+      addToast('Notifications unsnoozed!', 'success');
+    }
+    setNotificationSettings(prev => ({ ...prev, _snoozedTrigger: Date.now() }));
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -3044,6 +3470,164 @@ export function AuthenticatedApp({
                     </button>
                   </div>
                 </form>
+
+                {/* Notification Settings Card */}
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Bell className="w-5 h-5 text-[#00A896]" />
+                    <h3 className="font-bold text-gray-900 dark:text-zinc-50 text-base">
+                      Notification Preferences
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
+                    Configure how and when BeforeSpend sends alerts. Customize your split schedules or temporarily snooze warnings to prevent noise.
+                  </p>
+
+                  <div className="space-y-4 pt-2">
+                    {/* Push Permission Status */}
+                    <div className="p-3 bg-gray-50/50 dark:bg-zinc-900/40 rounded-xl border border-gray-200 dark:border-zinc-800 flex justify-between items-center text-xs">
+                      <div>
+                        <span className="font-bold text-gray-700 dark:text-zinc-300 block">Device Push Status</span>
+                        <span className="text-[10px] text-gray-400">Receive notifications directly on your screen</span>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                          Notification.permission === 'granted' 
+                            ? 'bg-teal-100 text-teal-850 dark:bg-teal-900/30 dark:text-teal-400' 
+                            : Notification.permission === 'denied'
+                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-450'
+                            : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-400'
+                        }`}>
+                          {Notification.permission}
+                        </span>
+                        {Notification.permission !== 'granted' && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const granted = await requestPushNotificationPermission();
+                              if (granted) addToast('Push notifications enabled! 🔔', 'success');
+                              else addToast('Failed to enable push notifications.', 'warning');
+                              setNotificationSettings(prev => ({ ...prev, _trigger: Date.now() }));
+                            }}
+                            className="text-[9px] font-black text-[#00A896] hover:underline cursor-pointer"
+                          >
+                            Enable Access
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Snooze Options */}
+                    <div>
+                      {(() => {
+                        const snoozeUntilStr = localStorage.getItem('beforespend_notifications_snoozed_until');
+                        const activeSnooze = snoozeUntilStr ? new Date(snoozeUntilStr) : null;
+                        const isSnoozed = activeSnooze ? new Date() < activeSnooze : false;
+                        
+                        return (
+                          <div className="space-y-2">
+                            <CustomSelect
+                              label="Snooze All Alerts"
+                              value={isSnoozed ? 'active' : 'none'}
+                              onChange={(val) => {
+                                if (val === 'none') handleSnoozeNotifications('none');
+                                else handleSnoozeNotifications(val);
+                              }}
+                              options={[
+                                { value: 'none', label: 'Receive Alerts Normally (No Snooze)' },
+                                { value: '1d', label: 'Snooze for 1 Day' },
+                                { value: '3d', label: 'Snooze for 3 Days' },
+                                { value: '1w', label: 'Snooze for 1 Week' }
+                              ]}
+                            />
+                            {isSnoozed && activeSnooze && (
+                              <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-955/20 p-2.5 rounded-lg border border-amber-250/20">
+                                🔔 Alerts are currently snoozed until: {activeSnooze.toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Remind me to split */}
+                    <div>
+                      <CustomSelect
+                        label="Remind me to split income"
+                        value={notificationSettings.remindToSplit || 'Weekly'}
+                        onChange={(val) => setNotificationSettings(prev => ({ ...prev, remindToSplit: val }))}
+                        options={[
+                          { value: 'Daily', label: 'Daily (Every day at 6 PM)' },
+                          { value: 'Weekly', label: 'Weekly (Every Friday at 6 PM)' },
+                          { value: 'Only when I forget', label: 'Only when I forget (14 days Inactivity)' }
+                        ]}
+                      />
+                    </div>
+
+                    {/* Collapsible / Expandable Trigger Customization List */}
+                    <div className="space-y-3 pt-2">
+                      <h4 className="font-bold text-gray-700 dark:text-zinc-300 text-xs uppercase tracking-wider">
+                        Fine-Tune Alert Triggers
+                      </h4>
+                      <p className="text-[10px] text-gray-400 leading-tight">
+                        Toggle specific prompts off to prevent noise and tailor behaviors to your personal habits.
+                      </p>
+
+                      <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
+                        {/* Custom Toggle helper */}
+                        {(() => {
+                          const renderToggle = (key: string, title: string, desc: string) => {
+                            const isChecked = notificationSettings[key] !== false; // default to true
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setNotificationSettings(prev => ({ ...prev, [key]: !isChecked }))}
+                                className="w-full flex items-start gap-3 p-2 bg-gray-50/30 hover:bg-gray-50/80 dark:bg-zinc-900/20 dark:hover:bg-zinc-900/60 border border-gray-150/40 dark:border-zinc-800/40 rounded-xl text-left transition-all cursor-pointer group"
+                              >
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                                  isChecked 
+                                    ? 'bg-[#00A896] border-[#00A896] text-white' 
+                                    : 'border-gray-300 dark:border-zinc-850 bg-white dark:bg-zinc-900 group-hover:border-[#00A896]'
+                                }`}>
+                                  {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                </div>
+                                <div className="space-y-0.5">
+                                  <span className="text-[11px] font-black text-gray-800 dark:text-zinc-200 block">{title}</span>
+                                  <span className="text-[9px] text-gray-400 dark:text-zinc-500 font-semibold block leading-tight">{desc}</span>
+                                </div>
+                              </button>
+                            );
+                          };
+
+                          return (
+                            <>
+                              {renderToggle('paydayFriday', 'Friday Payday Split', 'Reminds you on Friday at 6 PM to split incoming salary.')}
+                              {renderToggle('inactivity14d', '14d Split Inactivity Nudge', 'Triggers when no splits are performed for 2 weeks.')}
+                              {renderToggle('openWithoutSaving', '10-Min Inactivity Alert', 'Sends a reminder if you open the app and stay idle for 10 min.')}
+                              {renderToggle('sundayCheckIn', 'Sunday Reconciliation Nudge', 'Reminds you every Sunday at 7 PM to reconcile bank apps.')}
+                              {renderToggle('staleBucket7d', '7d Reconcile Warning', 'Alerts when a bucket hasn\'t been checked in 7 days.')}
+                              {renderToggle('inactivityLogging5d', '5d Expense Inactivity', 'Nudges you when no expenses are logged in 5 days.')}
+                              {renderToggle('recurringExpense2d', '2d Subscriptions Alert', 'Alerts you 2 days before a bill or subscription is due.')}
+                              {renderToggle('lowBalance20pct', 'Reserve Below 20% Alert', 'Alerts when bucket falls under 20% of monthly average spend.')}
+                              {renderToggle('quarterlyTax7d', 'Quarterly Tax Estimates Notice', 'Warns you 7 days before US-style quarterly estimates are due.')}
+                              {renderToggle('annualTaxJan1', 'Annual Tax Season Prompt', 'Alerts you on Jan 1st with your current tax reserve details.')}
+                              {renderToggle('cacRenewal30d', '30d CAC / Registration Warning', 'Alerts 30 days before business registration renewals expire.')}
+                              {renderToggle('milestone50pct', 'Milestone 50% Funding Nudge', 'Triggers once a milestone savings bucket reaches 50% target.')}
+                              {renderToggle('milestone90pct', 'Milestone 90% Near Goal Nudge', 'Triggers once a milestone reaches 90% target.')}
+                              {renderToggle('milestoneAchieved', 'Milestone Reached Celebration', 'Sends a congratulations push alert when milestone is 100% saved.')}
+                              {renderToggle('leakSalary90pct', 'Leak: Salary Spent >90% in 10 Days', 'Nudges you if salary budget is spent by 90% in first 10 days.')}
+                              {renderToggle('leakSmallExpenses24h', 'Leak: High Frequency Alerts', 'Triggers if >= 5 small transactions are made in 24 hours.')}
+                              {renderToggle('monthlyReviewLastDay', 'End of Month Review', 'Sends total Inflow vs Outflow report at 8 PM on last day.')}
+                              {renderToggle('monthlyReviewFirstDay', 'Start of Month Savings Goal', 'Nudges your savings results and new goal set on 1st day.')}
+                              {renderToggle('inactivity7d', '7d App Open Nudge', 'Sends a friendly wake up notice if you haven\'t opened the app in 7 days.')}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Onboarding Video Guide Section */}
                 <div className="p-5 rounded-2xl border border-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 space-y-3 shadow-sm">

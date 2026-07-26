@@ -21,9 +21,12 @@ alter table public.milestones add column if not exists title text;
 -- 2. Drop legacy foreign key constraints that block custom UUID sync
 alter table public.buckets drop constraint if exists buckets_user_id_fkey;
 alter table public.transactions drop constraint if exists transactions_user_id_fkey;
+alter table public.transactions drop constraint if exists transactions_bucket_id_fkey;
 alter table public.payments drop constraint if exists payments_user_id_fkey;
 alter table public.milestones drop constraint if exists milestones_user_id_fkey;
+alter table public.milestones drop constraint if exists milestones_bucket_id_fkey;
 alter table public.reminders drop constraint if exists reminders_user_id_fkey;
+alter table public.reminders drop constraint if exists reminders_bucket_id_fkey;
 alter table public.notifications drop constraint if exists notifications_user_id_fkey;
 
 -- 3. Fix handle_new_user() trigger to safely insert Google OAuth users without failing

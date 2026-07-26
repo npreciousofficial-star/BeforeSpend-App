@@ -6,7 +6,7 @@ import { BeforeSpendLogo } from './BeforeSpendLogo';
 import { detectUserRegionAndCurrency, detectUserCountry } from '../data/defaultBuckets';
 import { 
   ShieldAlert, Key, Mail, User, Briefcase, DollarSign, ArrowRight, Eye, EyeOff, X,
-  ChevronDown, Check, Layers, PieChart, Target, Bell, Phone
+  ChevronDown, Check, Layers, PieChart, Target, Bell, Phone, Globe
 } from 'lucide-react';
 
 interface LoginRegisterScreenProps {
@@ -25,7 +25,18 @@ interface RegisteredUser {
   role: string;
   defaultCurrency: string;
   phoneNumber?: string;
+  country?: string;
 }
+
+const COUNTRY_OPTIONS = [
+  { value: 'Nigeria', label: 'Nigeria (NG)', currency: 'NGN' },
+  { value: 'United States', label: 'United States (US)', currency: 'USD' },
+  { value: 'United Kingdom', label: 'United Kingdom (UK)', currency: 'GBP' },
+  { value: 'Canada', label: 'Canada (CA)', currency: 'CAD' },
+  { value: 'South Africa', label: 'South Africa (ZA)', currency: 'ZAR' },
+  { value: 'Kenya', label: 'Kenya (KE)', currency: 'KES' },
+  { value: 'Ghana', label: 'Ghana (GH)', currency: 'GHS' }
+];
 
 const ROLE_OPTIONS = [
   { value: 'Salaried Employee / Professional', label: 'Salaried Employee / Professional' },
@@ -55,6 +66,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   const [phoneNumber, setPhoneNumber] = useState('');
   const [role, setRole] = useState('Salaried Employee / Professional');
   const [currency, setCurrency] = useState(() => detectUserRegionAndCurrency().currency);
+  const [country, setCountry] = useState(() => detectUserCountry());
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
@@ -62,6 +74,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   // Custom dropdown open states
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isGoogleRoleDropdownOpen, setIsGoogleRoleDropdownOpen] = useState(false);
 
   // Modal states for Google Sign In & Forgot Password
@@ -173,13 +186,11 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         phoneNumber: phoneNumber.trim() || undefined,
       };
 
-      const detectedCountry = detectUserCountry();
-
       let finalId = newUserId;
       try {
         const supabaseId = await registerUserAccountToSupabase({
           ...newUser,
-          country: detectedCountry
+          country: country
         });
         if (supabaseId) {
           finalId = supabaseId;
@@ -199,7 +210,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         defaultCurrency: newUser.defaultCurrency,
         avatar: 'preset-emerald',
         phoneNumber: newUser.phoneNumber,
-        country: detectedCountry,
+        country: country,
       };
       window.localStorage.setItem(profileKey, JSON.stringify(profileData));
       window.localStorage.setItem(`user_${finalId}_just_registered`, 'true');
@@ -344,13 +355,19 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   };
 
   // Safe Close for dropdowns
-  const handleDropdownToggle = (type: 'role' | 'currency' | 'googleRole') => {
+  const handleDropdownToggle = (type: 'role' | 'currency' | 'country' | 'googleRole') => {
     if (type === 'role') {
       setIsRoleDropdownOpen(!isRoleDropdownOpen);
       setIsCurrencyDropdownOpen(false);
+      setIsCountryDropdownOpen(false);
     } else if (type === 'currency') {
       setIsCurrencyDropdownOpen(!isCurrencyDropdownOpen);
       setIsRoleDropdownOpen(false);
+      setIsCountryDropdownOpen(false);
+    } else if (type === 'country') {
+      setIsCountryDropdownOpen(!isCountryDropdownOpen);
+      setIsRoleDropdownOpen(false);
+      setIsCurrencyDropdownOpen(false);
     } else {
       setIsGoogleRoleDropdownOpen(!isGoogleRoleDropdownOpen);
     }
@@ -627,6 +644,43 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
                         >
                           <span>{opt.label}</span>
                           {currency === opt.value && <Check className="w-4 h-4 text-[#00A896]" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom Country Dropdown Select */}
+                <div className="space-y-1.5 relative">
+                  <label className="block text-[11px] font-black text-gray-550 dark:text-zinc-400 uppercase tracking-wider">Country of Residence</label>
+                  <button
+                    type="button"
+                    onClick={() => handleDropdownToggle('country')}
+                    className="w-full flex items-center justify-between pl-11 pr-4 py-3.5 rounded-2xl border border-gray-300/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 focus:border-[#00A896] focus:outline-none transition-all text-left relative text-base text-gray-900 dark:text-zinc-50"
+                  >
+                    <Globe className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <span className="truncate">{COUNTRY_OPTIONS.find(c => c.value === country)?.label || country}</span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Options List */}
+                  {isCountryDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                      {COUNTRY_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setCountry(opt.value);
+                            setCurrency(opt.currency);
+                            setIsCountryDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left hover:bg-gray-100 dark:hover:bg-zinc-800/80 transition-colors ${
+                            country === opt.value ? 'text-[#00A896] font-bold bg-[#00A896]/5' : 'text-gray-700 dark:text-zinc-200'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {country === opt.value && <Check className="w-4 h-4 text-[#00A896]" />}
                         </button>
                       ))}
                     </div>

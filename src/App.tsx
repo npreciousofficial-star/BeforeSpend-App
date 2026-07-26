@@ -2794,19 +2794,25 @@ export function AuthenticatedApp({
                     </div>
 
                     <div>
-                      <CustomSelect
-                        id="profile-currency-select"
-                        label="Default Base Currency"
-                        value={editProfileCurrency}
-                        onChange={setEditProfileCurrency}
-                        options={[
-                          { value: 'NGN', label: 'Naira (₦ NGN)', sublabel: 'Nigerian Naira' },
-                          { value: 'USD', label: 'US Dollar ($ USD)', sublabel: 'United States Dollar' },
-                          { value: 'GBP', label: 'Pound Sterling (£ GBP)', sublabel: 'British Pound' },
-                          { value: 'EUR', label: 'Euro (€ EUR)', sublabel: 'European Union Euro' },
-                          { value: 'CAD', label: 'Canadian Dollar (C$ CAD)', sublabel: 'Canadian Dollar' },
-                        ]}
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">
+                        Default Base Currency
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        value={
+                          userProfile.defaultCurrency === 'NGN' ? 'Naira (₦ NGN)' :
+                          userProfile.defaultCurrency === 'USD' ? 'US Dollar ($ USD)' :
+                          userProfile.defaultCurrency === 'GBP' ? 'Pound Sterling (£ GBP)' :
+                          userProfile.defaultCurrency === 'EUR' ? 'Euro (€ EUR)' :
+                          userProfile.defaultCurrency === 'CAD' ? 'Canadian Dollar (C$ CAD)' :
+                          `${userProfile.defaultCurrency}`
+                        }
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-gray-400 focus:outline-none cursor-not-allowed font-bold"
                       />
+                      <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                        Your base currency is locked to your signup selection to ensure absolute financial ledger precision.
+                      </p>
                     </div>
 
                     {(userProfile.createdAt || userProfile.updatedAt) && (

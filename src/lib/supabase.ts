@@ -139,6 +139,7 @@ export async function registerUserAccountToSupabase(user: {
   role: string;
   defaultCurrency: string;
   phoneNumber?: string;
+  country?: string;
 }): Promise<string | null> {
   const validUuid = ensureUuid(user.id);
   try {
@@ -153,6 +154,7 @@ export async function registerUserAccountToSupabase(user: {
           role: user.role,
           default_currency: user.defaultCurrency,
           phone_number: user.phoneNumber,
+          country: user.country,
         }
       }
     });
@@ -177,6 +179,7 @@ export async function registerUserAccountToSupabase(user: {
       avatar: 'preset-emerald',
       default_currency: user.defaultCurrency || 'NGN',
       phone_number: user.phoneNumber || null,
+      country: user.country || null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
 
@@ -281,6 +284,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
             default_currency: profile.defaultCurrency || existingByEmail.default_currency || 'NGN',
             phone_number: profile.phoneNumber || existingByEmail.phone_number || null,
             onboarding_completed: profile.onboardingCompleted ?? existingByEmail.onboarding_completed ?? true,
+            country: profile.country || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingByEmail.id);
@@ -296,6 +300,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
             default_currency: profile.defaultCurrency || 'NGN',
             phone_number: profile.phoneNumber || null,
             onboarding_completed: profile.onboardingCompleted ?? true,
+            country: profile.country || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', validUuid);
@@ -320,6 +325,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
             default_currency: profile.defaultCurrency || 'NGN',
             phone_number: profile.phoneNumber || null,
             onboarding_completed: profile.onboardingCompleted ?? true,
+            country: profile.country || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', validUuid);
@@ -337,6 +343,7 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
             default_currency: profile.defaultCurrency || 'NGN',
             phone_number: profile.phoneNumber || null,
             onboarding_completed: profile.onboardingCompleted ?? true,
+            country: profile.country || null,
             updated_at: new Date().toISOString()
           });
         error = insertError;
@@ -657,6 +664,7 @@ export async function loadProfileFromSupabase(userId: string): Promise<UserProfi
       defaultCurrency: data.default_currency || 'NGN',
       phoneNumber: data.phone_number || undefined,
       onboardingCompleted: data.onboarding_completed ?? Boolean(data.phone_number && data.phone_number.trim() !== '' && data.role),
+      country: data.country || undefined,
       createdAt: data.created_at || undefined,
       updatedAt: data.updated_at || undefined,
     };

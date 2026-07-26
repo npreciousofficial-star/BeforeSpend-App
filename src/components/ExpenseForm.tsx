@@ -31,10 +31,32 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({ buckets, currency, onAdd, addToast }: ExpenseFormProps) {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [bucketId, setBucketId] = useState('');
+  const [description, setDescription] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_expense');
+    if (draft) {
+      try { return JSON.parse(draft).description || ''; } catch (e) {}
+    }
+    return '';
+  });
+  const [amount, setAmount] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_expense');
+    if (draft) {
+      try { return JSON.parse(draft).amount || ''; } catch (e) {}
+    }
+    return '';
+  });
+  const [bucketId, setBucketId] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_expense');
+    if (draft) {
+      try { return JSON.parse(draft).bucketId || ''; } catch (e) {}
+    }
+    return '';
+  });
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    localStorage.setItem('beforespend_draft_expense', JSON.stringify({ description, amount, bucketId }));
+  }, [description, amount, bucketId]);
 
   // Receipt attachment state
   const [receiptBase64, setReceiptBase64] = useState<string | undefined>(undefined);
@@ -87,6 +109,7 @@ export function ExpenseForm({ buckets, currency, onAdd, addToast }: ExpenseFormP
     addToast(`Expense logged! Deducted from ${selectedBucket.name}`, 'success');
 
     // Reset Form
+    localStorage.removeItem('beforespend_draft_expense');
     setDescription('');
     setAmount('');
     setBucketId('');

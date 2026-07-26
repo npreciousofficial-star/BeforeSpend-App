@@ -3,7 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { UserProfile } from '../types';
 import { registerUserAccountToSupabase, loginUserAccountToSupabase, loginWithGoogleOAuth, copyLocalStorageData, supabase, sendEmailNotification, fetchUserClientIp } from '../lib/supabase';
 import { BeforeSpendLogo } from './BeforeSpendLogo';
-import { detectUserRegionAndCurrency } from '../data/defaultBuckets';
+import { detectUserRegionAndCurrency, detectUserCountry } from '../data/defaultBuckets';
 import { 
   ShieldAlert, Key, Mail, User, Briefcase, DollarSign, ArrowRight, Eye, EyeOff, X,
   ChevronDown, Check, Layers, PieChart, Target, Bell, Phone
@@ -173,9 +173,14 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         phoneNumber: phoneNumber.trim() || undefined,
       };
 
+      const detectedCountry = detectUserCountry();
+
       let finalId = newUserId;
       try {
-        const supabaseId = await registerUserAccountToSupabase(newUser);
+        const supabaseId = await registerUserAccountToSupabase({
+          ...newUser,
+          country: detectedCountry
+        });
         if (supabaseId) {
           finalId = supabaseId;
           newUser.id = supabaseId;
@@ -194,6 +199,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         defaultCurrency: newUser.defaultCurrency,
         avatar: 'preset-emerald',
         phoneNumber: newUser.phoneNumber,
+        country: detectedCountry,
       };
       window.localStorage.setItem(profileKey, JSON.stringify(profileData));
       window.localStorage.setItem(`user_${finalId}_just_registered`, 'true');

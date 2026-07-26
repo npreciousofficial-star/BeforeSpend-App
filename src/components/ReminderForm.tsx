@@ -23,13 +23,53 @@ interface ReminderFormProps {
 }
 
 export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
-  const [text, setText] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [cost, setCost] = useState('');
-  const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly');
-  const [note, setNote] = useState('');
+  const [text, setText] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_reminder');
+    if (draft) {
+      try { return JSON.parse(draft).text || ''; } catch (e) {}
+    }
+    return '';
+  });
+  const [dueDate, setDueDate] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_reminder');
+    if (draft) {
+      try { return JSON.parse(draft).dueDate || ''; } catch (e) {}
+    }
+    return '';
+  });
+  const [isRecurring, setIsRecurring] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_reminder');
+    if (draft) {
+      try { return JSON.parse(draft).isRecurring || false; } catch (e) {}
+    }
+    return false;
+  });
+  const [cost, setCost] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_reminder');
+    if (draft) {
+      try { return JSON.parse(draft).cost || ''; } catch (e) {}
+    }
+    return '';
+  });
+  const [period, setPeriod] = useState<'monthly' | 'yearly'>(() => {
+    const draft = localStorage.getItem('beforespend_draft_reminder');
+    if (draft) {
+      try { return JSON.parse(draft).period || 'monthly'; } catch (e) {}
+    }
+    return 'monthly';
+  });
+  const [note, setNote] = useState(() => {
+    const draft = localStorage.getItem('beforespend_draft_reminder');
+    if (draft) {
+      try { return JSON.parse(draft).note || ''; } catch (e) {}
+    }
+    return '';
+  });
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    localStorage.setItem('beforespend_draft_reminder', JSON.stringify({ text, dueDate, isRecurring, cost, period, note }));
+  }, [text, dueDate, isRecurring, cost, period, note]);
 
   // Quick template generator
   const handleQuickTemplate = (name: string, defaultCost: number, notes: string) => {
@@ -77,6 +117,7 @@ export function ReminderForm({ currency, onAdd }: ReminderFormProps) {
     });
 
     // Reset Form
+    localStorage.removeItem('beforespend_draft_reminder');
     setText('');
     setDueDate('');
     setIsRecurring(false);

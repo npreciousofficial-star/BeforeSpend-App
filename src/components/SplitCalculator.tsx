@@ -38,11 +38,33 @@ export function SplitCalculator({
   onSavePayment, 
   addToast 
 }: SplitCalculatorProps) {
-  const [amount, setAmount] = useState<string>('');
-  const [currency, setCurrency] = useState<string>('NGN');
-  const [note, setNote] = useState<string>('');
+  const [amount, setAmount] = useState<string>(() => {
+    const draft = localStorage.getItem('beforespend_draft_income');
+    if (draft) {
+      try { return JSON.parse(draft).amount || ''; } catch (e) {}
+    }
+    return '';
+  });
+  const [currency, setCurrency] = useState<string>(() => {
+    const draft = localStorage.getItem('beforespend_draft_income');
+    if (draft) {
+      try { return JSON.parse(draft).currency || 'NGN'; } catch (e) {}
+    }
+    return 'NGN';
+  });
+  const [note, setNote] = useState<string>(() => {
+    const draft = localStorage.getItem('beforespend_draft_income');
+    if (draft) {
+      try { return JSON.parse(draft).note || ''; } catch (e) {}
+    }
+    return '';
+  });
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('beforespend_draft_income', JSON.stringify({ amount, currency, note }));
+  }, [amount, currency, note]);
   
   // Receipt upload states
   const [receiptBase64, setReceiptBase64] = useState<string | undefined>(undefined);
@@ -129,7 +151,8 @@ export function SplitCalculator({
 
     addToast('Payment split saved! Balances updated.', 'success');
     
-    // Reset calculator inputs
+    // Reset calculator inputs and clear draft
+    localStorage.removeItem('beforespend_draft_income');
     setAmount('');
     setNote('');
     setReceiptBase64(undefined);

@@ -196,3 +196,26 @@ export function detectUserRegionAndCurrency(): { currency: string; region: 'US' 
   }
   return { currency: 'NGN', region: 'NG' };
 }
+
+export function detectUserCountry(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) return 'Nigeria';
+    if (tz.includes('Lagos')) return 'Nigeria';
+    if (tz.startsWith('America/')) return 'United States';
+    if (tz.startsWith('Europe/London')) return 'United Kingdom';
+    if (tz.startsWith('Europe/')) return 'Europe';
+    if (tz.startsWith('Africa/')) {
+      if (tz.includes('Johannesburg')) return 'South Africa';
+      if (tz.includes('Nairobi')) return 'Kenya';
+      if (tz.includes('Accra')) return 'Ghana';
+      return 'Nigeria';
+    }
+    if (tz.startsWith('Asia/')) return 'Asia';
+    if (tz.startsWith('Australia/')) return 'Australia';
+    if (tz.startsWith('Canada/')) return 'Canada';
+    return tz.split('/')[0] || 'Nigeria';
+  } catch (e) {
+    return 'Nigeria';
+  }
+}

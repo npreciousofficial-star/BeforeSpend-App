@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { getLocalizedDefaultBuckets, getLocalizedTemplates, detectUserRegionAndCurrency } from './data/defaultBuckets';
+import { getLocalizedDefaultBuckets, getLocalizedTemplates, detectUserRegionAndCurrency, detectUserCountry } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
 import { Bucket, PaymentEntry, Expense, Milestone, Reminder, UserProfile, ToastMessage, AppNotification, Transaction, BucketTemplate } from './types';
 import { 
@@ -466,12 +466,14 @@ export function AuthenticatedApp({
           const finalName = (googleName && (!profile.name || profile.name === 'Chidi Okechukwu' || profile.name === 'BeforeSpend User')) ? googleName : profile.name;
           const finalEmail = (googleEmail && (!profile.email || profile.email === 'chidi.design@gmail.com')) ? googleEmail : profile.email;
           const finalAvatar = (googleAvatar && (!profile.avatar || profile.avatar.startsWith('preset-'))) ? googleAvatar : (profile.avatar || googleAvatar || 'preset-emerald');
+          const finalCountry = profile.country || detectUserCountry();
 
           const updatedProfile = {
             ...profile,
             name: finalName,
             email: finalEmail,
-            avatar: finalAvatar
+            avatar: finalAvatar,
+            country: finalCountry
           };
 
           setUserProfile(updatedProfile);
@@ -496,6 +498,7 @@ export function AuthenticatedApp({
           const defaultName = googleName || 'BeforeSpend User';
           const defaultEmail = googleEmail || '';
           const defaultAvatar = googleAvatar || 'preset-emerald';
+          const detectedCountry = detectUserCountry();
 
           const newProfile: UserProfile = {
             name: defaultName,
@@ -503,6 +506,7 @@ export function AuthenticatedApp({
             role: 'Personal Budgeter',
             defaultCurrency: 'NGN',
             avatar: defaultAvatar,
+            country: detectedCountry,
           };
 
           setUserProfile(newProfile);
@@ -1639,6 +1643,7 @@ export function AuthenticatedApp({
       avatar,
       phoneNumber: editProfilePhone || userProfile.phoneNumber,
       onboardingCompleted: true,
+      country: userProfile.country || detectUserCountry(),
     };
 
     const oldCurrency = userProfile.defaultCurrency;
@@ -2763,12 +2768,16 @@ export function AuthenticatedApp({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Your Profile Role / Tagline</label>
-                      <input
-                        type="text"
+                      <CustomSelect
+                        label="Your Profile Role / Tagline"
                         value={editProfileRole}
-                        onChange={(e) => setEditProfileRole(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 placeholder-gray-400 focus:outline-none"
+                        onChange={setEditProfileRole}
+                        options={[
+                          { value: 'Salaried Employee / Professional', label: 'Salaried Employee / Professional' },
+                          { value: 'Freelancer & Contractor', label: 'Freelancer & Contractor' },
+                          { value: 'Business Owner / Entrepreneur', label: 'Business Owner / Entrepreneur' },
+                          { value: 'Student & Personal Budgeter', label: 'Student & Personal Budgeter' }
+                        ]}
                       />
                     </div>
 
@@ -2776,9 +2785,9 @@ export function AuthenticatedApp({
                       <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-1">Email Address</label>
                       <input
                         type="email"
+                        disabled
                         value={editProfileEmail}
-                        onChange={(e) => setEditProfileEmail(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 placeholder-gray-400 focus:outline-none"
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-100 dark:bg-zinc-900 text-gray-400 focus:outline-none cursor-not-allowed font-medium"
                       />
                     </div>
 

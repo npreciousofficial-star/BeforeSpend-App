@@ -105,6 +105,7 @@ export interface UserProfile {
   defaultCurrency: string; // 'NGN' | 'USD' | 'EUR' | 'GBP'
   phoneNumber?: string;
   onboardingCompleted?: boolean;
+  country?: string;
   createdAt?: string;
   updatedAt?: string;
 }

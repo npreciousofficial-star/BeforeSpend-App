@@ -10,6 +10,7 @@ alter table public.profiles add column if not exists onboarding_completed boolea
 alter table public.profiles add column if not exists role text default 'Personal Budgeter';
 alter table public.profiles add column if not exists avatar text default 'preset-emerald';
 alter table public.profiles add column if not exists default_currency text default 'NGN';
+alter table public.profiles add column if not exists country text;
 alter table public.buckets add column if not exists low_balance_threshold numeric(15, 2);
 alter table public.reminders add column if not exists cost numeric(15, 2);
 alter table public.reminders add column if not exists done boolean default false;
@@ -29,7 +30,7 @@ alter table public.notifications drop constraint if exists notifications_user_id
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-    insert into public.profiles (id, name, email, role, avatar, default_currency, phone_number)
+    insert into public.profiles (id, name, email, role, avatar, default_currency, phone_number, country)
     values (
         new.id,
         coalesce(
@@ -47,12 +48,14 @@ begin
             'preset-emerald'
         ),
         coalesce(new.raw_user_meta_data->>'default_currency', 'NGN'),
-        new.raw_user_meta_data->>'phone_number'
+        new.raw_user_meta_data->>'phone_number',
+        new.raw_user_meta_data->>'country'
     )
     on conflict (id) do update set
         name = excluded.name,
         email = excluded.email,
-        avatar = coalesce(excluded.avatar, public.profiles.avatar);
+        avatar = coalesce(excluded.avatar, public.profiles.avatar),
+        country = coalesce(excluded.country, public.profiles.country);
     return new;
 exception
     when others then

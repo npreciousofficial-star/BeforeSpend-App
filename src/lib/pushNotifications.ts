@@ -65,7 +65,7 @@ export async function triggerSystemPushNotification(options: PushNotificationOpt
   }
 
   try {
-    const notificationTitle = options.title || 'BeforeSpend Alert 🔔';
+    const notificationTitle = options.title || 'Budget Alert 🔔';
     const notificationOptions: NotificationOptions = {
       body: options.body,
       icon: options.icon || '/favicon.png',

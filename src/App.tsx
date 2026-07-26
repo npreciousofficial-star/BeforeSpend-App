@@ -1359,7 +1359,7 @@ export function AuthenticatedApp({
         const isSnoozed = snoozeUntilStr ? new Date() < new Date(snoozeUntilStr) : false;
         if (!isSnoozed) {
           triggerSystemPushNotification({
-            title: 'BeforeSpend Split Alert',
+            title: 'Split Allocation Alert 🔔',
             body: 'Still there? Tap save and lock in your split.',
             url: '/dashboard'
           }).catch(() => {});

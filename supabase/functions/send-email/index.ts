@@ -29,9 +29,9 @@ const EMAIL_STYLE_BLOCK = `
   </style>
 `;
 
-// Brand Header Layout: Uses official White Brand Logo PNG directly (No CSS filters, 100% email client compatibility)
+// Brand Header Layout: Uses linear-gradient background hack to bypass dark mode auto-inversion in Gmail
 const BRAND_HEADER_HTML = `
-  <div style="background-color: #0E2A47; padding: 40px 24px; text-align: center; border-radius: 16px 16px 0 0;">
+  <div style="background-color: #0E2A47; background-image: linear-gradient(to bottom, #0E2A47 0%, #0E2A47 100%); padding: 40px 24px; text-align: center; border-radius: 16px 16px 0 0;">
     <div style="text-align: center;">
       <img src="https://beforespend.xyz/logo-white.png" alt="BeforeSpend" style="height: 75px; max-width: 280px; width: auto; display: inline-block; border: 0;" />
     </div>
@@ -55,13 +55,11 @@ const BRAND_FOOTER_HTML = `
   </div>
 `;
 
-// Premium Minimalist Vector Badge Container (Clean, flat minimalist vector art - NO 3D, NO emojis)
-function renderMinimalistBadge(svgPath: string, strokeColor: string = "#00A896", bgColor: string = "#F0FDF4", borderColor: string = "#CCFBF1"): string {
+// Bulletproof Centered Emoji Badge Container (100% email client compatible, replaces empty inline SVGs in Gmail/Outlook)
+function renderMinimalistBadge(emoji: string, bgColor: string = "#F0FDF4", borderColor: string = "#CCFBF1"): string {
   return `
-    <div style="width: 58px; height: 58px; background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 18px; margin: 0 auto 20px auto; text-align: center; padding: 14px; box-sizing: border-box;">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto;">
-        ${svgPath}
-      </svg>
+    <div style="width: 58px; height: 58px; background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 18px; margin: 0 auto 20px auto; text-align: center; font-size: 26px; line-height: 54px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      ${emoji}
     </div>
   `;
 }
@@ -72,7 +70,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
   switch (type) {
     case "login_alert": {
       const { ip = "Unknown IP", device = "Mobile / Web Device", timestamp = new Date().toUTCString(), location = "Active Session" } = data;
-      const shieldSvg = `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#00A896" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
       
       return {
         subject: `Security Alert: New sign-in detected on your BeforeSpend account`,
@@ -88,7 +85,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(shieldSvg, "#00A896", "#EFF6FF", "#DBEAFE")}
+                ${renderMinimalistBadge("🛡️", "#EFF6FF", "#DBEAFE")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">New Account Sign-in</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -119,7 +116,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
 
     case "low_balance": {
       const { bucketName = "Budget Bucket", currentBalance = "₦0.00", threshold = "₦0.00" } = data;
-      const warningSvg = `<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
       
       return {
         subject: `Low Balance Alert: ${bucketName} balance is below limit`,
@@ -135,7 +131,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(warningSvg, "#DC2626", "#FEF2F2", "#FECACA")}
+                ${renderMinimalistBadge("🚨", "#FEF2F2", "#FECACA")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Low Bucket Balance Warning</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -163,7 +159,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
 
     case "income_alert": {
       const { amount = "₦0.00", splitCount = 0, date = new Date().toLocaleDateString(), splits = [] } = data;
-      const walletSvg = `<path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm0 0h-4a2 2 0 000 4h4z" stroke="#00A896" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
       const splitRows = Array.isArray(splits)
         ? splits.map((s: any) => `<tr><td style="padding: 8px 12px; font-weight: 700; color: #0E2A47;">${s.bucketName}</td><td style="padding: 8px 12px; font-weight: 800; color: #00A896; text-align: right;">${s.amount}</td></tr>`).join('')
         : '';
@@ -182,7 +177,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(walletSvg, "#00A896", "#F0FDF4", "#CCFBF1")}
+                ${renderMinimalistBadge("💸", "#F0FDF4", "#CCFBF1")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Income Split Allocated</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -208,7 +203,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
 
     case "reminder": {
       const { reminderText = "Scheduled Bill", cost = "Scheduled Amount", dueDate = "Today", period = "monthly" } = data;
-      const bellSvg = `<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
       
       return {
         subject: `Bill Reminder: ${reminderText} is due soon`,
@@ -224,7 +218,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(bellSvg, "#D97706", "#FFFBEB", "#FDE68A")}
+                ${renderMinimalistBadge("⏰", "#FFFBEB", "#FDE68A")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Bill & Subscription Reminder</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -252,8 +246,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
     }
 
     case "welcome": {
-      const starSvg = `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke="#00A896" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-
       return {
         subject: `Welcome to BeforeSpend - Master your financial future`,
         html: `
@@ -268,7 +260,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(starSvg, "#00A896", "#F0FDF4", "#CCFBF1")}
+                ${renderMinimalistBadge("🎯", "#F0FDF4", "#CCFBF1")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Welcome to BeforeSpend, ${userName}!</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Your workspace is initialized. BeforeSpend enables you to split and assign every income deposit into custom budget buckets <em>before</em> any spending occurs.</p>
@@ -296,7 +288,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
 
     case "password_reset": {
       const { resetUrl = "https://beforespend.xyz/login" } = data;
-      const keySvg = `<path d="M21 2l-2 2m-2 2l-2 2m2-2l2 2m-4-4l2-2M7 11a5 5 0 110-10 5 5 0 010 10z" stroke="#0E2A47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
 
       return {
         subject: `Password Reset Request for your BeforeSpend account`,
@@ -312,7 +303,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(keySvg, "#0E2A47", "#EFF6FF", "#DBEAFE")}
+                ${renderMinimalistBadge("🔑", "#EFF6FF", "#DBEAFE")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Reset Your Password</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 16px 0; text-align: center;">Hello <strong>${userName}</strong>,</p>
@@ -334,7 +325,6 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
 
     case "monthly_summary": {
       const { month = "Current Month", totalAllocated = "₦0.00", totalSpent = "₦0.00", netSavings = "₦0.00" } = data;
-      const chartSvg = `<path d="M18 20V10M12 20V4M6 20v-6" stroke="#00A896" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
 
       return {
         subject: `Monthly Financial Summary: ${month}`,
@@ -350,7 +340,7 @@ function getEmailTemplate(payload: EmailPayload): { subject: string; html: strin
               ${BRAND_HEADER_HTML}
               
               <div style="padding: 36px 32px; text-align: center; color: #0E2A47;">
-                ${renderMinimalistBadge(chartSvg, "#00A896", "#F0FDF4", "#CCFBF1")}
+                ${renderMinimalistBadge("📊", "#F0FDF4", "#CCFBF1")}
 
                 <h2 style="font-size: 22px; font-weight: 800; color: #0E2A47; margin: 0 0 12px 0; text-align: center;">Monthly Financial Digest (${month})</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px 0; text-align: center;">Here is your account progress summary for ${month}:</p>

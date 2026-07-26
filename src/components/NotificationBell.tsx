@@ -199,7 +199,7 @@ export function NotificationBell({ notifications, setNotifications, onNavigate, 
                     if (granted) {
                       setPushStatus('granted');
                       triggerSystemPushNotification({
-                        title: 'BeforeSpend Push Active 🔔',
+                        title: 'Push Notifications Active 🔔',
                         body: 'You will now receive instant push alerts for bill reminders and low bucket balance limits.',
                         url: '/dashboard',
                       });

@@ -124,8 +124,8 @@ export function GlobalSearchModal({
 
   // 5. Filtered Expenses
   const matchingExpenses = cleanQuery ? expenses.filter((e) =>
-    (e.category || '').toLowerCase().includes(cleanQuery) ||
-    ((e.note || '').toLowerCase().includes(cleanQuery)) ||
+    (e.bucketName || '').toLowerCase().includes(cleanQuery) ||
+    ((e.description || '').toLowerCase().includes(cleanQuery)) ||
     (e.amount || '').toString().includes(cleanQuery)
   ).slice(0, 5) : [];
 
@@ -341,14 +341,14 @@ export function GlobalSearchModal({
                     {matchingExpenses.map((e) => (
                       <div
                         key={e.id}
-                        onClick={() => handleSelectResult('expenses', e.description || e.category)}
+                        onClick={() => handleSelectResult('expenses', e.description)}
                         className="p-3 rounded-2xl bg-white dark:bg-zinc-900/20 border border-gray-200/80 dark:border-zinc-800/80 hover:border-[#00A896]/40 dark:hover:border-[#00A896]/30 hover:bg-teal-50/20 dark:hover:bg-teal-950/10 transition-all cursor-pointer flex items-center justify-between group"
                       >
                         <div>
                           <p className="text-xs font-black text-gray-900 dark:text-zinc-100">
-                            {e.category} — {formatCurrency(e.amount, currency)}
+                            {e.description} — {formatCurrency(e.amount, currency)}
                           </p>
-                          {(e.description || e.note) && <p className="text-[10px] text-gray-400">{e.description || e.note}</p>}
+                          <p className="text-[10px] text-gray-400">{e.bucketName} • {e.date}</p>
                         </div>
                         <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-[#00A896] transition-colors" />
                       </div>

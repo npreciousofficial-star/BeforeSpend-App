@@ -40,6 +40,7 @@ import { FinanceCharts } from './components/FinanceCharts';
 import { LoginRegisterScreen } from './components/LoginRegisterScreen';
 import { LandingPage } from './components/LandingPage';
 import { Avatar, AVATAR_PRESETS } from './components/Avatar';
+import { AdminCommandCenter } from './components/AdminCommandCenter';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { NotificationBell } from './components/NotificationBell';
 import { ReconciliationModal } from './components/ReconciliationModal';
@@ -65,8 +66,9 @@ import {
   BarChart3, 
   Settings, 
   Building2, 
-  ShieldAlert, 
+  ShieldAlert,
   CheckCircle2, 
+  Check, 
   RefreshCw, 
   Moon, 
   Sun, 
@@ -413,7 +415,7 @@ export function AuthenticatedApp({
 
   // Custom Blueprint Confirmation Modal State
   const [showBlueprintConfirmModal, setShowBlueprintConfirmModal] = useState<boolean>(false);
-  const [pendingTemplateToLoad, setPendingTemplateToLoad] = useState<typeof BUCKET_TEMPLATES[0] | null>(null);
+  const [pendingTemplateToLoad, setPendingTemplateToLoad] = useState<BucketTemplate | null>(null);
 
   // Bucket Deletion & Consolidation Modal State
   const [bucketToConsolidate, setBucketToConsolidate] = useState<Bucket | null>(null);
@@ -3270,10 +3272,10 @@ export function AuthenticatedApp({
                   const newExpense: Expense = {
                     id: generateId(),
                     bucketId: bucketId,
+                    bucketName: targetBucket.name,
                     amount: amount,
-                    note: note,
-                    date: new Date().toISOString().split('T')[0],
-                    timestamp: new Date().toISOString()
+                    description: note,
+                    date: new Date().toISOString().split('T')[0]
                   };
                   setExpenses(prev => [newExpense, ...prev]);
                   return true;
@@ -3514,7 +3516,8 @@ export function AuthenticatedApp({
                           <button
                             type="button"
                             onClick={async () => {
-                              const granted = await requestPushNotificationPermission();
+                              const permission = await Notification.requestPermission();
+                              const granted = permission === 'granted';
                               if (granted) addToast('Push notifications enabled! 🔔', 'success');
                               else addToast('Failed to enable push notifications.', 'warning');
                               setNotificationSettings(prev => ({ ...prev, _trigger: Date.now() }));
@@ -5600,7 +5603,7 @@ export function AuthenticatedApp({
 
 export default function App() {
   const [currentUserId, setCurrentUserId] = useLocalStorage<string | null>('beforespend_logged_in_user_id', null);
-  const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register'>('beforespend_auth_view', 'landing');
+  const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register' | 'privacy' | 'terms'>('beforespend_auth_view', 'landing');
 
   // Theme synchronization at root level
   const [isDark, setIsDark] = useState(() => {

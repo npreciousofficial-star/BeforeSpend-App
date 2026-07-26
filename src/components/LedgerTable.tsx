@@ -233,7 +233,7 @@ export function LedgerTable({
                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'
                             : txn.type === 'EXPENSE'
                             ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400'
-                            : txn.type === 'TRANSFER' || txn.type === 'REALLOCATION'
+                            : txn.type === 'TRANSFER'
                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400'
                             : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400'
                         }`}>
@@ -312,7 +312,7 @@ export function LedgerTable({
                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'
                                 : txn.type === 'EXPENSE'
                                 ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400'
-                                : txn.type === 'TRANSFER' || txn.type === 'REALLOCATION'
+                                : txn.type === 'TRANSFER'
                                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400'
                                 : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400'
                             }`}>

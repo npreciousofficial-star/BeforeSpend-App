@@ -27,6 +27,7 @@ interface SplitCalculatorProps {
     convertedAmount: number;
     splits: SplitInfo[];
     receiptImage?: string;
+    note?: string;
   }) => void;
   addToast: (msg: string, type: 'success' | 'error' | 'info') => void;
 }

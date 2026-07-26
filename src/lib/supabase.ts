@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Bucket, Transaction, PaymentEntry, Milestone, Reminder, UserProfile, AppNotification } from '../types';
+import { Bucket, Transaction, PaymentEntry, Milestone, Reminder, UserProfile, AppNotification, Expense } from '../types';
 
 const env = (import.meta as unknown as { env?: Record<string, string> }).env || {};
 const SUPABASE_URL = env.VITE_SUPABASE_URL || 'https://soqllmwmojyzvathirdd.supabase.co';

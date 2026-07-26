@@ -10,7 +10,9 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      if (!item) return initialValue;
+      const parsed = JSON.parse(item);
+      return (parsed === null || parsed === undefined) ? initialValue : parsed;
     } catch (error) {
       console.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue;
@@ -25,7 +27,8 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     keyInStateRef.current = key;
     try {
       const item = window.localStorage.getItem(key);
-      const val = item ? JSON.parse(item) : initialValue;
+      const parsed = item ? JSON.parse(item) : initialValue;
+      const val = (parsed === null || parsed === undefined) ? initialValue : parsed;
       setStoredValue(val);
     } catch (error) {
       console.warn(`Error reading localStorage key "${key}" on key change:`, error);

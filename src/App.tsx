@@ -148,7 +148,7 @@ const PAGE_TITLES: Record<string, { title: string; subtext: string }> = {
 
 const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: string[]; tip: string }> = {
   buckets: {
-    title: "🏡 Dashboard (Your Financial Buckets)",
+    title: "Dashboard (Your Financial Buckets)",
     concept: "Think of this as a virtual chest of drawers. Instead of keeping all your money in one big pile (where it's easy to overspend), you divide your money into different 'buckets' for specific needs—like rent, groceries, emergency savings, or fun.",
     steps: [
       "Create buckets for your major expenses and savings categories.",
@@ -158,7 +158,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Keep an 'Emergency Fund' bucket with a small buffer. It gives you peace of mind when unexpected bills arrive!"
   },
   ledger: {
-    title: "📖 Transaction Ledger (Your Financial Diary)",
+    title: "Transaction Ledger (Your Financial Diary)",
     concept: "This is a chronological diary of every single cent that enters or leaves your accounts. It records incomes, expenses, and internal transfers between your buckets, ensuring your books always balance.",
     steps: [
       "Review the list to see where your money has gone over time.",
@@ -168,7 +168,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Categorize your transactions accurately. This helps the analytics page generate correct insights about your habits!"
   },
   split: {
-    title: "💸 Income Splitter (Your Money Allocator)",
+    title: "Income Splitter (Your Money Allocator)",
     concept: "This tool takes any new income (like salary, gifts, or gig work) and divides it into your buckets based on percentages you choose. It makes budgeting instant and stress-free.",
     steps: [
       "Type in the amount of money you just received.",
@@ -178,7 +178,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Create a template for your regular salary so you can allocate it in just one click next time!"
   },
   expenses: {
-    title: "📉 Expense Tracker (Your Spending Log)",
+    title: "Expense Tracker (Your Spending Log)",
     concept: "This page is where you record everything you buy. Tracking expenses lets you see exactly where your hard-earned money is going and prevents you from spending more than is in your buckets.",
     steps: [
       "Log your expenses as they happen with the simple form.",
@@ -188,7 +188,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Try tracking every single small purchase for one week. You will be amazed at the small leaks you find!"
   },
   history: {
-    title: "📜 Payment History (Your Audit Log)",
+    title: "Payment History (Your Audit Log)",
     concept: "This is a simple historical record of your transaction ledger operations, displaying previous splits, automated deposits, and historical system entries.",
     steps: [
       "Scan the records to trace previous payments or manual adjustments.",
@@ -198,7 +198,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Use this log if you need to trace back exactly how a specific bucket was funded in the past."
   },
   milestones: {
-    title: "🎯 Milestones & Goals (Your Financial Dreams)",
+    title: "Milestones & Goals (Your Financial Dreams)",
     concept: "This page helps you track big financial goals—like buying a laptop, saving for a vacation, or building a 6-month safety net. You lock these goals to specific buckets and watch your progress grow.",
     steps: [
       "Create a milestone by setting a target amount and a deadline.",
@@ -208,7 +208,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Start with small, highly achievable milestones. Reaching your first goal builds momentum and confidence!"
   },
   reminders: {
-    title: "⏰ Reminders & Subscriptions (Your Bill Calendar)",
+    title: "Reminders & Subscriptions (Your Bill Calendar)",
     concept: "Never get caught off-guard by a bill or subscription renewal again. This page keeps track of recurring payments like Netflix, gym memberships, electricity bills, and rent, sending you alerts before they are due.",
     steps: [
       "Add your recurring subscriptions, bills, or debt repayments.",
@@ -218,7 +218,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Mark reminders as completed once paid. This moves them to the next cycle automatically!"
   },
   calculators: {
-    title: "🧮 Financial Calculators (Your Wealth Planner)",
+    title: "Financial Calculators (Your Wealth Planner)",
     concept: "These are interactive math tools that let you peer into the future. You can calculate how your savings will multiply over time with compound interest, or plan how to pay off loans faster.",
     steps: [
       "Select a calculator (e.g. Compound Interest or Loan Payoff Schedule).",
@@ -228,7 +228,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Even saving an extra ₦5,000 a month can result in millions over 15 years due to compound interest. Try it out!"
   },
   analytics: {
-    title: "📊 Spending Insights (Your Financial Mirror)",
+    title: "Spending Insights (Your Financial Mirror)",
     concept: "This page turns your transaction numbers into colorful charts. It acts as a mirror, showing you exactly what percentage of your income goes to expenses versus savings, and which categories consume the most cash.",
     steps: [
       "Look at the pie charts to see your top spending categories.",
@@ -238,7 +238,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Review this page once a month. It helps you catch subconscious spending leaks before they drain your bank account!"
   },
   settings: {
-    title: "⚙️ Settings & Sync (Your Workspace Controls)",
+    title: "Settings & Sync (Your Workspace Controls)",
     concept: "This is the control panel for your account. You can update your profile details, customize your tagline, lock in your localization presets, and sync your workspace safely with the secure cloud database.",
     steps: [
       "Update your profile name, phone number, role, or avatar.",
@@ -248,7 +248,7 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
     tip: "Link your Google account or set up a secure cloud sync so you never lose your financial ledger if you lose your phone!"
   },
   admin: {
-    title: "🛡️ Administrator Portal (Database & System Console)",
+    title: "Administrator Portal (Database & System Console)",
     concept: "This is a secure area for system maintenance. It allows administrators to import raw database files, inspect diagnostic logs, test system variables, and manage active users safely.",
     steps: [
       "Use backup tools to export your entire ledger configuration.",
@@ -256,6 +256,16 @@ const PAGE_GUIDES: Record<string, { title: string; concept: string; steps: strin
       "Configure global system alerts if necessary."
     ],
     tip: "Only use database import tools if you are restoring a verified backup, as it will overwrite current local structures."
+  },
+  hub: {
+    title: "More Tools & Services (Your Navigation Portal)",
+    concept: "This page is a quick-access dashboard for all the secondary services and settings inside BeforeSpend, designed to help you quickly jump to calculators, goals, reminders, and backup tools on mobile.",
+    steps: [
+      "Tap any of the colored buttons to open that specific tool instantly.",
+      "Use it as a hub to access sections that might be hidden in the main mobile screen.",
+      "Tap 'Sign Out' at the bottom when you need to switch accounts or secure your profile."
+    ],
+    tip: "The hub is fully localized and responsive. It aggregates all options in one easy-to-tap screen!"
   }
 };
 
@@ -481,7 +491,7 @@ export function AuthenticatedApp({
       {
         id: 'n-backup',
         title: 'Database Local Storage Enabled',
-        message: 'All your database and profile entries are stored locally on your device. Remember to export a backup from the Admin Center regularly.',
+        message: 'All your database and profile entries are stored locally on your device. Remember to export a backup from your user dashboard regularly.',
         time: new Date(Date.now() - 3600000).toISOString(),
         type: 'info',
         read: false,
@@ -3925,7 +3935,7 @@ export function AuthenticatedApp({
         const guide = PAGE_GUIDES[activeTab] || PAGE_GUIDES['buckets'];
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-white dark:bg-zinc-955 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 text-left">
+            <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 text-left">
               <button
                 onClick={() => setShowHelpModal(false)}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 cursor-pointer p-1"
@@ -3963,7 +3973,7 @@ export function AuthenticatedApp({
                 </ul>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-955/15 border border-amber-200/50 dark:border-amber-900/30 space-y-1">
+              <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/15 border border-amber-200/50 dark:border-amber-900/30 space-y-1">
                 <p className="text-[10px] font-black text-amber-800 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                   ⭐ Pro-Tip:
                 </p>
@@ -4716,7 +4726,7 @@ export function AuthenticatedApp({
 
             <div className="space-y-2">
               <p className="text-xs text-gray-500">
-                Paste validated backup JSON data in the Admin Center text box first, then click below to fully restore it.
+                Paste validated backup JSON data in the Data & Backups section first, then click below to fully restore it.
               </p>
               <p className="text-[10px] font-extrabold text-amber-500 uppercase tracking-wider">
                 ⚠️ Warning: This completely overwrites all current local data!

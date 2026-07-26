@@ -4941,37 +4941,37 @@ export function AuthenticatedApp({
 
               {/* Target bucket selection */}
               <div>
-                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">
-                  Select Consolidation Destination Bucket *
-                </label>
-                <select
-                  value={consolidationTargetId}
-                  onChange={(e) => setConsolidationTargetId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:border-[#00A896]"
-                >
-                  {buckets
+                <CustomSelect
+                  label="Select Consolidation Destination Bucket *"
+                  options={buckets
                     .filter((b) => b.id !== bucketToConsolidate.id)
-                    .map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name} (Allocation: {b.percentage}%)
-                      </option>
-                    ))}
-                </select>
+                    .map((b) => ({
+                      value: b.id,
+                      label: `${b.name} (Allocation: ${b.percentage}%)`
+                    }))}
+                  value={consolidationTargetId}
+                  onChange={(val) => setConsolidationTargetId(val)}
+                />
               </div>
 
               {/* Percentage checkbox option */}
               {bucketToConsolidate.percentage > 0 && (
-                <label className="flex items-center gap-2.5 p-1 cursor-pointer select-none text-xs text-gray-600 dark:text-zinc-350">
-                  <input
-                    type="checkbox"
-                    checked={consolidatePercentage}
-                    onChange={(e) => setConsolidatePercentage(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 dark:border-zinc-850 text-[#00A896] focus:ring-[#00A896]"
-                  />
+                <button
+                  type="button"
+                  onClick={() => setConsolidatePercentage(!consolidatePercentage)}
+                  className="w-full flex items-center gap-2.5 p-1 cursor-pointer select-none text-xs text-gray-650 dark:text-zinc-350 text-left group"
+                >
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
+                    consolidatePercentage 
+                      ? 'bg-[#00A896] border-[#00A896] text-white shadow-xs shadow-[#00A896]/20' 
+                      : 'border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 group-hover:border-[#00A896]'
+                  }`}>
+                    {consolidatePercentage && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                  </div>
                   <span>
                     Merge percentage allocation (+{bucketToConsolidate.percentage}%) into target bucket
                   </span>
-                </label>
+                </button>
               )}
             </div>
 

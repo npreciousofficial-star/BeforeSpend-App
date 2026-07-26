@@ -93,21 +93,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   // Local storage list of registered users
   const [users, setUsers] = useLocalStorage<RegisteredUser[]>('before spend_registered_users', []);
 
-  useEffect(() => {
-    if (isRegister) {
-      const scriptId = 'recaptcha-v3-script';
-      let script = document.getElementById(scriptId) as HTMLScriptElement | null;
 
-      if (!script) {
-        script = document.createElement('script');
-        script.id = scriptId;
-        script.src = 'https://www.google.com/recaptcha/api.js?render=6LeHOWYtAAAAAEFgffBiRfH9xQ7U6w_i6ArRzqfe';
-        script.async = true;
-        script.defer = true;
-        document.body.appendChild(script);
-      }
-    }
-  }, [isRegister]);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,43 +114,7 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         return;
       }
 
-      // Execute reCAPTCHA V3 Invisible Verification
-      setErrorMsg('Verifying security check (reCAPTCHA)...');
-      try {
-        const grecaptcha = (window as any).grecaptcha;
-        if (!grecaptcha) {
-          setErrorMsg('Security check not loaded yet. Please refresh and try again.');
-          return;
-        }
 
-        const token = await new Promise<string>((resolve, reject) => {
-          grecaptcha.ready(() => {
-            grecaptcha.execute('6LeHOWYtAAAAAEFgffBiRfH9xQ7U6w_i6ArRzqfe', { action: 'register' })
-              .then(resolve)
-              .catch(reject);
-          });
-        });
-
-        if (!token) {
-          setErrorMsg('Security check failed: No token generated.');
-          return;
-        }
-
-        const verifyEndpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(
-          `https://www.google.com/recaptcha/api/siteverify?secret=6LeHOWYtAAAAABqKxdp6J1_B9e3__tSrOHtolTMA&response=${token}`
-        )}`;
-        const response = await fetch(verifyEndpoint);
-        const data = await response.json();
-        const result = JSON.parse(data.contents);
-
-        if (!result.success) {
-          setErrorMsg('Security check failed: Verification invalid.');
-          return;
-        }
-      } catch (captchaErr) {
-        console.warn('reCAPTCHA verification bypassed or failed:', captchaErr);
-      }
-      setErrorMsg('');
 
       const emailLower = email.toLowerCase().trim();
       const userExists = users.some((u) => u.email.toLowerCase().trim() === emailLower);

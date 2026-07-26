@@ -4979,7 +4979,6 @@ export default function App() {
             setCurrentUserId(userId);
             setAuthView('app');
             window.localStorage.setItem(`user_${userId}_beforespend_active_tab`, JSON.stringify('buckets'));
-            setActiveTab('buckets');
             const profileStr = window.localStorage.getItem(`user_${userId}_beforespend_profile`);
             const isUserAdmin = profileStr?.includes('Platform Administrator') || profileStr?.includes('admin@beforespend.app') || profileStr?.includes('admin@beforespend.xyz');
             const targetPath = isUserAdmin ? '/admin' : '/dashboard';

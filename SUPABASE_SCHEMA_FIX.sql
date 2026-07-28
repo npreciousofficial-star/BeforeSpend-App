@@ -28,6 +28,8 @@ alter table public.milestones drop constraint if exists milestones_bucket_id_fke
 alter table public.reminders drop constraint if exists reminders_user_id_fkey;
 alter table public.reminders drop constraint if exists reminders_bucket_id_fkey;
 alter table public.notifications drop constraint if exists notifications_user_id_fkey;
+alter table public.expenses drop constraint if exists expenses_user_id_fkey;
+alter table public.expenses drop constraint if exists expenses_bucket_id_fkey;
 
 -- 3. Fix handle_new_user() trigger to safely insert Google OAuth users without failing
 create or replace function public.handle_new_user()

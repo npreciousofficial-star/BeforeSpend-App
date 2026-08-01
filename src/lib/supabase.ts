@@ -618,7 +618,17 @@ export async function syncExpensesToSupabase(expenses: Expense[], userId: string
     );
 
     const { error } = await supabase.from('expenses').upsert(records);
-    if (error) console.warn('Supabase expenses sync error:', error.message);
+    if (error) {
+      if (error.message.includes('foreign key constraint') || error.message.includes('expenses_bucket_id_fkey')) {
+        // FK constraint still active — retry without bucket_id so data still persists
+        console.info('Supabase expenses FK notice: Run SUPABASE_SCHEMA_FIX.sql to drop expenses FK constraints.');
+        const fallbackRecords = records.map(r => ({ ...r, bucket_id: null }));
+        const { error: fallbackError } = await supabase.from('expenses').upsert(fallbackRecords);
+        if (fallbackError) console.warn('Supabase expenses fallback sync error:', fallbackError.message);
+      } else {
+        console.warn('Supabase expenses sync error:', error.message);
+      }
+    }
   } catch (err) {
     console.warn('Supabase syncExpenses failed:', err);
   }

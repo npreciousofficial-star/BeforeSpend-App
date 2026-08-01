@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { getLocalizedDefaultBuckets, getLocalizedTemplates, detectUserRegionAndCurrency, detectUserCountry } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
@@ -684,13 +684,13 @@ export function AuthenticatedApp({
           loadExpensesFromSupabase(currentUserId),
         ]);
 
-        if (dbBuckets && dbBuckets.length > 0) {
-          setBuckets(dbBuckets);
-        }
+        // Resolve which buckets to use (cloud > local fallback)
+        const resolvedBuckets = (dbBuckets && dbBuckets.length > 0) ? dbBuckets : buckets;
 
+        // Enrich transactions with self-healing bucket references
+        let resolvedTxns = transactions; // fallback to current local state
         if (dbTxns && dbTxns.length > 0) {
-          const resolvedBuckets = (dbBuckets && dbBuckets.length > 0) ? dbBuckets : buckets;
-          const enrichedTxns = dbTxns.map(txn => {
+          resolvedTxns = dbTxns.map(txn => {
             let bucketId = txn.bucketId;
             let bucketName = txn.bucketName;
 
@@ -722,7 +722,19 @@ export function AuthenticatedApp({
             });
             return { ...txn, bucketId, bucketName, deduplicationHash: hash };
           });
-          setTransactions(enrichedTxns);
+          setTransactions(resolvedTxns);
+        }
+
+        // INDUSTRY STANDARD: Compute bucket balances from the immutable ledger (transactions)
+        // The ledger is the single source of truth — bucket.balance is always derived, never stored.
+        if (dbBuckets && dbBuckets.length > 0) {
+          const bucketsWithBalances = dbBuckets.map(bucket => {
+            const balance = resolvedTxns
+              .filter(t => t.bucketId === bucket.id)
+              .reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), 0);
+            return { ...bucket, balance };
+          });
+          setBuckets(bucketsWithBalances);
         }
 
         if (dbPayments !== null) {
@@ -741,9 +753,36 @@ export function AuthenticatedApp({
           setNotifications(dbNotifications);
         }
 
-        if (dbExpenses && dbExpenses.length > 0) {
-          setExpenses(dbExpenses);
+        // INDUSTRY STANDARD: Reconstruct expenses from the immutable ledger as single source of truth.
+        // The expenses table is a convenience view — the ledger EXPENSE transactions are canonical.
+        const ledgerExpenseTxns = resolvedTxns.filter(t => t.type === 'EXPENSE');
+        const dbExpensesList = (dbExpenses && dbExpenses.length > 0) ? dbExpenses : [];
+
+        // Build a merged list: start with DB expenses, then add any ledger EXPENSE txns missing from the list
+        const mergedExpenses = [...dbExpensesList];
+        const existingKeys = new Set(
+          dbExpensesList.map(e => `${e.description}|${e.amount}|${e.bucketId}`)
+        );
+        const existingIds = new Set(dbExpensesList.map(e => e.id));
+
+        for (const t of ledgerExpenseTxns) {
+          const key = `${t.description}|${t.amount}|${t.bucketId}`;
+          if (!existingIds.has(t.id) && !existingKeys.has(key)) {
+            mergedExpenses.push({
+              id: t.id,
+              description: t.description,
+              amount: t.amount,
+              bucketId: t.bucketId || '',
+              bucketName: t.bucketName || 'Unknown Bucket',
+              date: t.createdAt,
+              receiptImage: t.receiptUrl
+            });
+          }
         }
+
+        // Sort by date descending and set
+        mergedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setExpenses(mergedExpenses);
 
         console.log('Supabase user data loaded successfully!');
         setIsCloudDataLoaded(true);
@@ -815,35 +854,27 @@ export function AuthenticatedApp({
     runSequentialSync();
   }, [buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded, isCloudDataLoaded]);
 
-  // Self-heal expenses list from the ledger transactions — runs ONCE after cloud data loads
-  const hasHealedExpensesRef = useRef(false);
+  // Self-heal expenses list from the ledger transactions — continuous integrity guard.
+  // Runs whenever transactions or expenses change to ensure the expenses page always
+  // reflects every EXPENSE-type ledger entry (the ledger is the single source of truth).
   useEffect(() => {
-    if (!dataLoaded || !isCloudDataLoaded || hasHealedExpensesRef.current) return;
-    hasHealedExpensesRef.current = true;
+    if (!dataLoaded || !isCloudDataLoaded) return;
 
     const expenseTxns = transactions.filter(t => t.type === 'EXPENSE');
     if (expenseTxns.length === 0) return;
 
-    let updated = false;
-    const currentExpenses = [...expenses];
+    // Build lookup sets for fast matching
+    const existingIds = new Set(expenses.map(e => e.id));
+    const existingKeys = new Set(
+      expenses.map(e => `${e.description}|${e.amount}|${e.bucketId}`)
+    );
 
-    expenseTxns.forEach(t => {
-      const hasMatch = currentExpenses.some(e => {
-        if (e.id === t.id) return true;
+    const missingExpenses: Expense[] = [];
 
-        const amtMatch = Math.abs(e.amount - t.amount) < 0.01;
-        const bucketMatch = e.bucketId === t.bucketId;
-        const descMatch = e.description === t.description;
-
-        const tTime = new Date(t.createdAt).getTime();
-        const eTime = new Date(e.date).getTime();
-        const dateMatch = Math.abs(tTime - eTime) < 24 * 60 * 60 * 1000;
-
-        return amtMatch && bucketMatch && descMatch && dateMatch;
-      });
-
-      if (!hasMatch) {
-        currentExpenses.push({
+    for (const t of expenseTxns) {
+      const key = `${t.description}|${t.amount}|${t.bucketId}`;
+      if (!existingIds.has(t.id) && !existingKeys.has(key)) {
+        missingExpenses.push({
           id: t.id,
           description: t.description,
           amount: t.amount,
@@ -852,15 +883,15 @@ export function AuthenticatedApp({
           date: t.createdAt,
           receiptImage: t.receiptUrl
         });
-        updated = true;
       }
-    });
-
-    if (updated) {
-      currentExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setExpenses(currentExpenses);
     }
-  }, [dataLoaded, isCloudDataLoaded]);
+
+    if (missingExpenses.length > 0) {
+      const merged = [...expenses, ...missingExpenses];
+      merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setExpenses(merged);
+    }
+  }, [dataLoaded, isCloudDataLoaded, transactions, expenses]);
 
   // Under-the-hood Live Bank Sync Polling Worker (Prepared for Plaid / Mono integration)
   useEffect(() => {

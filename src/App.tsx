@@ -684,57 +684,115 @@ export function AuthenticatedApp({
           loadExpensesFromSupabase(currentUserId),
         ]);
 
-        // Resolve which buckets to use (cloud > local fallback)
-        const resolvedBuckets = (dbBuckets && dbBuckets.length > 0) ? dbBuckets : buckets;
+        // 1. Get user currency default buckets preset
+        const userCurrency = profile?.defaultCurrency || userProfile.defaultCurrency || detectUserRegionAndCurrency().currency;
+        const defaultPresetBuckets = getLocalizedDefaultBuckets(userCurrency);
 
-        // Enrich transactions with self-healing bucket references
-        let resolvedTxns = transactions; // fallback to current local state
-        if (dbTxns && dbTxns.length > 0) {
-          resolvedTxns = dbTxns.map(txn => {
-            let bucketId = txn.bucketId;
-            let bucketName = txn.bucketName;
-
-            // Self-healing: if bucketId is missing or does not match any current bucket, try to match by name (case-insensitive)
-            const exists = resolvedBuckets.some(b => b.id === bucketId);
-            if (!exists && (bucketName || txn.description)) {
-              const searchName = (bucketName || txn.description || '').toLowerCase().trim();
-              const matchByName = resolvedBuckets.find(b => 
-                b.name.toLowerCase().trim() === searchName ||
-                searchName.includes(b.name.toLowerCase().trim())
-              );
-              if (matchByName) {
-                bucketId = matchByName.id;
-                bucketName = matchByName.name;
-              }
-            }
-
-            if (!bucketName && bucketId) {
-              const match = resolvedBuckets.find(b => b.id === bucketId);
-              bucketName = match?.name;
-            }
-
-            const hash = txn.deduplicationHash || generateAuditHash({
-              amount: txn.amount,
-              description: txn.description,
-              bucketId: bucketId,
-              direction: txn.direction,
-              createdAt: txn.createdAt
-            });
-            return { ...txn, bucketId, bucketName, deduplicationHash: hash };
-          });
-          setTransactions(resolvedTxns);
+        // 2. Base bucket pool: combine cloud loaded dbBuckets and local buckets
+        let bucketPool: Bucket[] = [];
+        if (dbBuckets && dbBuckets.length > 0) {
+          bucketPool = [...dbBuckets];
+        } else if (buckets && buckets.length > 0) {
+          bucketPool = [...buckets];
+        } else {
+          bucketPool = [...defaultPresetBuckets];
         }
 
-        // INDUSTRY STANDARD: Compute bucket balances from the immutable ledger (transactions)
-        // The ledger is the single source of truth — bucket.balance is always derived, never stored.
-        if (dbBuckets && dbBuckets.length > 0) {
-          const bucketsWithBalances = dbBuckets.map(bucket => {
-            const balance = resolvedTxns
-              .filter(t => t.bucketId === bucket.id)
-              .reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), 0);
-            return { ...bucket, balance };
+        // 3. Ensure all standard default buckets for user's currency exist in bucketPool
+        defaultPresetBuckets.forEach(defB => {
+          const exists = bucketPool.some(b => 
+            b.id === defB.id || 
+            b.name.toLowerCase().trim() === defB.name.toLowerCase().trim()
+          );
+          if (!exists) {
+            bucketPool.push({ ...defB, id: defB.id || generateId('bucket') });
+          }
+        });
+
+        // 4. Ensure any additional bucket names referenced in transactions/payments/expenses are also in bucketPool
+        const allLoadedTxns = (dbTxns && dbTxns.length > 0) ? dbTxns : transactions;
+        const allLoadedPayments = (dbPayments && dbPayments.length > 0) ? dbPayments : history;
+        const allLoadedExpenses = (dbExpenses && dbExpenses.length > 0) ? dbExpenses : expenses;
+
+        const referencedBucketNames = new Set<string>();
+        allLoadedTxns.forEach(t => { if (t.bucketName) referencedBucketNames.add(t.bucketName.trim()); });
+        allLoadedPayments.forEach(p => p.splits?.forEach((s: any) => { if (s.bucketName) referencedBucketNames.add(s.bucketName.trim()); }));
+        allLoadedExpenses.forEach(e => { if (e.bucketName) referencedBucketNames.add(e.bucketName.trim()); });
+
+        referencedBucketNames.forEach(refName => {
+          if (!refName || refName.toLowerCase() === 'unallocated') return;
+          const exists = bucketPool.some(b => b.name.toLowerCase().trim() === refName.toLowerCase());
+          if (!exists) {
+            bucketPool.push({
+              id: generateId('bucket'),
+              name: refName,
+              percentage: 0,
+              color: 'emerald',
+              destinationAccount: 'Default Account',
+              balance: 0
+            });
+          }
+        });
+
+        // 5. Enrich transactions: re-link EVERY transaction to a valid bucketId & bucketName in bucketPool
+        const resolvedTxns = allLoadedTxns.map(txn => {
+          let bucketId = txn.bucketId;
+          let bucketName = txn.bucketName;
+
+          // Search by ID first
+          let match = bucketId ? bucketPool.find(b => b.id === bucketId) : undefined;
+          
+          // Search by name if ID didn't match
+          if (!match && (bucketName || txn.description)) {
+            const searchName = (bucketName || txn.description || '').toLowerCase().trim();
+            match = bucketPool.find(b => 
+              b.name.toLowerCase().trim() === searchName ||
+              searchName.includes(b.name.toLowerCase().trim())
+            );
+          }
+
+          // Search description against all bucket names if still no match
+          if (!match && txn.description) {
+            const descLower = txn.description.toLowerCase();
+            match = bucketPool.find(b => descLower.includes(b.name.toLowerCase().trim()));
+          }
+
+          if (match) {
+            bucketId = match.id;
+            bucketName = match.name;
+          } else if (bucketPool.length > 0) {
+            // Fallback to salary or first bucket if unallocated
+            const fallback = bucketPool.find(b => b.name.toLowerCase().includes('salary')) || bucketPool[0];
+            bucketId = fallback.id;
+            bucketName = fallback.name;
+          }
+
+          const hash = txn.deduplicationHash || generateAuditHash({
+            amount: txn.amount,
+            description: txn.description,
+            bucketId: bucketId,
+            direction: txn.direction,
+            createdAt: txn.createdAt
           });
-          setBuckets(bucketsWithBalances);
+          return { ...txn, bucketId, bucketName, deduplicationHash: hash };
+        });
+
+        // 6. Compute exact dynamic balance for every bucket from transactions
+        const bucketsWithBalances = bucketPool.map(bucket => {
+          const balance = resolvedTxns
+            .filter(t => t.bucketId === bucket.id)
+            .reduce((sum, t) => sum + (t.direction === 'CREDIT' ? t.amount : -t.amount), 0);
+          return { ...bucket, balance };
+        });
+
+        // 7. Update state with restored buckets & transactions
+        setBuckets(bucketsWithBalances);
+        setTransactions(resolvedTxns);
+
+        // Sync restored buckets to cloud if user is signed in
+        if (currentUserId && !currentUserId.startsWith('00000000-')) {
+          syncBucketsToSupabase(bucketsWithBalances, currentUserId);
+          syncTransactionsToSupabase(resolvedTxns, currentUserId);
         }
 
         if (dbPayments !== null) {
@@ -754,33 +812,30 @@ export function AuthenticatedApp({
         }
 
         // INDUSTRY STANDARD: Reconstruct expenses from the immutable ledger as single source of truth.
-        // The expenses table is a convenience view — the ledger EXPENSE transactions are canonical.
         const ledgerExpenseTxns = resolvedTxns.filter(t => t.type === 'EXPENSE');
         const dbExpensesList = (dbExpenses && dbExpenses.length > 0) ? dbExpenses : [];
 
-        // Build a merged list: start with DB expenses, then add any ledger EXPENSE txns missing from the list
         const mergedExpenses = [...dbExpensesList];
         const existingKeys = new Set(
-          dbExpensesList.map(e => `${e.description}|${e.amount}|${e.bucketId}`)
+          dbExpensesList.map(e => `${e.description}|${e.amount}`)
         );
         const existingIds = new Set(dbExpensesList.map(e => e.id));
 
         for (const t of ledgerExpenseTxns) {
-          const key = `${t.description}|${t.amount}|${t.bucketId}`;
+          const key = `${t.description}|${t.amount}`;
           if (!existingIds.has(t.id) && !existingKeys.has(key)) {
             mergedExpenses.push({
               id: t.id,
               description: t.description,
               amount: t.amount,
               bucketId: t.bucketId || '',
-              bucketName: t.bucketName || 'Unknown Bucket',
+              bucketName: t.bucketName || 'Expenses',
               date: t.createdAt,
               receiptImage: t.receiptUrl
             });
           }
         }
 
-        // Sort by date descending and set
         mergedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setExpenses(mergedExpenses);
 

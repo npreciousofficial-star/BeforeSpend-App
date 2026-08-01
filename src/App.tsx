@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { getLocalizedDefaultBuckets, getLocalizedTemplates, detectUserRegionAndCurrency, detectUserCountry } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
@@ -815,9 +815,11 @@ export function AuthenticatedApp({
     runSequentialSync();
   }, [buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded, isCloudDataLoaded]);
 
-  // Self-heal expenses list from the ledger transactions (e.g. from Statement Imports or sync failures)
+  // Self-heal expenses list from the ledger transactions — runs ONCE after cloud data loads
+  const hasHealedExpensesRef = useRef(false);
   useEffect(() => {
-    if (!dataLoaded || !isCloudDataLoaded) return;
+    if (!dataLoaded || !isCloudDataLoaded || hasHealedExpensesRef.current) return;
+    hasHealedExpensesRef.current = true;
 
     const expenseTxns = transactions.filter(t => t.type === 'EXPENSE');
     if (expenseTxns.length === 0) return;
@@ -858,7 +860,7 @@ export function AuthenticatedApp({
       currentExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setExpenses(currentExpenses);
     }
-  }, [transactions, expenses, dataLoaded, isCloudDataLoaded]);
+  }, [dataLoaded, isCloudDataLoaded]);
 
   // Under-the-hood Live Bank Sync Polling Worker (Prepared for Plaid / Mono integration)
   useEffect(() => {
@@ -1698,7 +1700,6 @@ export function AuthenticatedApp({
   };
 
   const handleClearExpenses = () => {
-    setTransactions((prev) => prev.filter((t) => t.type !== 'EXPENSE'));
     setExpenses([]);
   };
 

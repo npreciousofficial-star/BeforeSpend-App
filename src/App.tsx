@@ -815,6 +815,51 @@ export function AuthenticatedApp({
     runSequentialSync();
   }, [buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded, isCloudDataLoaded]);
 
+  // Self-heal expenses list from the ledger transactions (e.g. from Statement Imports or sync failures)
+  useEffect(() => {
+    if (!dataLoaded || !isCloudDataLoaded) return;
+
+    const expenseTxns = transactions.filter(t => t.type === 'EXPENSE');
+    if (expenseTxns.length === 0) return;
+
+    let updated = false;
+    const currentExpenses = [...expenses];
+
+    expenseTxns.forEach(t => {
+      const hasMatch = currentExpenses.some(e => {
+        if (e.id === t.id) return true;
+
+        const amtMatch = Math.abs(e.amount - t.amount) < 0.01;
+        const bucketMatch = e.bucketId === t.bucketId;
+        const descMatch = e.description === t.description;
+
+        const tTime = new Date(t.createdAt).getTime();
+        const eTime = new Date(e.date).getTime();
+        const dateMatch = Math.abs(tTime - eTime) < 24 * 60 * 60 * 1000;
+
+        return amtMatch && bucketMatch && descMatch && dateMatch;
+      });
+
+      if (!hasMatch) {
+        currentExpenses.push({
+          id: t.id,
+          description: t.description,
+          amount: t.amount,
+          bucketId: t.bucketId || '',
+          bucketName: t.bucketName || 'Unknown Bucket',
+          date: t.createdAt,
+          receiptImage: t.receiptUrl
+        });
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      currentExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setExpenses(currentExpenses);
+    }
+  }, [transactions, expenses, dataLoaded, isCloudDataLoaded]);
+
   // Under-the-hood Live Bank Sync Polling Worker (Prepared for Plaid / Mono integration)
   useEffect(() => {
     if (!currentUserId || currentUserId.startsWith('00000000-')) return;
@@ -1653,6 +1698,7 @@ export function AuthenticatedApp({
   };
 
   const handleClearExpenses = () => {
+    setTransactions((prev) => prev.filter((t) => t.type !== 'EXPENSE'));
     setExpenses([]);
   };
 

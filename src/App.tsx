@@ -819,33 +819,26 @@ export function AuthenticatedApp({
           setNotifications(dbNotifications);
         }
 
-        // INDUSTRY STANDARD: Reconstruct expenses from the immutable ledger as single source of truth.
-        const ledgerExpenseTxns = resolvedTxns.filter(t => t.type === 'EXPENSE');
-        const dbExpensesList = (dbExpenses && dbExpenses.length > 0) ? dbExpenses : [];
+        // INDUSTRY STANDARD: Reconstruct expenses strictly from the immutable ledger (resolvedTxns).
+        // The double-entry ledger is the ONLY source of truth — an expense cannot exist without an active DEBIT transaction.
+        const ledgerExpenseTxns = resolvedTxns.filter(t => t.type === 'EXPENSE' || t.direction === 'DEBIT');
+        const canonicalExpenses: Expense[] = ledgerExpenseTxns.map(t => ({
+          id: t.id,
+          description: t.description,
+          amount: t.amount,
+          bucketId: t.bucketId || '',
+          bucketName: t.bucketName || 'Expenses',
+          date: t.createdAt,
+          receiptImage: t.receiptUrl
+        }));
 
-        const mergedExpenses = [...dbExpensesList];
-        const existingKeys = new Set(
-          dbExpensesList.map(e => `${e.description}|${e.amount}`)
-        );
-        const existingIds = new Set(dbExpensesList.map(e => e.id));
+        canonicalExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setExpenses(canonicalExpenses);
 
-        for (const t of ledgerExpenseTxns) {
-          const key = `${t.description}|${t.amount}`;
-          if (!existingIds.has(t.id) && !existingKeys.has(key)) {
-            mergedExpenses.push({
-              id: t.id,
-              description: t.description,
-              amount: t.amount,
-              bucketId: t.bucketId || '',
-              bucketName: t.bucketName || 'Expenses',
-              date: t.createdAt,
-              receiptImage: t.receiptUrl
-            });
-          }
+        // Sync clean expenses back to cloud DB to overwrite any old orphan records
+        if (currentUserId && !currentUserId.startsWith('00000000-')) {
+          syncExpensesToSupabase(canonicalExpenses, currentUserId);
         }
-
-        mergedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setExpenses(mergedExpenses);
 
         console.log('Supabase user data loaded successfully!');
         setIsCloudDataLoaded(true);

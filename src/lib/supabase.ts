@@ -638,7 +638,7 @@ export async function syncExpensesToSupabase(expenses: Expense[], userId: string
 /**
  * Fast network timeout promise wrapper to prevent slow cloud queries from blocking UI
  */
-function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 12000): Promise<T> {
+function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 30000): Promise<T> {
   return Promise.race([
     Promise.resolve(promise),
     new Promise<T>((_, reject) =>

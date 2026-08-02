@@ -673,8 +673,8 @@ export function AuthenticatedApp({
           }
         }
 
-        // 2. Parallel data fetching via Promise.all for sub-second database load
-        const [dbBuckets, dbTxns, dbPayments, dbMilestones, dbReminders, dbNotifications, dbExpenses] = await Promise.all([
+        // 2. Parallel resilient data fetching via Promise.allSettled so no single query failure crashes the load
+        const results = await Promise.allSettled([
           loadBucketsFromSupabase(currentUserId),
           loadTransactionsFromSupabase(currentUserId),
           loadPaymentsFromSupabase(currentUserId),
@@ -683,6 +683,14 @@ export function AuthenticatedApp({
           loadNotificationsFromSupabase(currentUserId),
           loadExpensesFromSupabase(currentUserId),
         ]);
+
+        const dbBuckets = results[0].status === 'fulfilled' ? results[0].value : null;
+        const dbTxns = results[1].status === 'fulfilled' ? results[1].value : null;
+        const dbPayments = results[2].status === 'fulfilled' ? results[2].value : null;
+        const dbMilestones = results[3].status === 'fulfilled' ? results[3].value : null;
+        const dbReminders = results[4].status === 'fulfilled' ? results[4].value : null;
+        const dbNotifications = results[5].status === 'fulfilled' ? results[5].value : null;
+        const dbExpenses = results[6].status === 'fulfilled' ? results[6].value : null;
 
         // 1. Get user currency default buckets preset
         const userCurrency = profile?.defaultCurrency || userProfile.defaultCurrency || detectUserRegionAndCurrency().currency;

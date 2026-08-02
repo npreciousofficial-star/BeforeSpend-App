@@ -909,11 +909,13 @@ export function AuthenticatedApp({
     runSequentialSync();
   }, [buckets, transactions, history, milestones, reminders, expenses, notifications, currentUserId, dataLoaded, isCloudDataLoaded]);
 
-  // Self-heal expenses list from the ledger transactions — continuous integrity guard.
-  // Runs whenever transactions or expenses change to ensure the expenses page always
-  // reflects every EXPENSE-type ledger entry (the ledger is the single source of truth).
+  // Self-heal expenses list from the ledger transactions — one-time integrity guard.
+  // Runs ONCE after cloud data loads to ensure the expenses page reflects every
+  // EXPENSE-type ledger entry. Uses a ref guard to prevent re-runs and infinite loops.
+  const hasHealedExpensesRef = React.useRef(false);
   useEffect(() => {
-    if (!dataLoaded || !isCloudDataLoaded) return;
+    if (!dataLoaded || !isCloudDataLoaded || hasHealedExpensesRef.current) return;
+    hasHealedExpensesRef.current = true;
 
     const expenseTxns = transactions.filter(t => t.type === 'EXPENSE');
     if (expenseTxns.length === 0) return;
@@ -921,13 +923,13 @@ export function AuthenticatedApp({
     // Build lookup sets for fast matching
     const existingIds = new Set(expenses.map(e => e.id));
     const existingKeys = new Set(
-      expenses.map(e => `${e.description}|${e.amount}|${e.bucketId}`)
+      expenses.map(e => `${e.description}|${Number(e.amount).toFixed(2)}`)
     );
 
     const missingExpenses: Expense[] = [];
 
     for (const t of expenseTxns) {
-      const key = `${t.description}|${t.amount}|${t.bucketId}`;
+      const key = `${t.description}|${Number(t.amount).toFixed(2)}`;
       if (!existingIds.has(t.id) && !existingKeys.has(key)) {
         missingExpenses.push({
           id: t.id,
@@ -946,7 +948,7 @@ export function AuthenticatedApp({
       merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setExpenses(merged);
     }
-  }, [dataLoaded, isCloudDataLoaded, transactions, expenses]);
+  }, [dataLoaded, isCloudDataLoaded, transactions]);
 
   // Under-the-hood Live Bank Sync Polling Worker (Prepared for Plaid / Mono integration)
   useEffect(() => {
@@ -1644,13 +1646,23 @@ export function AuthenticatedApp({
     const entry = history.find((h) => h.id === id);
     setHistory((prev) => prev.filter((h) => h.id !== id));
     if (entry && entry.splits?.length > 0) {
-      const bucketIdsInEntry = new Set(entry.splits.map((s: any) => s.bucketId));
+      // Match ONLY the specific INCOME_SPLIT transactions created by THIS payment entry.
+      // Use the payment's date + bucket IDs + split amounts for precise matching.
+      const entryDate = new Date(entry.date);
+      const entryDateMin = new Date(entryDate.getTime() - 5000).toISOString(); // 5s window
+      const entryDateMax = new Date(entryDate.getTime() + 5000).toISOString();
+      const splitFingerprints = new Set(
+        entry.splits.map((s: any) => `${s.bucketId}|${Number(s.amount).toFixed(2)}`)
+      );
       setTransactions((prev) =>
         prev.filter(
-          (t) =>
-            !(t.direction === 'CREDIT' &&
-              t.type === 'INCOME_SPLIT' &&
-              bucketIdsInEntry.has(t.bucketId))
+          (t) => {
+            if (t.direction !== 'CREDIT' || t.type !== 'INCOME_SPLIT') return true;
+            const fingerprint = `${t.bucketId}|${Number(t.amount).toFixed(2)}`;
+            const inTimeWindow = t.createdAt >= entryDateMin && t.createdAt <= entryDateMax;
+            // Only remove if BOTH fingerprint AND time window match
+            return !(splitFingerprints.has(fingerprint) && inTimeWindow);
+          }
         )
       );
     }
@@ -1786,7 +1798,14 @@ export function AuthenticatedApp({
   };
 
   const handleClearExpenses = () => {
+    // Also remove ALL DEBIT/EXPENSE transactions from the immutable ledger
+    // so that bucket balances are truly restored and the self-heal effect doesn't resurrect them.
+    setTransactions((prev) => prev.filter((t) => t.type !== 'EXPENSE'));
     setExpenses([]);
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      deleteTransactionsByTypeFromSupabase('EXPENSE', currentUserId);
+    }
+    addToast('All expenses cleared and ledger entries removed. Balances restored!', 'success');
   };
 
   // Milestone actions
@@ -3400,15 +3419,38 @@ export function AuthenticatedApp({
                 onDeductFromBucket={(bucketId, amount, note) => {
                   const targetBucket = buckets.find(b => b.id === bucketId);
                   if (!targetBucket || targetBucket.balance < amount) return false;
-                  setBuckets(prev => prev.map(b => b.id === bucketId ? { ...b, balance: b.balance - amount } : b));
-                  
+
+                  // Create a proper DEBIT transaction in the immutable ledger (industry standard)
+                  const expenseId = generateId();
+                  const now = new Date().toISOString();
+                  const txnData = {
+                    amount: amount,
+                    description: note,
+                    bucketId: bucketId,
+                    direction: 'DEBIT' as const,
+                    createdAt: now
+                  };
+                  const newTxn: Transaction = {
+                    id: generateId('txn'),
+                    bucketId: bucketId,
+                    bucketName: targetBucket.name,
+                    type: 'EXPENSE' as const,
+                    amount: amount,
+                    direction: 'DEBIT' as const,
+                    description: note,
+                    sourceType: 'MANUAL_ENTRY' as const,
+                    createdAt: now,
+                    deduplicationHash: generateAuditHash(txnData)
+                  };
+                  setTransactions(prev => [newTxn, ...prev]);
+
                   const newExpense: Expense = {
-                    id: generateId(),
+                    id: expenseId,
                     bucketId: bucketId,
                     bucketName: targetBucket.name,
                     amount: amount,
                     description: note,
-                    date: new Date().toISOString().split('T')[0]
+                    date: now.split('T')[0]
                   };
                   setExpenses(prev => [newExpense, ...prev]);
                   return true;

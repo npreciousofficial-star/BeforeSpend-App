@@ -820,8 +820,8 @@ export function AuthenticatedApp({
         }
 
         // INDUSTRY STANDARD: Reconstruct expenses strictly from the immutable ledger (resolvedTxns).
-        // The double-entry ledger is the ONLY source of truth — an expense cannot exist without an active DEBIT transaction.
-        const ledgerExpenseTxns = resolvedTxns.filter(t => t.type === 'EXPENSE' || t.direction === 'DEBIT');
+        // ONLY type === 'EXPENSE' counts as an expense. Transfers, adjustments, and reversals are NOT expenses.
+        const ledgerExpenseTxns = resolvedTxns.filter(t => t.type === 'EXPENSE');
         const canonicalExpenses: Expense[] = ledgerExpenseTxns.map(t => ({
           id: t.id,
           description: t.description,

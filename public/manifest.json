@@ -1,6 +1,18 @@
 {
-  "short_name": "BeforeSpend",
+  "id": "/?source=pwa",
   "name": "BeforeSpend — Income Allocation & Wealth Engine",
+  "short_name": "BeforeSpend",
+  "description": "Plan allocations before spending. Split income automatically, parse bank statements, and protect your wealth.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0A192F",
+  "theme_color": "#0A192F",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
       "src": "/apple-touch-icon.png",
@@ -38,10 +50,34 @@
       "sizes": "32x32"
     }
   ],
-  "start_url": "/",
-  "background_color": "#0A192F",
-  "theme_color": "#00A896",
-  "display": "standalone",
-  "orientation": "portrait",
-  "description": "Plan allocations before spending. Split income automatically, parse bank statements, and protect your wealth."
+  "shortcuts": [
+    {
+      "name": "Split Income",
+      "short_name": "Split",
+      "description": "Calculate zero-based income split allocations",
+      "url": "/?action=split&source=pwa_shortcut",
+      "icons": [{ "src": "/pwa-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Add Expense",
+      "short_name": "Expense",
+      "description": "Quickly record a new bucket expense",
+      "url": "/?action=expenses&source=pwa_shortcut",
+      "icons": [{ "src": "/pwa-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard Buckets",
+      "short_name": "Buckets",
+      "description": "View real-time category bucket balances",
+      "url": "/?action=buckets&source=pwa_shortcut",
+      "icons": [{ "src": "/pwa-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Transactions Ledger",
+      "short_name": "Ledger",
+      "description": "View double-entry audit history",
+      "url": "/?action=ledger&source=pwa_shortcut",
+      "icons": [{ "src": "/pwa-icon.png", "sizes": "192x192" }]
+    }
+  ]
 }

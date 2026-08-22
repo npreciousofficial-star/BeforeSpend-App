@@ -15,7 +15,7 @@ export default defineConfig(() => {
       target: 'esnext',
       minify: 'esbuild',
       cssCodeSplit: true,
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -31,6 +31,15 @@ export default defineConfig(() => {
             if (id.includes('node_modules/@supabase')) {
               return 'vendor-supabase';
             }
+            if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) {
+              return 'vendor-pdf-export';
+            }
+            if (id.includes('node_modules/@google/genai')) {
+              return 'vendor-genai';
+            }
+            if (id.includes('node_modules/motion')) {
+              return 'vendor-motion';
+            }
           },
         },
       },
@@ -45,3 +54,4 @@ export default defineConfig(() => {
     },
   };
 });
+

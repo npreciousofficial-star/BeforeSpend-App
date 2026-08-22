@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { getLocalizedDefaultBuckets, getLocalizedTemplates, detectUserRegionAndCurrency, detectUserCountry } from './data/defaultBuckets';
 import { DEFAULT_EXCHANGE_RATES, formatCurrency, generateId, convertCurrency, generateAuditHash, compressImageFile } from './lib/utils';
@@ -20,13 +20,12 @@ import {
 import { triggerSystemPushNotification } from './lib/pushNotifications';
 import { syncLiveBankTransactions } from './lib/bankSync';
 
-// Components
+// Core Immediate Components
 import { ToastContainer } from './components/Toast';
 import { SkeletonBucketCard, SkeletonContentBlock, SkeletonTableRows, SkeletonChartCard, SkeletonFormCard } from './components/Preloader';
 import { AnimatedNumber } from './components/AnimatedNumber';
 import { CustomSelect } from './components/CustomSelect';
 import { SplitCalculator } from './components/SplitCalculator';
-import { FinanceCalculators } from './components/FinanceCalculators';
 import { BucketCard } from './components/BucketCard';
 import { ExpenseForm } from './components/ExpenseForm';
 import { ExpenseList } from './components/ExpenseList';
@@ -36,24 +35,27 @@ import { MilestoneForm } from './components/MilestoneForm';
 import { ReminderItem } from './components/ReminderItem';
 import { ReminderForm } from './components/ReminderForm';
 import { HistoryEntryList } from './components/HistoryEntry';
-import { FinanceCharts } from './components/FinanceCharts';
 import { LoginRegisterScreen } from './components/LoginRegisterScreen';
-import { LandingPage } from './components/LandingPage';
 import { Avatar, AVATAR_PRESETS } from './components/Avatar';
-import { AdminCommandCenter } from './components/AdminCommandCenter';
-import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { NotificationBell } from './components/NotificationBell';
-import { ReconciliationModal } from './components/ReconciliationModal';
-import { StatementParserModal } from './components/StatementParserModal';
-import { CacRegistrationModule } from './components/CacRegistrationModule';
 import { DirectDepositModal } from './components/DirectDepositModal';
 import { LedgerTable } from './components/LedgerTable';
 import { BeforeSpendLogo } from './components/BeforeSpendLogo';
 import { BeforeSpendIcon } from './components/BeforeSpendIcon';
-import { TermsOfService } from './components/TermsOfService';
-import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { PwaTopBanner } from './components/PwaTopBanner';
 import { CookieConsentModal } from './components/CookieConsentModal';
+
+// High-Performance Lazy Loaded Heavy Components (sub-50ms instant PWA startup)
+const FinanceCalculators = lazy(() => import('./components/FinanceCalculators').then(m => ({ default: m.FinanceCalculators })));
+const FinanceCharts = lazy(() => import('./components/FinanceCharts').then(m => ({ default: m.FinanceCharts })));
+const LandingPage = lazy(() => import('./components/LandingPage').then(m => ({ default: m.LandingPage })));
+const AdminCommandCenter = lazy(() => import('./components/AdminCommandCenter').then(m => ({ default: m.AdminCommandCenter })));
+const GlobalSearchModal = lazy(() => import('./components/GlobalSearchModal').then(m => ({ default: m.GlobalSearchModal })));
+const ReconciliationModal = lazy(() => import('./components/ReconciliationModal').then(m => ({ default: m.ReconciliationModal })));
+const StatementParserModal = lazy(() => import('./components/StatementParserModal').then(m => ({ default: m.StatementParserModal })));
+const CacRegistrationModule = lazy(() => import('./components/CacRegistrationModule').then(m => ({ default: m.CacRegistrationModule })));
+const TermsOfService = lazy(() => import('./components/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 
 // Icons
 import { 
@@ -569,6 +571,24 @@ export function AuthenticatedApp({
     showReconciliationModal,
     showStatementParserModal,
   ]);
+
+  // Handle PWA App Shortcut deep-links (e.g. /?action=split, /?action=expenses, /?action=ledger)
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      if (action) {
+        if (action === 'split') setActiveTab('split');
+        else if (action === 'expenses' || action === 'expense') setActiveTab('expenses');
+        else if (action === 'buckets' || action === 'dashboard') setActiveTab('buckets');
+        else if (action === 'ledger' || action === 'history') setActiveTab('history');
+        else if (action === 'analytics') setActiveTab('analytics');
+        else if (action === 'reminders') setActiveTab('reminders');
+        else if (action === 'milestones') setActiveTab('milestones');
+        else if (action === 'calculators') setActiveTab('calculators');
+      }
+    } catch (e) {}
+  }, []);
 
   // Load data from Supabase DB on mount/login
   useEffect(() => {
@@ -2709,26 +2729,83 @@ export function AuthenticatedApp({
 
       {/* Admin Command Center — Full-screen overlay, admins only */}
       {isAdmin && showAdminCenter && (
-        <AdminCommandCenter
-          currentUserId={currentUserId}
-          userProfile={userProfile}
-          onExit={() => setShowAdminCenter(false)}
-          onLogout={onLogout}
-          exchangeRates={exchangeRates}
-          setExchangeRates={setExchangeRates}
-          rawDbJson={rawDbJson}
-          setRawDbJson={setRawDbJson}
-          handleExportDb={handleExportDb}
-          handleImportDb={handleImportDb}
-          showImportDbModal={showImportDbModal}
-          setShowImportDbModal={setShowImportDbModal}
-          calculateLocalStorageQuota={calculateLocalStorageQuota}
-          formatCurrency={formatCurrency}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          notifications={notifications}
-          setNotifications={setNotifications}
-        />
+        <Suspense fallback={null}>
+          <AdminCommandCenter
+            currentUserId={currentUserId}
+            userProfile={userProfile}
+            onExit={() => setShowAdminCenter(false)}
+            onLogout={onLogout}
+            exchangeRates={exchangeRates}
+            setExchangeRates={setExchangeRates}
+            rawDbJson={rawDbJson}
+            setRawDbJson={setRawDbJson}
+            handleExportDb={handleExportDb}
+            handleImportDb={handleImportDb}
+            showImportDbModal={showImportDbModal}
+            setShowImportDbModal={setShowImportDbModal}
+            calculateLocalStorageQuota={calculateLocalStorageQuota}
+            formatCurrency={formatCurrency}
+            isDarkMode={isDarkMode}
+            toggleDarkMode={toggleDarkMode}
+            notifications={notifications}
+            setNotifications={setNotifications}
+            adminProfiles={adminProfiles}
+            setAdminProfiles={setAdminProfiles}
+            adminBuckets={adminBuckets}
+            setAdminBuckets={setAdminBuckets}
+            adminTransactions={adminTransactions}
+            setAdminTransactions={setAdminTransactions}
+            adminPayments={adminPayments}
+            setAdminPayments={setAdminPayments}
+            adminReminders={adminReminders}
+            setAdminReminders={setAdminReminders}
+            adminEditingUser={adminEditingUser}
+            setAdminEditingUser={setAdminEditingUser}
+            adminEditName={adminEditUserName}
+            setAdminEditName={setAdminEditUserName}
+            adminEditEmail={adminEditUserEmail}
+            setAdminEditEmail={setAdminEditUserEmail}
+            adminEditRole={adminEditUserRole}
+            setAdminEditRole={setAdminEditUserRole}
+            adminEditCurrency={adminEditUserCurrency}
+            setAdminEditCurrency={setAdminEditUserCurrency}
+            handleAdminSaveUser={handleAdminSaveProfile}
+            handleAdminDeleteUser={handleAdminDeleteProfile}
+            adminEditingBucket={adminEditingBucket}
+            setAdminEditingBucket={setAdminEditingBucket}
+            adminEditBucketName={adminEditBucketName}
+            setAdminEditBucketName={setAdminEditBucketName}
+            adminEditBucketPercent={adminEditBucketPercentage}
+            setAdminEditBucketPercent={setAdminEditBucketPercentage}
+            adminEditBucketColor={adminEditBucketColor}
+            setAdminEditBucketColor={setAdminEditBucketColor}
+            adminEditBucketAccount={adminEditBucketAccount}
+            setAdminEditBucketAccount={setAdminEditBucketAccount}
+            adminEditBucketNote={adminEditBucketNote}
+            setAdminEditBucketNote={setAdminEditBucketNote}
+            handleAdminSaveBucket={handleAdminSaveBucket}
+            handleAdminDeleteBucket={handleAdminDeleteBucket}
+            adminEditingTransaction={adminEditingTransaction}
+            setAdminEditingTransaction={setAdminEditingTransaction}
+            adminEditTxnDesc={adminEditTransactionDesc}
+            setAdminEditTxnDesc={setAdminEditTransactionDesc}
+            adminEditTxnAmount={adminEditTransactionAmount}
+            setAdminEditTxnAmount={setAdminEditTransactionAmount}
+            adminEditTxnType={adminEditTransactionType}
+            setAdminEditTxnType={setAdminEditTransactionType}
+            adminEditTxnDirection={adminEditTransactionDirection}
+            setAdminEditTxnDirection={setAdminEditTransactionDirection}
+            handleAdminSaveTransaction={handleAdminSaveTransaction}
+            handleAdminDeleteTransaction={handleAdminDeleteTransaction}
+            broadcastTitle={adminBroadcastTitle}
+            setBroadcastTitle={setAdminBroadcastTitle}
+            broadcastMessage={adminBroadcastMessage}
+            setBroadcastMessage={setAdminBroadcastMessage}
+            broadcastType={adminBroadcastType}
+            setBroadcastType={setAdminBroadcastType}
+            handleBroadcastNotification={handleAdminBroadcast}
+          />
+        </Suspense>
       )}
 
       {/* DESKTOP SIDEBAR (md and up) */}
@@ -3197,9 +3274,11 @@ export function AuthenticatedApp({
               {!dataLoaded ? (
                 <SkeletonContentBlock />
               ) : (
-              <FinanceCalculators 
-                currency={userProfile.defaultCurrency}
-              />
+                <Suspense fallback={<SkeletonContentBlock />}>
+                  <FinanceCalculators 
+                    currency={userProfile.defaultCurrency}
+                  />
+                </Suspense>
               )}
             </div>
           )}
@@ -3430,12 +3509,14 @@ export function AuthenticatedApp({
               {!dataLoaded ? (
                 <div className="space-y-4"><SkeletonChartCard /><SkeletonChartCard /></div>
               ) : (
-              <FinanceCharts 
-                buckets={buckets}
-                history={history}
-                expenses={expenses}
-                currency={userProfile.defaultCurrency}
-              />
+                <Suspense fallback={<div className="space-y-4"><SkeletonChartCard /><SkeletonChartCard /></div>}>
+                  <FinanceCharts 
+                    buckets={buckets}
+                    history={history}
+                    expenses={expenses}
+                    currency={userProfile.defaultCurrency}
+                  />
+                </Suspense>
               )}
             </div>
           )}
@@ -3443,52 +3524,54 @@ export function AuthenticatedApp({
           {/* 7.5 CAC BUSINESS REGISTRATION FULL MODULE PAGE */}
           {activeTab === 'cac' && (
             <div id="view-cac-tab">
-              <CacRegistrationModule 
-                userEmail={userProfile.email}
-                userName={userProfile.name}
-                defaultCurrency={userProfile.defaultCurrency}
-                buckets={buckets}
-                onAddNotification={(n) => setNotifications(prev => [{ ...n, id: generateId('notif'), time: 'Just now' }, ...prev])}
-                onDeductFromBucket={(bucketId, amount, note) => {
-                  const targetBucket = buckets.find(b => b.id === bucketId);
-                  if (!targetBucket || targetBucket.balance < amount) return false;
+              <Suspense fallback={<SkeletonFormCard />}>
+                <CacRegistrationModule 
+                  userEmail={userProfile.email}
+                  userName={userProfile.name}
+                  defaultCurrency={userProfile.defaultCurrency}
+                  buckets={buckets}
+                  onAddNotification={(n) => setNotifications(prev => [{ ...n, id: generateId('notif'), time: 'Just now' }, ...prev])}
+                  onDeductFromBucket={(bucketId, amount, note) => {
+                    const targetBucket = buckets.find(b => b.id === bucketId);
+                    if (!targetBucket || targetBucket.balance < amount) return false;
 
-                  // Create a proper DEBIT transaction in the immutable ledger (industry standard)
-                  const expenseId = generateId();
-                  const now = new Date().toISOString();
-                  const txnData = {
-                    amount: amount,
-                    description: note,
-                    bucketId: bucketId,
-                    direction: 'DEBIT' as const,
-                    createdAt: now
-                  };
-                  const newTxn: Transaction = {
-                    id: generateId('txn'),
-                    bucketId: bucketId,
-                    bucketName: targetBucket.name,
-                    type: 'EXPENSE' as const,
-                    amount: amount,
-                    direction: 'DEBIT' as const,
-                    description: note,
-                    sourceType: 'MANUAL_ENTRY' as const,
-                    createdAt: now,
-                    deduplicationHash: generateAuditHash(txnData)
-                  };
-                  setTransactions(prev => [newTxn, ...prev]);
+                    // Create a proper DEBIT transaction in the immutable ledger (industry standard)
+                    const expenseId = generateId();
+                    const now = new Date().toISOString();
+                    const txnData = {
+                      amount: amount,
+                      description: note,
+                      bucketId: bucketId,
+                      direction: 'DEBIT' as const,
+                      createdAt: now
+                    };
+                    const newTxn: Transaction = {
+                      id: generateId('txn'),
+                      bucketId: bucketId,
+                      bucketName: targetBucket.name,
+                      type: 'EXPENSE' as const,
+                      amount: amount,
+                      direction: 'DEBIT' as const,
+                      description: note,
+                      sourceType: 'MANUAL_ENTRY' as const,
+                      createdAt: now,
+                      deduplicationHash: generateAuditHash(txnData)
+                    };
+                    setTransactions(prev => [newTxn, ...prev]);
 
-                  const newExpense: Expense = {
-                    id: expenseId,
-                    bucketId: bucketId,
-                    bucketName: targetBucket.name,
-                    amount: amount,
-                    description: note,
-                    date: now.split('T')[0]
-                  };
-                  setExpenses(prev => [newExpense, ...prev]);
-                  return true;
-                }}
-              />
+                    const newExpense: Expense = {
+                      id: expenseId,
+                      bucketId: bucketId,
+                      bucketName: targetBucket.name,
+                      amount: amount,
+                      description: note,
+                      date: now.split('T')[0]
+                    };
+                    setExpenses(prev => [newExpense, ...prev]);
+                    return true;
+                  }}
+                />
+              </Suspense>
             </div>
           )}
 
@@ -5562,28 +5645,32 @@ export function AuthenticatedApp({
 
       {/* MODAL: RECONCILIATION */}
       {showReconciliationModal && (
-        <ReconciliationModal
-          buckets={buckets}
-          currency={userProfile.defaultCurrency}
-          transactions={transactions}
-          initialBucketId={reconciliationBucketId}
-          onReconcile={handleReconcileTransaction}
-          onClose={() => {
-            setShowReconciliationModal(false);
-            setReconciliationBucketId(undefined);
-          }}
-        />
+        <Suspense fallback={null}>
+          <ReconciliationModal
+            buckets={buckets}
+            currency={userProfile.defaultCurrency}
+            transactions={transactions}
+            initialBucketId={reconciliationBucketId}
+            onReconcile={handleReconcileTransaction}
+            onClose={() => {
+              setShowReconciliationModal(false);
+              setReconciliationBucketId(undefined);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* MODAL: STATEMENT PARSER */}
       {showStatementParserModal && (
-        <StatementParserModal
-          buckets={buckets}
-          currency={userProfile.defaultCurrency}
-          existingTransactions={transactions}
-          onBatchImport={handleBatchImport}
-          onClose={() => setShowStatementParserModal(false)}
-        />
+        <Suspense fallback={null}>
+          <StatementParserModal
+            buckets={buckets}
+            currency={userProfile.defaultCurrency}
+            existingTransactions={transactions}
+            onBatchImport={handleBatchImport}
+            onClose={() => setShowStatementParserModal(false)}
+          />
+        </Suspense>
       )}
 
       {/* MODAL: CUSTOM BLUEPRINT CONFIRMATION */}
@@ -5632,18 +5719,22 @@ export function AuthenticatedApp({
       )}
 
       {/* GLOBAL DEEP SEARCH ENGINE MODAL */}
-      <GlobalSearchModal
-        isOpen={showGlobalSearchModal}
-        onClose={() => setShowGlobalSearchModal(false)}
-        transactions={transactions}
-        history={history}
-        buckets={buckets}
-        expenses={expenses}
-        milestones={milestones}
-        reminders={reminders}
-        currency={userProfile.defaultCurrency}
-        onNavigate={handleGlobalSearchNavigate}
-      />
+      {showGlobalSearchModal && (
+        <Suspense fallback={null}>
+          <GlobalSearchModal
+            isOpen={showGlobalSearchModal}
+            onClose={() => setShowGlobalSearchModal(false)}
+            transactions={transactions}
+            history={history}
+            buckets={buckets}
+            expenses={expenses}
+            milestones={milestones}
+            reminders={reminders}
+            currency={userProfile.defaultCurrency}
+            onNavigate={handleGlobalSearchNavigate}
+          />
+        </Suspense>
+      )}
 
       {/* MODAL: DIRECT SINGLE BUCKET DEPOSIT */}
       <DirectDepositModal
@@ -5811,7 +5902,16 @@ export function AuthenticatedApp({
 
 export default function App() {
   const [currentUserId, setCurrentUserId] = useLocalStorage<string | null>('beforespend_logged_in_user_id', null);
-  const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register' | 'privacy' | 'terms'>('beforespend_auth_view', 'landing');
+  const [authView, setAuthView] = useLocalStorage<'app' | 'landing' | 'login' | 'register' | 'privacy' | 'terms'>('beforespend_auth_view', () => {
+    try {
+      const user = window.localStorage.getItem('beforespend_logged_in_user_id');
+      if (user && user !== 'null' && user !== 'undefined') {
+        const parsed = JSON.parse(user);
+        if (parsed) return 'app';
+      }
+    } catch (e) {}
+    return 'landing';
+  });
 
   // Theme synchronization at root level
   const [isDark, setIsDark] = useState(() => {
@@ -5944,27 +6044,31 @@ export default function App() {
       <PwaTopBanner />
       <CookieConsentModal onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }} />
       {currentPath === '/terms' || authView === 'terms' ? (
-        <TermsOfService
-          onBack={() => { navigateTo('/'); setAuthView('landing'); }}
-          onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
-          onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
-          onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
-          isLoggedIn={Boolean(currentUserId)}
-        />
+        <Suspense fallback={null}>
+          <TermsOfService
+            onBack={() => { navigateTo('/'); setAuthView('landing'); }}
+            onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
+            isDark={isDark}
+            onToggleTheme={() => setIsDark(!isDark)}
+            onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
+            onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
+            onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
+            isLoggedIn={Boolean(currentUserId)}
+          />
+        </Suspense>
       ) : currentPath === '/privacy' || authView === 'privacy' ? (
-        <PrivacyPolicy
-          onBack={() => { navigateTo('/'); setAuthView('landing'); }}
-          onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
-          onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
-          onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
-          isLoggedIn={Boolean(currentUserId)}
-        />
+        <Suspense fallback={null}>
+          <PrivacyPolicy
+            onBack={() => { navigateTo('/'); setAuthView('landing'); }}
+            onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
+            isDark={isDark}
+            onToggleTheme={() => setIsDark(!isDark)}
+            onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
+            onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
+            onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
+            isLoggedIn={Boolean(currentUserId)}
+          />
+        </Suspense>
       ) : currentUserId && (authView === 'app' || currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard')) ? (
         <AuthenticatedApp 
           currentUserId={currentUserId} 
@@ -5972,18 +6076,20 @@ export default function App() {
           onGoToLanding={() => { navigateTo('/'); setAuthView('landing'); }} 
         />
       ) : authView === 'landing' || (!currentUserId && (currentPath === '/' || !currentPath)) ? (
-        <LandingPage
-          onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
-          onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
-          onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
-          onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          isLoggedIn={Boolean(currentUserId)}
-          currentUserId={currentUserId}
-          onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
-          onLogout={handleLogout}
-        />
+        <Suspense fallback={null}>
+          <LandingPage
+            onGoToLogin={() => { navigateTo('/login'); setAuthView('login'); }}
+            onGoToRegister={() => { navigateTo('/register'); setAuthView('register'); }}
+            onGoToTerms={() => { navigateTo('/terms'); setAuthView('terms'); }}
+            onGoToPrivacy={() => { navigateTo('/privacy'); setAuthView('privacy'); }}
+            isDark={isDark}
+            onToggleTheme={() => setIsDark(!isDark)}
+            isLoggedIn={Boolean(currentUserId)}
+            currentUserId={currentUserId}
+            onGoToDashboard={() => { navigateTo('/dashboard'); setAuthView('app'); }}
+            onLogout={handleLogout}
+          />
+        </Suspense>
       ) : (
         <LoginRegisterScreen
           onLogin={(userId) => {

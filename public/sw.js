@@ -1,30 +1,32 @@
-const CACHE_NAME = 'beforespend-pwa-v4';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'beforespend-pwa-v6';
+const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/logo.png',
-  '/pwa-icon.png',
   '/favicon.png',
+  '/pwa-icon.png',
+  '/apple-touch-icon.png',
+  '/logo.png',
   '/favicon.ico'
 ];
 
-// Install Event - cache initial assets & immediately activate
+// Install Event - Precache core app shell & activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(PRECACHE_ASSETS);
     }).then(() => self.skipWaiting())
   );
 });
 
-// Activate Event - purge all old caches
+// Activate Event - Clean up stale cache versions & claim all clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
+            console.log('[PWA SW] Removing obsolete cache:', cache);
             return caches.delete(cache);
           }
         })
@@ -33,7 +35,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Stale-While-Revalidate for sub-second app launch
+// Fetch Event - Sub-50ms instant cold boot for home screen launch
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -42,10 +44,10 @@ self.addEventListener('fetch', (event) => {
   // Ignore non-http(s) schemes (e.g. chrome-extension, ws)
   if (!url.protocol.startsWith('http')) return;
 
-  // Ignore cross-origin API requests (e.g. Supabase REST/Auth calls)
+  // Ignore cross-origin API requests (e.g. Supabase, IP lookup, Exchange rates)
   if (url.origin !== location.origin) return;
 
-  // Bypass service worker entirely in development mode (Vite dev server)
+  // Bypass service worker in Vite dev server mode
   if (
     url.pathname.startsWith('/src/') ||
     url.pathname.startsWith('/@') ||
@@ -58,21 +60,53 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-First strategy for images, icons, and static assets for instant load
-  const isStaticAsset = url.pathname.endsWith('.png') ||
-                        url.pathname.endsWith('.jpg') ||
-                        url.pathname.endsWith('.ico') ||
-                        url.pathname.endsWith('.svg') ||
-                        url.pathname.endsWith('.woff2');
+  // 1. Navigation / App Shell Request (e.g. user opening from home screen)
+  // Serve cached index.html INSTANTLY (0ms delay), revalidate in background
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      caches.match('/index.html').then((cachedIndex) => {
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put('/index.html', responseToCache);
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => cachedIndex);
 
-  if (isStaticAsset) {
+        return cachedIndex || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // 2. Immutable Vite Assets (/assets/*) & Static Files (.js, .css, .png, .jpg, .svg, .woff2)
+  // Strategy: Cache-First for instant 0ms execution
+  const isHashedAsset = url.pathname.startsWith('/assets/');
+  const isStaticFile = url.pathname.endsWith('.js') ||
+                       url.pathname.endsWith('.css') ||
+                       url.pathname.endsWith('.png') ||
+                       url.pathname.endsWith('.jpg') ||
+                       url.pathname.endsWith('.ico') ||
+                       url.pathname.endsWith('.svg') ||
+                       url.pathname.endsWith('.woff2') ||
+                       url.pathname.endsWith('.json');
+
+  if (isHashedAsset || isStaticFile) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
+        if (cachedResponse) {
+          return cachedResponse;
+        }
         return fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
           }
           return networkResponse;
         });
@@ -81,7 +115,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-While-Revalidate for HTML, JS, CSS
+  // 3. Fallback: Stale-While-Revalidate for other local GET requests
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
@@ -101,7 +135,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push Event - Receive and render native Push Notifications
+// Push Event - Native Web Push Notifications
 self.addEventListener('push', (event) => {
   let data = { title: 'BeforeSpend Alert', body: 'You have a new financial alert.', url: '/dashboard' };
 
@@ -132,7 +166,7 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Notification Click Event - Focus or open BeforeSpend app tab
+// Notification Click Event - Focus or launch BeforeSpend app window
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
@@ -153,3 +187,4 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+

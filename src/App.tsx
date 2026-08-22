@@ -696,29 +696,52 @@ export function AuthenticatedApp({
         const userCurrency = profile?.defaultCurrency || userProfile.defaultCurrency || detectUserRegionAndCurrency().currency;
         const defaultPresetBuckets = getLocalizedDefaultBuckets(userCurrency);
 
-        // 2. Base bucket pool: combine cloud loaded dbBuckets and local buckets
+        // 2. Base bucket pool: determine data source with strict fail-safety.
+        //
+        //    Priority: Cloud DB → Local Storage → Default Presets (new users only)
+        //
+        //    CRITICAL: If the cloud bucket query failed (null), we MUST NOT overwrite
+        //    the user's good localStorage data. We exit early so that the perfectly
+        //    valid local state is preserved untouched. This prevents the "balance
+        //    wiped to 0.00" bug that occurred when a network hiccup returned null.
+        const cloudBucketsOk = dbBuckets !== null;
+        const localBucketsExist = buckets && buckets.length > 0;
+
         let bucketPool: Bucket[] = [];
-        if (dbBuckets && dbBuckets.length > 0) {
-          bucketPool = [...dbBuckets];
-        } else if (buckets && buckets.length > 0) {
+
+        if (cloudBucketsOk && dbBuckets!.length > 0) {
+          // ✅ Happy path: cloud has data → use it
+          bucketPool = [...dbBuckets!];
+        } else if (cloudBucketsOk && dbBuckets!.length === 0 && localBucketsExist) {
+          // ✅ Cloud returned empty (e.g. user just registered on a new device) →
+          //    use local as the source of truth; we'll sync it up to cloud below.
           bucketPool = [...buckets];
+        } else if (!cloudBucketsOk) {
+          // ❌ NETWORK FAILURE: bucket query returned null (timeout/error).
+          //    Do NOT touch any local state. Exit the merge entirely so the user's
+          //    existing localStorage data stays intact.
+          console.warn('BeforeSpend: Bucket cloud fetch failed — preserving local data untouched.');
+          setIsCloudDataLoaded(true);
+          return; // Early exit — skip setBuckets() entirely
         } else {
+          // Cloud returned empty AND there are no local buckets → brand-new user.
+          // Seed from regional defaults for the first time only.
           bucketPool = [...defaultPresetBuckets];
         }
 
-        // 3. Ensure all standard default buckets for user's currency exist in bucketPool
-        defaultPresetBuckets.forEach(defB => {
-          const exists = bucketPool.some(b => 
-            b.id === defB.id || 
-            b.name.toLowerCase().trim() === defB.name.toLowerCase().trim()
-          );
-          if (!exists) {
-            bucketPool.push({ ...defB, id: defB.id || generateId('bucket') });
-          }
-        });
+        // 3. DO NOT inject default preset buckets on every reload.
+        //    The previous code always looped over defaultPresetBuckets and added any
+        //    "missing" ones back in — which is why deleted buckets kept reappearing
+        //    and why percentages were being auto-set. We now only seed defaults above
+        //    when there is truly no data anywhere (new user path).
 
-        // 4. Ensure any additional bucket names referenced in transactions/payments/expenses are also in bucketPool
-        const allLoadedTxns = (dbTxns && dbTxns.length > 0) ? dbTxns : transactions;
+        // 4. Ensure any bucket names referenced in transactions/payments/expenses
+        //    exist in the pool so transaction linking doesn't create orphans.
+        //    Use cloud data when available; fall back to local only if cloud failed.
+        const txnCloudOk = dbTxns !== null;
+        const allLoadedTxns = txnCloudOk
+          ? (dbTxns!.length > 0 ? dbTxns! : transactions)
+          : transactions;
         const allLoadedPayments = (dbPayments && dbPayments.length > 0) ? dbPayments : history;
         const allLoadedExpenses = (dbExpenses && dbExpenses.length > 0) ? dbExpenses : expenses;
 
@@ -793,14 +816,23 @@ export function AuthenticatedApp({
           return { ...bucket, balance };
         });
 
-        // 7. Update state with restored buckets & transactions
+        // 7. Update state — only overwrite when we have confident data from a valid source.
+        //    bucketPool.length > 0 is guaranteed at this point (we returned early if cloud failed).
         setBuckets(bucketsWithBalances);
-        setTransactions(resolvedTxns);
+
+        // Only update transactions if cloud fetch succeeded or local has data.
+        // If txnCloudOk is false AND local transactions is empty, we'd be setting []
+        // over potentially in-flight local state — skip in that case.
+        if (txnCloudOk || allLoadedTxns.length > 0) {
+          setTransactions(resolvedTxns);
+        }
 
         // Sync restored buckets to cloud if user is signed in
         if (currentUserId && !currentUserId.startsWith('00000000-')) {
           syncBucketsToSupabase(bucketsWithBalances, currentUserId);
-          syncTransactionsToSupabase(resolvedTxns, currentUserId);
+          if (txnCloudOk || allLoadedTxns.length > 0) {
+            syncTransactionsToSupabase(resolvedTxns, currentUserId);
+          }
         }
 
         if (dbPayments !== null) {

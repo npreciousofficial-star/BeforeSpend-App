@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   // State to store our value
@@ -22,8 +22,11 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
   // Keep track of the key currently in state to prevent writing stale state to a new key
   const keyInStateRef = useRef(key);
 
-  // If the key changes (e.g. user signs in), sync the state with the value from local storage for the new key
-  if (keyInStateRef.current !== key) {
+  // When the key changes (e.g. user signs in/out), sync state to the new key's localStorage value.
+  // useLayoutEffect fires synchronously after DOM mutations and before any child useEffects,
+  // so loadData() will always see the correctly rehydrated buckets/transactions state.
+  useLayoutEffect(() => {
+    if (keyInStateRef.current === key) return;
     keyInStateRef.current = key;
     try {
       const item = window.localStorage.getItem(key);
@@ -34,7 +37,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       console.warn(`Error reading localStorage key "${key}" on key change:`, error);
       setStoredValue(initialValue);
     }
-  }
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Return a wrapped version of useState's setter function that persists the new value to localStorage.
   const setValue = (value: T | ((val: T) => T)) => {

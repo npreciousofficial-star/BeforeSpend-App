@@ -135,3 +135,5 @@ export interface AppNotification {
   read: boolean;
 }
 
+export type AuthView = 'app' | 'landing' | 'login' | 'register' | 'privacy' | 'terms';
+

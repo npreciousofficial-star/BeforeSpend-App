@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,7 +17,7 @@ import {
   deletePaymentFromSupabase, clearAllPaymentsFromSupabase, deleteTransactionsByTypeFromSupabase,
   adminDeleteBucketFromSupabase, sendEmailNotification
 } from '../repository';
-import { triggerSystemPushNotification } from '../service';
+import { triggerSystemPushNotification, autoReconcileWorkspaceBuckets } from '../service';
 
 export interface AppContextType {
   currentUserId: string;
@@ -92,6 +92,7 @@ export interface AppContextType {
     targetBucketId: string,
     consolidatePercentage: boolean
   ) => Promise<void>;
+  handleAutoReconcileWorkspace: () => Promise<void>;
   markAllNotificationsAsRead: () => void;
   clearAllNotifications: () => void;
   deleteNotification: (id: string) => void;
@@ -587,6 +588,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addToast(`Successfully merged ${sourceBucket.name} data into ${targetBucket.name}!`, 'success');
   };
 
+  // Action: 1-Click Auto Reconcile & Clean
+  const handleAutoReconcileWorkspace = async () => {
+    addToast('Analyzing and auto-reconciling workspace balances...', 'info');
+    const {
+      reconciledBuckets,
+      reconciledTransactions,
+      reconciledExpenses,
+      reconciledMilestones,
+      summaryMessage,
+    } = autoReconcileWorkspaceBuckets(buckets, transactions, expenses, milestones);
+
+    setBuckets(reconciledBuckets);
+    setTransactions(reconciledTransactions);
+    setExpenses(reconciledExpenses);
+    setMilestones(reconciledMilestones);
+
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      await syncBucketsToSupabase(reconciledBuckets, currentUserId);
+      await syncTransactionsToSupabase(reconciledTransactions, currentUserId);
+      await syncExpensesToSupabase(reconciledExpenses, currentUserId);
+      await syncMilestonesToSupabase(reconciledMilestones, currentUserId);
+    }
+
+    addToast(summaryMessage, 'success');
+  };
+
   // Notifications actions
   const markAllNotificationsAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -657,6 +684,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       handleReconcileTransaction,
       handleBatchImport,
       executeBucketConsolidation,
+      handleAutoReconcileWorkspace,
       markAllNotificationsAsRead,
       clearAllNotifications,
       deleteNotification,

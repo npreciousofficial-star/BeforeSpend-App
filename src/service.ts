@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -177,4 +177,146 @@ export function filterExpensesFromTransactions(transactions: Transaction[]): Tra
  */
 export function calculatePaymentDistribution(amount: number, buckets: Bucket[]): SplitInfo[] {
   return calculateSplits(amount, buckets);
+}
+
+/**
+ * Automatically reconcile negative bucket deficits, consolidate inactive 0% categories
+ * into the primary active bucket, and normalize percentages to 100% with zero data loss.
+ */
+export function autoReconcileWorkspaceBuckets(
+  buckets: Bucket[],
+  transactions: Transaction[],
+  expenses: Expense[],
+  milestones: Milestone[]
+): {
+  reconciledBuckets: Bucket[];
+  reconciledTransactions: Transaction[];
+  reconciledExpenses: Expense[];
+  reconciledMilestones: Milestone[];
+  summaryMessage: string;
+} {
+  // 1. Identify primary active bucket (the one with highest percentage or first active)
+  let activeBuckets = buckets.filter((b) => b.percentage > 0);
+  if (activeBuckets.length === 0 && buckets.length > 0) {
+    activeBuckets = [buckets[0]];
+  }
+  const primaryBucket = activeBuckets[0] || buckets[0];
+
+  let currentTxns = [...transactions];
+  let currentExpenses = [...expenses];
+  let currentMilestones = [...milestones];
+  let currentBuckets = [...buckets];
+
+  const now = new Date().toISOString();
+
+  // 2. Fix Negative Balances by offsetting against surplus buckets
+  const computedBuckets = computeBucketBalances(currentBuckets, currentTxns);
+  const negativeBuckets = computedBuckets.filter((b) => b.balance < 0);
+  const surplusBuckets = computedBuckets.filter((b) => b.balance > 0).sort((a, b) => b.balance - a.balance);
+
+  const transferTxns: Transaction[] = [];
+
+  negativeBuckets.forEach((negBucket) => {
+    let deficit = Math.abs(negBucket.balance);
+    for (const surplusBucket of surplusBuckets) {
+      if (deficit <= 0) break;
+      if (surplusBucket.balance <= 0) continue;
+
+      const offsetAmt = Math.min(deficit, surplusBucket.balance);
+      surplusBucket.balance -= offsetAmt;
+      deficit -= offsetAmt;
+
+      // Create debit from surplus
+      transferTxns.push({
+        id: `txn_recon_deb_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        bucketId: surplusBucket.id,
+        bucketName: surplusBucket.name,
+        type: 'TRANSFER',
+        amount: offsetAmt,
+        direction: 'DEBIT',
+        description: `Auto-Reconciliation Offset to balance ${negBucket.name}`,
+        sourceType: 'SYSTEM_ADJUSTMENT',
+        createdAt: now,
+      });
+
+      // Create credit to negative bucket
+      transferTxns.push({
+        id: `txn_recon_crd_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        bucketId: negBucket.id,
+        bucketName: negBucket.name,
+        type: 'TRANSFER',
+        amount: offsetAmt,
+        direction: 'CREDIT',
+        description: `Auto-Reconciliation Offset from ${surplusBucket.name}`,
+        sourceType: 'SYSTEM_ADJUSTMENT',
+        createdAt: now,
+      });
+    }
+  });
+
+  currentTxns = [...transferTxns, ...currentTxns];
+
+  // 3. Consolidate inactive 0% buckets into primary bucket if multiple buckets exist
+  const inactive0PercentBuckets = currentBuckets.filter(
+    (b) => b.percentage === 0 && b.id !== primaryBucket.id
+  );
+
+  inactive0PercentBuckets.forEach((inactiveB) => {
+    // Re-link transactions
+    currentTxns = currentTxns.map((t) =>
+      t.bucketId === inactiveB.id
+        ? { ...t, bucketId: primaryBucket.id, bucketName: primaryBucket.name }
+        : t
+    );
+
+    // Re-link expenses
+    currentExpenses = currentExpenses.map((e) =>
+      e.bucketId === inactiveB.id
+        ? { ...e, bucketId: primaryBucket.id, bucketName: primaryBucket.name }
+        : e
+    );
+
+    // Re-link milestones
+    currentMilestones = currentMilestones.map((m) =>
+      m.bucketId === inactiveB.id ? { ...m, bucketId: primaryBucket.id } : m
+    );
+  });
+
+  // 4. Retain only active buckets (plus primary bucket)
+  let remainingBuckets = currentBuckets.filter(
+    (b) => b.id === primaryBucket.id || b.percentage > 0
+  );
+
+  // Normalize percentages to total 100%
+  const currentTotal = remainingBuckets.reduce((sum, b) => sum + (Number(b.percentage) || 0), 0);
+  if (currentTotal !== 100) {
+    if (remainingBuckets.length === 1) {
+      remainingBuckets[0].percentage = 100;
+    } else if (currentTotal > 0) {
+      remainingBuckets = remainingBuckets.map((b) => ({
+        ...b,
+        percentage: Math.round(((Number(b.percentage) || 0) / currentTotal) * 100),
+      }));
+      // Adjust rounding remainder to primary
+      const newSum = remainingBuckets.reduce((sum, b) => sum + b.percentage, 0);
+      if (newSum !== 100 && remainingBuckets.length > 0) {
+        remainingBuckets[0].percentage += 100 - newSum;
+      }
+    } else {
+      const evenSplit = Math.floor(100 / remainingBuckets.length);
+      remainingBuckets = remainingBuckets.map((b) => ({ ...b, percentage: evenSplit }));
+      remainingBuckets[0].percentage += 100 - evenSplit * remainingBuckets.length;
+    }
+  }
+
+  // 5. Recompute dynamic balances
+  const reconciledBuckets = computeBucketBalances(remainingBuckets, currentTxns);
+
+  return {
+    reconciledBuckets,
+    reconciledTransactions: currentTxns,
+    reconciledExpenses: currentExpenses,
+    reconciledMilestones: currentMilestones,
+    summaryMessage: `Auto-reconciled! Negative deficits resolved, ${inactive0PercentBuckets.length} inactive categories consolidated into ${primaryBucket.name}, and allocations normalized to 100%.`,
+  };
 }

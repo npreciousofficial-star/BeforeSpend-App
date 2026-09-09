@@ -188,3 +188,32 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+// Supabase Database Keep-Alive Heartbeat (prevents 7-day inactivity pause)
+const SUPABASE_REST_PING_URL = 'https://soqllmwmojyzvathirdd.supabase.co/rest/v1/profiles?select=id&limit=1';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvcWxsbXdtb2p5enZhdGhpcmRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MzE5NTAsImV4cCI6MjEwMDIwNzk1MH0.aTgkvp7erLcPj334U09NjQ57M99KOPxI_Oj8cEN8Yas';
+
+function pingSupabaseKeepAlive() {
+  fetch(SUPABASE_REST_PING_URL, {
+    method: 'GET',
+    headers: {
+      apikey: SUPABASE_ANON,
+      Authorization: `Bearer ${SUPABASE_ANON}`,
+    },
+    cache: 'no-store',
+  }).then((res) => {
+    if (res.ok) console.log('[PWA KeepAlive] Heartbeat active: Supabase pinged successfully');
+  }).catch(() => {});
+}
+
+// Ping on Service Worker startup
+try {
+  pingSupabaseKeepAlive();
+} catch {}
+
+// Periodic background sync event
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'supabase-keepalive') {
+    event.waitUntil(pingSupabaseKeepAlive());
+  }
+});
+

@@ -15,7 +15,7 @@ import {
   loadProfileFromSupabase, loadBucketsFromSupabase, loadTransactionsFromSupabase, loadPaymentsFromSupabase, loadMilestonesFromSupabase, loadRemindersFromSupabase, loadExpensesFromSupabase,
   loadNotificationsFromSupabase, syncNotificationsToSupabase, deleteNotificationFromSupabase, clearAllNotificationsFromSupabase,
   deletePaymentFromSupabase, clearAllPaymentsFromSupabase, deleteTransactionsByTypeFromSupabase,
-  adminDeleteBucketFromSupabase, sendEmailNotification
+  adminDeleteBucketFromSupabase, sendEmailNotification, pingSupabaseDatabase
 } from '../repository';
 import { triggerSystemPushNotification, autoReconcileWorkspaceBuckets } from '../service';
 
@@ -190,6 +190,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Automated Supabase Keep-Alive Heartbeat (prevents 7-day inactivity pause)
+  useEffect(() => {
+    const triggerKeepAlive = () => {
+      pingSupabaseDatabase().catch(() => {});
+    };
+
+    // Immediate ping on mount
+    triggerKeepAlive();
+
+    // Periodic heartbeat every 3 hours while app is open
+    const intervalId = setInterval(triggerKeepAlive, 3 * 60 * 60 * 1000);
+
+    // Re-ping on tab visibility change (e.g. user returns to app)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        triggerKeepAlive();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

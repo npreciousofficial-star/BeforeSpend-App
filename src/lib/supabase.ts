@@ -143,15 +143,20 @@ export async function registerUserAccountToSupabase(user: {
 }): Promise<string | null> {
   const validUuid = ensureUuid(user.id);
   try {
-    // 1. Register user on Supabase Auth
+    // 1. Enforce minimum password strength before registering on Supabase Auth
+    if (!user.passwordHash || user.passwordHash.length < 8) {
+      console.warn('Registration failed: Password must be at least 8 characters long.');
+      return null;
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.email,
-      password: user.passwordHash && user.passwordHash.length >= 6 ? user.passwordHash : 'SecurePassword123!',
+      password: user.passwordHash,
       phone: user.phoneNumber || undefined,
       options: {
         data: {
           name: user.name,
-          role: user.role,
+          role: user.role && user.role !== 'Platform Administrator' ? user.role : 'Personal Budgeter',
           default_currency: user.defaultCurrency,
           phone_number: user.phoneNumber,
           country: user.country,
@@ -161,7 +166,7 @@ export async function registerUserAccountToSupabase(user: {
 
     if (authError) {
       console.warn('Supabase Auth signUp info:', authError.message);
-      // If user already exists, try to sign in to retrieve their ID
+      // If user already exists, try to sign in with their credentials to retrieve their ID
       if (authError.message.includes('already') || authError.status === 422 || authError.status === 400) {
         const loggedInId = await loginUserAccountToSupabase(user.email, user.passwordHash);
         if (loggedInId) return loggedInId;
@@ -170,12 +175,12 @@ export async function registerUserAccountToSupabase(user: {
 
     const finalUserId = authData?.user?.id || validUuid;
 
-    // 2. Direct upsert into 'profiles' table
+    // 2. Direct upsert into 'profiles' table (protect against unauthenticated role elevation)
     const { error: profileError } = await supabase.from('profiles').upsert({
       id: finalUserId,
       name: user.name,
       email: user.email,
-      role: user.role || 'Personal Budgeter',
+      role: user.role && user.role !== 'Platform Administrator' ? user.role : 'Personal Budgeter',
       avatar: 'preset-emerald',
       default_currency: user.defaultCurrency || 'NGN',
       phone_number: user.phoneNumber || null,
@@ -200,9 +205,14 @@ export async function registerUserAccountToSupabase(user: {
  */
 export async function loginUserAccountToSupabase(email: string, passwordHash: string): Promise<string | null> {
   try {
+    if (!passwordHash || passwordHash.length < 6) {
+      console.warn('Sign-in rejected: Password must be at least 6 characters.');
+      return null;
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
-      password: passwordHash && passwordHash.length >= 6 ? passwordHash : 'SecurePassword123!',
+      password: passwordHash,
     });
 
     if (error) {
@@ -259,106 +269,38 @@ export async function syncProfileToSupabase(profile: UserProfile, userId: string
       if (uploadedUrl) avatarUrl = uploadedUrl;
     }
 
-    // 1. Check if a profile with this email already exists in the database to prevent unique constraint conflicts
-    const { data: existingByEmail } = await supabase
+    // 1. Fetch current database profile to verify existing role
+    const { data: currentDbProfile } = await supabase
       .from('profiles')
-      .select('id, name, avatar, default_currency, phone_number, onboarding_completed')
-      .eq('email', profile.email)
+      .select('id, email, role')
+      .eq('id', validUuid)
       .maybeSingle();
 
-    let error: any = null;
-
-    if (existingByEmail) {
-      if (existingByEmail.id !== validUuid) {
-        // Link conflict: delete new placeholder profile under validUuid first to avoid primary key conflict
-        await supabase.from('profiles').delete().eq('id', validUuid);
-
-        // Update the existing profile's ID to validUuid and update its details
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            id: validUuid,
-            name: profile.name || existingByEmail.name,
-            role: profile.role,
-            avatar: avatarUrl || existingByEmail.avatar || 'preset-emerald',
-            default_currency: profile.defaultCurrency || existingByEmail.default_currency || 'NGN',
-            phone_number: profile.phoneNumber || existingByEmail.phone_number || null,
-            onboarding_completed: profile.onboardingCompleted ?? existingByEmail.onboarding_completed ?? true,
-            country: profile.country || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingByEmail.id);
-        error = updateError;
-      } else {
-        // Normal update for matching ID and email
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            name: profile.name,
-            role: profile.role || 'Personal Budgeter',
-            avatar: avatarUrl || 'preset-emerald',
-            default_currency: profile.defaultCurrency || 'NGN',
-            phone_number: profile.phoneNumber || null,
-            onboarding_completed: profile.onboardingCompleted ?? true,
-            country: profile.country || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', validUuid);
-        error = updateError;
-      }
-    } else {
-      // Email is not registered yet. Check if the ID exists (e.g. they changed their email address)
-      const { data: existingById } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', validUuid)
-        .maybeSingle();
-
-      if (existingById) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            name: profile.name,
-            email: profile.email,
-            role: profile.role || 'Personal Budgeter',
-            avatar: avatarUrl || 'preset-emerald',
-            default_currency: profile.defaultCurrency || 'NGN',
-            phone_number: profile.phoneNumber || null,
-            onboarding_completed: profile.onboardingCompleted ?? true,
-            country: profile.country || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', validUuid);
-        error = updateError;
-      } else {
-        // Completely new profile: insert
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: validUuid,
-            name: profile.name,
-            email: profile.email,
-            role: profile.role || 'Personal Budgeter',
-            avatar: avatarUrl || 'preset-emerald',
-            default_currency: profile.defaultCurrency || 'NGN',
-            phone_number: profile.phoneNumber || null,
-            onboarding_completed: profile.onboardingCompleted ?? true,
-            country: profile.country || null,
-            updated_at: new Date().toISOString()
-          });
-        error = insertError;
-      }
+    // 2. Prevent client-side elevation to Platform Administrator
+    let safeRole = profile.role || 'Personal Budgeter';
+    if (profile.role === 'Platform Administrator' && currentDbProfile?.role !== 'Platform Administrator') {
+      console.warn('Unauthorized attempt to elevate role to Platform Administrator blocked.');
+      safeRole = currentDbProfile?.role || 'Personal Budgeter';
     }
 
-    if (error) {
-      if (error.message.includes('foreign key constraint')) {
-        console.info('Supabase FK notice: Run SUPABASE_SCHEMA_FIX.sql in Supabase SQL editor to enable unconstrained multi-user profile sync.');
-      } else {
-        console.warn('Supabase profile sync notice:', error.message);
-      }
-    }
+    // 3. Perform safe, isolated upsert strictly for this authenticated userId
+    const { error: upsertError } = await supabase.from('profiles').upsert({
+      id: validUuid,
+      name: profile.name,
+      email: profile.email,
+      role: safeRole,
+      avatar: avatarUrl || 'preset-emerald',
+      default_currency: profile.defaultCurrency || 'NGN',
+      phone_number: profile.phoneNumber || null,
+      onboarding_completed: profile.onboardingCompleted ?? true,
+      country: profile.country || null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
 
-    return avatarUrl;
+    if (upsertError) {
+      console.warn('Supabase profile sync notice:', upsertError.message);
+    }
+    return avatarUrl || validUuid;
   } catch (err) {
     console.warn('Supabase syncProfile failed:', err);
     return profile.avatar;

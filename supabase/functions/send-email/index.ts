@@ -62,14 +62,28 @@ function renderMinimalistBadge(emoji: string, bgColor: string = "#F0FDF4", borde
       ${emoji}
     </div>
   `;
+function escapeHtml(str: any): string {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function getEmailTemplate(payload: EmailPayload): { subject: string; html: string } {
-  const { type, userName = "Valued Budgeter", data = {} } = payload;
+  const rawUserName = payload.userName || "Valued Budgeter";
+  const userName = escapeHtml(rawUserName);
+  const data = payload.data || {};
+  const type = payload.type;
 
   switch (type) {
     case "login_alert": {
-      const { ip = "Unknown IP", device = "Mobile / Web Device", timestamp = new Date().toUTCString(), location = "Active Session" } = data;
+      const ip = escapeHtml(data.ip || "Unknown IP");
+      const device = escapeHtml(data.device || "Mobile / Web Device");
+      const timestamp = escapeHtml(data.timestamp || new Date().toUTCString());
+      const location = escapeHtml(data.location || "Active Session");
       
       return {
         subject: `Security Alert: New sign-in detected on your BeforeSpend account`,
@@ -397,11 +411,21 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Require Authorization or apikey header from Supabase client
+  const authHeader = req.headers.get("Authorization") || req.headers.get("apikey");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "Unauthorized: Missing authentication header" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const payload: EmailPayload = await req.json();
 
-    if (!payload.to) {
-      return new Response(JSON.stringify({ error: "Missing recipient email address ('to')" }), {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!payload.to || typeof payload.to !== "string" || !emailRegex.test(payload.to.trim())) {
+      return new Response(JSON.stringify({ error: "Invalid recipient email address ('to')" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

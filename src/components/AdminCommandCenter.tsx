@@ -560,10 +560,14 @@ export function AdminCommandCenter({
   const handleAddUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserName || !newUserEmail || !newUserPassword) return;
+    if (newUserPassword.length < 8) {
+      alert('Password must be at least 8 characters long.');
+      return;
+    }
 
     const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID 
       ? crypto.randomUUID() 
-      : '00000000-0000-4000-8000-' + Date.now().toString(16).slice(-12).padStart(12, '0');
+      : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     const newUserObj = {
       id: newUserId,

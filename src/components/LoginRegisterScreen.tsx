@@ -21,7 +21,6 @@ interface RegisteredUser {
   id: string;
   email: string;
   name: string;
-  passwordHash: string;
   role: string;
   defaultCurrency: string;
   phoneNumber?: string;
@@ -90,10 +89,24 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
 
-  // Local storage list of registered users
+  // Local storage list of registered users (safe profile metadata only, never passwords)
   const [users, setUsers] = useLocalStorage<RegisteredUser[]>('before spend_registered_users', []);
 
-
+  // Purge any legacy plaintext credentials cached in localStorage from earlier versions
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('before spend_registered_users');
+      if (stored && stored.includes('passwordHash')) {
+        const parsed = JSON.parse(stored);
+        const sanitized = parsed.map((u: any) => {
+          const { passwordHash, ...safe } = u;
+          return safe;
+        });
+        window.localStorage.setItem('before spend_registered_users', JSON.stringify(sanitized));
+        setUsers(sanitized);
+      }
+    } catch {}
+  }, []);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,12 +122,10 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         setErrorMsg('Please enter both your first name and last name.');
         return;
       }
-      if (password.length < 6) {
-        setErrorMsg('Password must be at least 6 characters long.');
+      if (password.length < 8) {
+        setErrorMsg('Password must be at least 8 characters long for account security.');
         return;
       }
-
-
 
       const emailLower = email.toLowerCase().trim();
       const userExists = users.some((u) => u.email.toLowerCase().trim() === emailLower);
@@ -127,22 +138,23 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
       const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID 
         ? crypto.randomUUID() 
-        : '00000000-0000-4000-8000-' + Date.now().toString(16).slice(-12).padStart(12, '0');
+        : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
       const newUser: RegisteredUser = {
         id: newUserId,
         email: emailLower,
         name: fullName,
-        passwordHash: password,
-        role: role.trim() || 'Freelancer',
+        role: role.trim() || 'Salaried Employee / Professional',
         defaultCurrency: currency,
         phoneNumber: phoneNumber.trim() || undefined,
+        country: country
       };
 
       let finalId = newUserId;
       try {
         const supabaseId = await registerUserAccountToSupabase({
           ...newUser,
+          passwordHash: password, // Passed strictly to Supabase Auth signUp over TLS, NEVER stored in localStorage
           country: country
         });
         if (supabaseId) {
@@ -170,11 +182,8 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
       onLogin(finalId);
     } else {
       const emailLower = email.toLowerCase().trim();
-      let matchedUser = users.find(
-        (u) => u.email.toLowerCase().trim() === emailLower && u.passwordHash === password
-      );
-
-      let finalId = matchedUser?.id || null;
+      let matchedUser = users.find((u) => u.email.toLowerCase().trim() === emailLower);
+      let finalId: string | null = null;
 
       try {
         const supabaseId = await loginUserAccountToSupabase(emailLower, password);
@@ -191,12 +200,12 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
             const newUser: RegisteredUser = {
               id: supabaseId,
               email: emailLower,
-              name: profileData?.name || 'Supabase User',
-              passwordHash: password,
+              name: profileData?.name || 'BeforeSpend User',
               role: profileData?.role || 'Personal Budgeter',
               defaultCurrency: profileData?.default_currency || 'NGN',
             };
             setUsers([...users, newUser]);
+            matchedUser = newUser;
 
             const profileKey = `user_${supabaseId}_beforespend_profile`;
             const localProfile: UserProfile = {
@@ -249,13 +258,12 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
       if (!existingUser) {
         const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID 
           ? crypto.randomUUID() 
-          : '00000000-0000-4000-8000-' + Date.now().toString(16).slice(-12).padStart(12, '0');
+          : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
         existingUser = {
           id: newUserId,
           email: demoEmail,
           name: 'Google User',
-          passwordHash: 'google-oauth-secured',
           role: 'Personal Budgeter',
           defaultCurrency: 'NGN',
         };

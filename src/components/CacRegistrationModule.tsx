@@ -164,7 +164,7 @@ export const CacRegistrationModule: React.FC<CacRegistrationModuleProps> = ({
         proprietorDob,
         proprietorGender,
         proprietorIdType,
-        proprietorIdNumber,
+        proprietorIdNumber: proprietorIdNumber.length > 4 ? `***${proprietorIdNumber.slice(-4)}` : '***REDACTED***',
         proprietorAddress,
         paymentMethod,
         paidBucketName: bucketName || 'Direct Online Transfer',

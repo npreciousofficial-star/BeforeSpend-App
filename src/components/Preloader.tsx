@@ -1,46 +1,83 @@
 import React from 'react';
-import { BeforeSpendLogo } from './BeforeSpendLogo';
 
-export function GooglePreloader({ message = 'Retrieving your financial ledger...' }: { message?: string }) {
+export function SkeletonPageLoader() {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-50/90 dark:bg-zinc-950/90 backdrop-blur-md transition-all duration-300">
-      <div className="relative flex flex-col items-center p-8 rounded-3xl bg-white/60 dark:bg-zinc-900/60 border border-gray-200/50 dark:border-zinc-800/50 shadow-2xl backdrop-blur-xl max-w-sm w-full mx-4 text-center">
-        {/* Pulsating Brand Ring */}
-        <div className="relative flex items-center justify-center w-24 h-24 mb-6">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00A896]/20 to-[#0E2A47]/20 animate-ping opacity-75" />
-          <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#00A896] to-[#0E2A47] opacity-20 blur-md animate-pulse" />
-          <div className="relative flex items-center justify-center w-20 h-20 bg-white dark:bg-zinc-900 rounded-full shadow-lg border border-teal-100 dark:border-teal-900/40">
-            <BeforeSpendLogo size="lg" animate={true} />
+    <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 flex font-sans">
+      {/* Desktop Sidebar Skeleton */}
+      <aside className="hidden md:flex flex-col w-64 bg-[#0E2A47] dark:bg-[#0A1628] border-r border-[#0E2A47]/20 dark:border-[#0A1628] p-5 space-y-5 flex-shrink-0 sticky top-0 h-screen animate-pulse">
+        {/* Brand Logo Skeleton */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-white/10" />
+          <div className="w-28 h-5 rounded-md bg-white/10" />
+        </div>
+
+        {/* User Profile Snippet Skeleton */}
+        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white/10" />
+            <div className="space-y-1.5 flex-1">
+              <div className="w-20 h-3 rounded bg-white/10" />
+              <div className="w-14 h-2.5 rounded bg-white/10" />
+            </div>
           </div>
         </div>
 
-        <h3 className="text-base font-bold text-[#0E2A47] dark:text-zinc-100 mb-1 tracking-tight">
-          Before<span className="text-[#00A896]">Spend</span>
-        </h3>
-        <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium mb-6 animate-pulse">
-          {message}
-        </p>
-
-        {/* Google-style Smooth Loading Progress Bar */}
-        <div className="w-48 h-1.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden relative">
-          <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-[#00A896] via-teal-400 to-[#0E2A47] w-full animate-[shimmer_1.5s_infinite] -translate-x-full" 
-               style={{
-                 animation: 'progressShimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-               }}
-          />
+        {/* Balance Card Skeleton */}
+        <div className="p-3.5 rounded-2xl bg-[#00A896]/10 border border-[#00A896]/20 space-y-2">
+          <div className="w-20 h-2.5 rounded bg-[#00A896]/20" />
+          <div className="w-28 h-6 rounded bg-[#00A896]/25" />
         </div>
-      </div>
 
-      <style>{`
-        @keyframes progressShimmer {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(0%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
+        {/* Nav Items Skeletons */}
+        <div className="space-y-1.5 pt-2 flex-1">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5">
+              <div className="w-4 h-4 rounded bg-white/10" />
+              <div className="w-24 h-3 rounded bg-white/10" />
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      {/* Main Content Area Skeleton */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full animate-pulse">
+        {/* Top Header Skeleton */}
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-zinc-800">
+          <div className="space-y-1.5">
+            <div className="w-44 h-6 bg-gray-200 dark:bg-zinc-800 rounded-lg" />
+            <div className="w-28 h-3 bg-gray-100 dark:bg-zinc-800/60 rounded" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-28 h-9 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+            <div className="w-9 h-9 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+          </div>
+        </div>
+
+        {/* Action Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="w-48 h-5 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+          <div className="flex gap-2">
+            <div className="w-24 h-8 bg-gray-200 dark:bg-zinc-800 rounded-lg" />
+            <div className="w-24 h-8 bg-gray-200 dark:bg-zinc-800 rounded-lg" />
+          </div>
+        </div>
+
+        {/* Bucket Cards Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5">
+          {[...Array(6)].map((_, i) => (
+            <SkeletonBucketCard key={i} />
+          ))}
+        </div>
+      </main>
     </div>
   );
 }
+
+// Backward compatibility alias ensuring no preloader modal is ever displayed
+export function GooglePreloader(_props?: { message?: string }) {
+  return <SkeletonPageLoader />;
+}
+
 
 export function SkeletonBucketCard() {
   return (

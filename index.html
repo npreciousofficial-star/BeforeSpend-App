@@ -96,27 +96,190 @@
     </script>
   </head>
   <body style="margin:0;padding:0;background-color:#0A192F;">
-    <!-- Critical Instant-Boot App Shell Screen (0ms white flash on mobile PWA launch) -->
+    <!-- Instant-Boot Skeleton Page Loader (Zero preloader / spinner chrome) -->
     <div id="root">
-      <div id="pwa-splash" style="position:fixed;inset:0;background-color:#0A192F;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;z-index:99999;">
-        <div style="position:relative;display:flex;align-items:center;justify-content:center;width:80px;height:80px;margin-bottom:16px;">
-          <div style="position:absolute;inset:0;border-radius:24px;background:rgba(0,168,150,0.25);animation:pwaPulse 1.8s infinite ease-in-out;"></div>
-          <img src="/favicon.png" alt="BeforeSpend" style="width:52px;height:52px;position:relative;z-index:1;border-radius:12px;" />
-        </div>
-        <div style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;">BeforeSpend</div>
-        <div style="color:#64748B;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Income Allocation Engine</div>
-        <div style="margin-top:28px;width:110px;height:3px;background:rgba(255,255,255,0.08);border-radius:9999px;overflow:hidden;position:relative;">
-          <div style="position:absolute;top:0;left:0;height:100%;width:40%;background:#00A896;border-radius:9999px;animation:pwaLoading 1.2s infinite ease-in-out;"></div>
-        </div>
+      <div id="skeleton-app-shell" style="min-height:100vh;background-color:#0A192F;display:flex;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#ffffff;box-sizing:border-box;">
+        <!-- Desktop Sidebar Skeleton -->
+        <aside class="sk-sidebar" style="width:256px;background-color:#0E2A47;border-right:1px solid rgba(255,255,255,0.06);padding:20px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;flex-shrink:0;height:100vh;position:sticky;top:0;">
+          <!-- Brand Logo Skeleton -->
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="sk-bone" style="width:32px;height:32px;border-radius:10px;"></div>
+            <div class="sk-bone" style="width:112px;height:18px;border-radius:6px;"></div>
+          </div>
+          <!-- Profile Block Skeleton -->
+          <div style="padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;align-items:center;gap:10px;">
+            <div class="sk-bone" style="width:32px;height:32px;border-radius:9999px;flex-shrink:0;"></div>
+            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+              <div class="sk-bone" style="width:80px;height:12px;border-radius:4px;"></div>
+              <div class="sk-bone" style="width:50px;height:9px;border-radius:4px;"></div>
+            </div>
+          </div>
+          <!-- Balance Summary Card Skeleton -->
+          <div style="padding:14px;background:rgba(0,168,150,0.08);border:1px solid rgba(0,168,150,0.18);border-radius:16px;display:flex;flex-direction:column;gap:8px;">
+            <div class="sk-bone" style="width:72px;height:10px;border-radius:4px;"></div>
+            <div class="sk-bone" style="width:110px;height:24px;border-radius:6px;background:rgba(0,168,150,0.22);"></div>
+          </div>
+          <!-- Nav Items Skeletons -->
+          <div style="display:flex;flex-direction:column;gap:8px;flex:1;padding-top:4px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;">
+              <div class="sk-bone" style="width:16px;height:16px;border-radius:4px;"></div>
+              <div class="sk-bone" style="width:96px;height:12px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;">
+              <div class="sk-bone" style="width:16px;height:16px;border-radius:4px;"></div>
+              <div class="sk-bone" style="width:88px;height:12px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;">
+              <div class="sk-bone" style="width:16px;height:16px;border-radius:4px;"></div>
+              <div class="sk-bone" style="width:104px;height:12px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;">
+              <div class="sk-bone" style="width:16px;height:16px;border-radius:4px;"></div>
+              <div class="sk-bone" style="width:92px;height:12px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;">
+              <div class="sk-bone" style="width:16px;height:16px;border-radius:4px;"></div>
+              <div class="sk-bone" style="width:80px;height:12px;border-radius:4px;"></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content Area Skeleton -->
+        <main style="flex:1;padding:24px;box-sizing:border-box;max-width:1280px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:20px;">
+          <!-- Top Header Skeleton -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div class="sk-bone" style="width:180px;height:22px;border-radius:6px;"></div>
+              <div class="sk-bone" style="width:110px;height:12px;border-radius:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="sk-bone" style="width:96px;height:34px;border-radius:10px;"></div>
+              <div class="sk-bone" style="width:34px;height:34px;border-radius:10px;"></div>
+            </div>
+          </div>
+
+          <!-- Section Subtitle & Action Trigger Skeleton -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div class="sk-bone" style="width:190px;height:18px;border-radius:6px;"></div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="sk-bone" style="width:88px;height:30px;border-radius:8px;"></div>
+              <div class="sk-bone" style="width:88px;height:30px;border-radius:8px;"></div>
+            </div>
+          </div>
+
+          <!-- Grid of Bucket Card Skeletons -->
+          <div class="sk-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:16px;">
+            <!-- 6 Card Skeletons -->
+            <div class="sk-card" style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="sk-bone" style="width:40px;height:40px;border-radius:12px;"></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div class="sk-bone" style="width:88px;height:14px;border-radius:4px;"></div>
+                    <div class="sk-bone" style="width:56px;height:10px;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div class="sk-bone" style="width:48px;height:24px;border-radius:9999px;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+                <div class="sk-bone" style="width:120px;height:24px;border-radius:6px;"></div>
+                <div class="sk-bone" style="width:100%;height:8px;border-radius:9999px;"></div>
+              </div>
+            </div>
+            <div class="sk-card" style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="sk-bone" style="width:40px;height:40px;border-radius:12px;"></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div class="sk-bone" style="width:88px;height:14px;border-radius:4px;"></div>
+                    <div class="sk-bone" style="width:56px;height:10px;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div class="sk-bone" style="width:48px;height:24px;border-radius:9999px;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+                <div class="sk-bone" style="width:120px;height:24px;border-radius:6px;"></div>
+                <div class="sk-bone" style="width:100%;height:8px;border-radius:9999px;"></div>
+              </div>
+            </div>
+            <div class="sk-card" style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="sk-bone" style="width:40px;height:40px;border-radius:12px;"></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div class="sk-bone" style="width:88px;height:14px;border-radius:4px;"></div>
+                    <div class="sk-bone" style="width:56px;height:10px;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div class="sk-bone" style="width:48px;height:24px;border-radius:9999px;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+                <div class="sk-bone" style="width:120px;height:24px;border-radius:6px;"></div>
+                <div class="sk-bone" style="width:100%;height:8px;border-radius:9999px;"></div>
+              </div>
+            </div>
+            <div class="sk-card" style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="sk-bone" style="width:40px;height:40px;border-radius:12px;"></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div class="sk-bone" style="width:88px;height:14px;border-radius:4px;"></div>
+                    <div class="sk-bone" style="width:56px;height:10px;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div class="sk-bone" style="width:48px;height:24px;border-radius:9999px;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+                <div class="sk-bone" style="width:120px;height:24px;border-radius:6px;"></div>
+                <div class="sk-bone" style="width:100%;height:8px;border-radius:9999px;"></div>
+              </div>
+            </div>
+            <div class="sk-card" style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="sk-bone" style="width:40px;height:40px;border-radius:12px;"></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div class="sk-bone" style="width:88px;height:14px;border-radius:4px;"></div>
+                    <div class="sk-bone" style="width:56px;height:10px;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div class="sk-bone" style="width:48px;height:24px;border-radius:9999px;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+                <div class="sk-bone" style="width:120px;height:24px;border-radius:6px;"></div>
+                <div class="sk-bone" style="width:100%;height:8px;border-radius:9999px;"></div>
+              </div>
+            </div>
+            <div class="sk-card" style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="sk-bone" style="width:40px;height:40px;border-radius:12px;"></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div class="sk-bone" style="width:88px;height:14px;border-radius:4px;"></div>
+                    <div class="sk-bone" style="width:56px;height:10px;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div class="sk-bone" style="width:48px;height:24px;border-radius:9999px;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+                <div class="sk-bone" style="width:120px;height:24px;border-radius:6px;"></div>
+                <div class="sk-bone" style="width:100%;height:8px;border-radius:9999px;"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+
         <style>
-          @keyframes pwaPulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.18); opacity: 0.75; }
+          .sk-bone {
+            background-color: rgba(255, 255, 255, 0.08);
+            animation: skShimmer 1.8s ease-in-out infinite;
           }
-          @keyframes pwaLoading {
-            0% { left: -40%; width: 30%; }
-            50% { left: 30%; width: 60%; }
-            100% { left: 100%; width: 40%; }
+          @keyframes skShimmer {
+            0%, 100% { opacity: 0.35; }
+            50% { opacity: 0.8; }
+          }
+          @media (max-width: 768px) {
+            .sk-sidebar { display: none !important; }
           }
         </style>
       </div>

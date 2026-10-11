@@ -22,7 +22,7 @@ import { syncLiveBankTransactions } from './lib/bankSync';
 
 // Core Immediate Components
 import { ToastContainer } from './components/Toast';
-import { SkeletonBucketCard, SkeletonContentBlock, SkeletonTableRows, SkeletonChartCard, SkeletonFormCard } from './components/Preloader';
+import { SkeletonPageLoader, SkeletonBucketCard, SkeletonContentBlock, SkeletonTableRows, SkeletonChartCard, SkeletonFormCard } from './components/Preloader';
 import { AnimatedNumber } from './components/AnimatedNumber';
 import { CustomSelect } from './components/CustomSelect';
 import { SplitCalculator } from './components/SplitCalculator';
@@ -2729,7 +2729,7 @@ export function AuthenticatedApp({
 
       {/* Admin Command Center — Full-screen overlay, admins only */}
       {isAdmin && showAdminCenter && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<SkeletonPageLoader />}>
           <AdminCommandCenter
             currentUserId={currentUserId}
             userProfile={userProfile}

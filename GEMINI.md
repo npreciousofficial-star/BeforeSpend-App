@@ -18,3 +18,9 @@
 - The backing authentication provider (`supabase.auth`) is the sole authority for whether a user is logged in.
 - The app must never maintain a ghost `currentUserId` in `localStorage` when no valid session exists in `supabase.auth`.
 - If an auth token expires or session becomes invalid, the platform must cleanly transition to the login view with an informative message, rather than silently running with null credentials that fail database queries.
+
+## 5. MANDATORY 4PX BORDER RADIUS SPECIFICATION
+- All cards, borders, buttons, pills, toggles, badges, inputs, selects, modals, and interactive surfaces MUST have a border-radius of strictly 4px (`rounded` / `4px`).
+- Never use rounded-lg (8px), rounded-xl (12px), rounded-2xl (16px), or rounded-full for cards, buttons, pills, badges, or toggle switches.
+- Every container, border, button, pill, and toggle in the system must conform to this 4px standard.
+

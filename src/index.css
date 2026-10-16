@@ -12,10 +12,82 @@
   --color-beforespend-card: #FFFFFF;
   --color-beforespend-muted: #64748B;
 
-  --radius-app: 16px;
-  --radius-card: 20px;
+  --radius-none: 0px;
+  --radius-2xs: 2px;
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius: 4px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-4xl: 4px;
+  --radius-app: 4px;
+  --radius-card: 4px;
+
   --shadow-soft: 0 4px 20px -2px rgba(14, 42, 71, 0.05);
   --shadow-card-hover: 0 10px 25px -5px rgba(14, 42, 71, 0.1);
+}
+
+/* ==========================================================================
+   4px Strict Border Radius System Specification
+   Ensures all cards, borders, buttons, inputs, pills, badges, and toggles
+   render with clean, uniform 4px corners throughout the entire application.
+   ========================================================================== */
+*,
+::before,
+::after {
+  --radius-app: 4px;
+  --radius-card: 4px;
+}
+
+/* All interactive buttons, inputs, selects, textareas, dialogs, cards, and toggles */
+button,
+input,
+select,
+textarea,
+[role="button"],
+[role="dialog"],
+[role="menu"],
+[role="tab"],
+[role="switch"],
+.card {
+  border-radius: 4px !important;
+}
+
+/* Class-level radius overrides for all cards, borders, containers, buttons, and panels */
+[class*="rounded-md"],
+[class*="rounded-lg"],
+[class*="rounded-xl"],
+[class*="rounded-2xl"],
+[class*="rounded-3xl"],
+[class*="rounded-4xl"],
+[class*="rounded-["] {
+  border-radius: 4px !important;
+}
+
+/* Pills, Badges, Chips, and Toggle Switches */
+span[class*="rounded-full"],
+div[class*="rounded-full"]:not([class*="w-10 h-10"]):not([class*="w-8 h-8"]):not([class*="w-11 h-11"]):not([class*="w-12 h-12"]):not([class*="w-14 h-14"]):not([class*="w-16 h-16"]):not([class*="w-6 h-6"]):not([class*="w-4 h-4"]):not([class*="w-3 h-3"]):not([class*="w-2.5 h-2.5"]):not([class*="w-2 h-2"]):not([class*="w-1.5 h-1.5"]):not([class*="w-1 h-1"]):not([class*="avatar"]),
+a[class*="rounded-full"],
+button[class*="rounded-full"] {
+  border-radius: 4px !important;
+}
+
+/* Toggle Switch tracks and slider thumb elements */
+[class*="peer-checked:after:"]:after,
+[class*="after:rounded-full"]:after,
+[class*="rounded-full"][class*="w-9 h-5"],
+[class*="rounded-full"][class*="w-11 h-6"],
+[class*="rounded-full"][class*="w-12 h-6"] {
+  border-radius: 4px !important;
+}
+
+/* Preserve circular avatar images and circular status indicator dots */
+img.rounded-full,
+[class*="avatar"] {
+  border-radius: 9999px !important;
 }
 
 @variant dark (&:where(.dark, .dark *));

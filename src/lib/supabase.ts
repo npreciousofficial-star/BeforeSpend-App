@@ -128,11 +128,19 @@ export async function loginWithGoogleOAuth(): Promise<void> {
   }
 }
 
+export interface AuthResult {
+  success: boolean;
+  userId?: string;
+  error?: string;
+  requiresEmailConfirmation?: boolean;
+}
+
 /**
- * Register & Sync new user accounts to Supabase Auth & public.profiles table
+ * Register new user credentials on Supabase Auth.
+ * Returns authentic AuthResult - NEVER falls back to fake IDs or mock data.
  */
 export async function registerUserAccountToSupabase(user: {
-  id: string;
+  id?: string;
   email: string;
   name: string;
   passwordHash: string;
@@ -140,90 +148,124 @@ export async function registerUserAccountToSupabase(user: {
   defaultCurrency: string;
   phoneNumber?: string;
   country?: string;
-}): Promise<string | null> {
-  const validUuid = ensureUuid(user.id);
+}): Promise<AuthResult> {
   try {
-    // 1. Enforce minimum password strength before registering on Supabase Auth
     if (!user.passwordHash || user.passwordHash.length < 8) {
-      console.warn('Registration failed: Password must be at least 8 characters long.');
-      return null;
+      return {
+        success: false,
+        error: 'Password must be at least 8 characters long.'
+      };
     }
 
+    const cleanEmail = user.email.toLowerCase().trim();
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: user.email,
+      email: cleanEmail,
       password: user.passwordHash,
       phone: user.phoneNumber || undefined,
       options: {
         data: {
           name: user.name,
           role: user.role && user.role !== 'Platform Administrator' ? user.role : 'Personal Budgeter',
-          default_currency: user.defaultCurrency,
-          phone_number: user.phoneNumber,
-          country: user.country,
+          default_currency: user.defaultCurrency || 'NGN',
+          phone_number: user.phoneNumber || null,
+          country: user.country || null,
         }
       }
     });
 
     if (authError) {
-      console.warn('Supabase Auth signUp info:', authError.message);
-      // If user already exists, try to sign in with their credentials to retrieve their ID
-      if (authError.message.includes('already') || authError.status === 422 || authError.status === 400) {
-        const loggedInId = await loginUserAccountToSupabase(user.email, user.passwordHash);
-        if (loggedInId) return loggedInId;
+      return {
+        success: false,
+        error: authError.message
+      };
+    }
+
+    if (!authData?.user) {
+      return {
+        success: false,
+        error: 'Registration failed. No user was returned by authentication provider.'
+      };
+    }
+
+    const finalUserId = authData.user.id;
+    const requiresEmailConfirmation = !authData.session;
+
+    // If session is active immediately, record profile
+    if (authData.session) {
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: finalUserId,
+        name: user.name,
+        email: cleanEmail,
+        role: user.role && user.role !== 'Platform Administrator' ? user.role : 'Personal Budgeter',
+        avatar: 'preset-emerald',
+        default_currency: user.defaultCurrency || 'NGN',
+        phone_number: user.phoneNumber || null,
+        country: user.country || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+      if (profileError) {
+        console.warn('Profile upsert notice during registration:', profileError.message);
       }
     }
 
-    const finalUserId = authData?.user?.id || validUuid;
-
-    // 2. Direct upsert into 'profiles' table (protect against unauthenticated role elevation)
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: finalUserId,
-      name: user.name,
-      email: user.email,
-      role: user.role && user.role !== 'Platform Administrator' ? user.role : 'Personal Budgeter',
-      avatar: 'preset-emerald',
-      default_currency: user.defaultCurrency || 'NGN',
-      phone_number: user.phoneNumber || null,
-      country: user.country || null,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
-
-    if (profileError) {
-      console.warn('Supabase profile insertion error:', profileError.message);
-    } else {
-      console.log('User registered & synced to Supabase database successfully!');
-    }
-    return finalUserId;
-  } catch (err) {
-    console.warn('registerUserAccountToSupabase failed:', err);
-    return null;
+    return {
+      success: true,
+      userId: finalUserId,
+      requiresEmailConfirmation
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred during registration.'
+    };
   }
 }
 
 /**
- * Authenticate existing user accounts against Supabase Auth
+ * Authenticate existing user accounts against Supabase Auth.
+ * Returns authentic AuthResult - NEVER swallows error messages.
  */
-export async function loginUserAccountToSupabase(email: string, passwordHash: string): Promise<string | null> {
+export async function loginUserAccountToSupabase(email: string, passwordHash: string): Promise<AuthResult> {
   try {
     if (!passwordHash || passwordHash.length < 6) {
-      console.warn('Sign-in rejected: Password must be at least 6 characters.');
-      return null;
+      return {
+        success: false,
+        error: 'Password must be at least 6 characters long.'
+      };
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
+      email: cleanEmail,
       password: passwordHash,
     });
 
     if (error) {
-      console.warn('Supabase Auth signIn error:', error.message);
-      return null;
+      return {
+        success: false,
+        error: error.message
+      };
     }
 
-    return data?.user?.id || null;
-  } catch (err) {
-    console.warn('loginUserAccountToSupabase failed:', err);
-    return null;
+    if (!data?.user) {
+      return {
+        success: false,
+        error: 'Sign in failed. No user record returned by authentication provider.'
+      };
+    }
+
+    return {
+      success: true,
+      userId: data.user.id
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred during sign in.'
+    };
   }
 }
 

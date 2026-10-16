@@ -136,12 +136,31 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
 
-      const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID 
-        ? crypto.randomUUID() 
-        : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      // Registration flow via Supabase Auth
+      const regResult = await registerUserAccountToSupabase({
+        email: emailLower,
+        name: fullName,
+        passwordHash: password,
+        role: role.trim() || 'Salaried Employee / Professional',
+        defaultCurrency: currency,
+        phoneNumber: phoneNumber.trim() || undefined,
+        country: country
+      });
 
-      const newUser: RegisteredUser = {
-        id: newUserId,
+      if (!regResult.success) {
+        setErrorMsg(regResult.error || 'Registration failed. Please check your details and try again.');
+        return;
+      }
+
+      if (regResult.requiresEmailConfirmation) {
+        setSuccessMsg(`Account created for ${emailLower}! Please check your email to verify your account before logging in.`);
+        setIsLogin(true);
+        return;
+      }
+
+      const finalId = regResult.userId!;
+      const registeredUser: RegisteredUser = {
+        id: finalId,
         email: emailLower,
         name: fullName,
         role: role.trim() || 'Salaried Employee / Professional',
@@ -150,31 +169,16 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
         country: country
       };
 
-      let finalId = newUserId;
-      try {
-        const supabaseId = await registerUserAccountToSupabase({
-          ...newUser,
-          passwordHash: password, // Passed strictly to Supabase Auth signUp over TLS, NEVER stored in localStorage
-          country: country
-        });
-        if (supabaseId) {
-          finalId = supabaseId;
-          newUser.id = supabaseId;
-        }
-      } catch (err) {
-        console.warn('Supabase registration failed, falling back to local ID:', err);
-      }
-
-      setUsers([...users, newUser]);
+      setUsers([...users.filter(u => u.email.toLowerCase().trim() !== emailLower), registeredUser]);
 
       const profileKey = `user_${finalId}_beforespend_profile`;
       const profileData: UserProfile = {
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        defaultCurrency: newUser.defaultCurrency,
+        name: registeredUser.name,
+        email: registeredUser.email,
+        role: registeredUser.role,
+        defaultCurrency: registeredUser.defaultCurrency,
         avatar: 'preset-emerald',
-        phoneNumber: newUser.phoneNumber,
+        phoneNumber: registeredUser.phoneNumber,
         country: country,
       };
       window.localStorage.setItem(profileKey, JSON.stringify(profileData));
@@ -182,57 +186,50 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
       onLogin(finalId);
     } else {
       const emailLower = email.toLowerCase().trim();
-      let matchedUser = users.find((u) => u.email.toLowerCase().trim() === emailLower);
-      let finalId: string | null = null;
 
-      try {
-        const supabaseId = await loginUserAccountToSupabase(emailLower, password);
-        if (supabaseId) {
-          finalId = supabaseId;
-          if (matchedUser) {
-            if (matchedUser.id !== supabaseId) {
-              copyLocalStorageData(matchedUser.id, supabaseId);
-              matchedUser.id = supabaseId;
-              setUsers(users.map(u => u.email.toLowerCase().trim() === emailLower ? matchedUser! : u));
-            }
-          } else {
-            const { data: profileData } = await supabase.from('profiles').select('*').eq('id', supabaseId).single();
-            const newUser: RegisteredUser = {
-              id: supabaseId,
-              email: emailLower,
-              name: profileData?.name || 'BeforeSpend User',
-              role: profileData?.role || 'Personal Budgeter',
-              defaultCurrency: profileData?.default_currency || 'NGN',
-            };
-            setUsers([...users, newUser]);
-            matchedUser = newUser;
-
-            const profileKey = `user_${supabaseId}_beforespend_profile`;
-            const localProfile: UserProfile = {
-              name: newUser.name,
-              email: newUser.email,
-              role: newUser.role,
-              defaultCurrency: newUser.defaultCurrency,
-              avatar: profileData?.avatar || 'preset-emerald'
-            };
-            window.localStorage.setItem(profileKey, JSON.stringify(localProfile));
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase sign-in failed, checking local login fallback:', err);
-      }
-
-      if (!finalId) {
-        setErrorMsg('Invalid email address or incorrect password. Please check your credentials or create a new account.');
+      // Login flow via Supabase Auth
+      const loginResult = await loginUserAccountToSupabase(emailLower, password);
+      if (!loginResult.success) {
+        setErrorMsg(loginResult.error || 'Invalid email address or incorrect password.');
         return;
       }
+
+      const finalId = loginResult.userId!;
+
+      // Hydrate profile data from Supabase
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', finalId).single();
+      const matchedUser = users.find((u) => u.email.toLowerCase().trim() === emailLower);
+
+      const updatedUser: RegisteredUser = {
+        id: finalId,
+        email: emailLower,
+        name: profileData?.name || matchedUser?.name || 'BeforeSpend User',
+        role: profileData?.role || matchedUser?.role || 'Personal Budgeter',
+        defaultCurrency: profileData?.default_currency || matchedUser?.defaultCurrency || 'NGN',
+        phoneNumber: profileData?.phone_number || matchedUser?.phoneNumber,
+        country: profileData?.country || matchedUser?.country
+      };
+
+      setUsers([...users.filter(u => u.email.toLowerCase().trim() !== emailLower), updatedUser]);
+
+      const profileKey = `user_${finalId}_beforespend_profile`;
+      const localProfile: UserProfile = {
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        defaultCurrency: updatedUser.defaultCurrency,
+        avatar: profileData?.avatar || 'preset-emerald',
+        phoneNumber: updatedUser.phoneNumber,
+        country: updatedUser.country
+      };
+      window.localStorage.setItem(profileKey, JSON.stringify(localProfile));
 
       // Send background security login email notification with IP
       fetchUserClientIp().then((userIp) => {
         sendEmailNotification({
           to: emailLower,
           type: 'login_alert',
-          userName: matchedUser?.name || 'Valued Budgeter',
+          userName: updatedUser.name || 'Valued Budgeter',
           data: {
             ip: userIp,
             device: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Web Browser') : 'Web Browser',
@@ -247,42 +244,10 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
 
   const handleGoogleSignInDirect = async () => {
     try {
-      // 1. Direct Supabase Google OAuth redirect to Google accounts
+      // Direct Supabase Google OAuth redirect to Google accounts
       await loginWithGoogleOAuth();
-    } catch (err) {
-      console.info('Google OAuth fallback mode activated:', err);
-      // Fallback for offline demo mode or unconfigured OAuth
-      const demoEmail = 'google.user@gmail.com';
-      let existingUser = users.find((u) => u.email.toLowerCase().trim() === demoEmail);
-
-      if (!existingUser) {
-        const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID 
-          ? crypto.randomUUID() 
-          : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
-        existingUser = {
-          id: newUserId,
-          email: demoEmail,
-          name: 'Google User',
-          role: 'Personal Budgeter',
-          defaultCurrency: 'NGN',
-        };
-
-        setUsers([...users, existingUser]);
-
-        const profileKey = `user_${newUserId}_beforespend_profile`;
-        const profileData: UserProfile = {
-          name: existingUser.name,
-          email: existingUser.email,
-          role: existingUser.role,
-          defaultCurrency: existingUser.defaultCurrency,
-          avatar: 'preset-emerald'
-        };
-        window.localStorage.setItem(profileKey, JSON.stringify(profileData));
-        onLogin(newUserId);
-      } else {
-        onLogin(existingUser.id);
-      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Google Sign-In failed. Please verify that Google OAuth is configured in your Supabase project.');
     }
   };
 
@@ -294,24 +259,18 @@ export function LoginRegisterScreen({ onLogin, onBackToLanding, onGoToTerms, onG
     try {
       const resetRedirect = `${window.location.origin}/login?mode=reset`;
 
-      // Dispatch single branded BeforeSpend Edge Function email with password reset template
-      const sent = await sendEmailNotification({
-        to: cleanEmail,
-        type: 'password_reset',
-        userName: cleanEmail.split('@')[0],
-        data: { resetUrl: resetRedirect }
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: resetRedirect,
       });
 
-      if (!sent) {
-        // Fallback to Supabase Auth reset link if Edge Function fails
-        await supabase.auth.resetPasswordForEmail(cleanEmail, {
-          redirectTo: resetRedirect,
-        });
+      if (error) {
+        setErrorMsg(error.message);
+        return;
       }
 
       setForgotSuccessMsg(`A secure password reset link has been dispatched to ${cleanEmail}. Please check your inbox.`);
-    } catch (err) {
-      setForgotSuccessMsg(`Password reset initiated for ${cleanEmail}. Please check your email inbox.`);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to dispatch password reset email. Please try again.');
     }
   };
 

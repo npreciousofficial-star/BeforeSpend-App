@@ -5996,6 +5996,14 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         syncAuthSession(session.user);
+      } else {
+        // If Supabase has no active session, clear any stale or unauthenticated ghost user ID
+        const storedUser = window.localStorage.getItem('beforespend_logged_in_user_id');
+        if (storedUser && storedUser !== 'null') {
+          console.info('No active Supabase session found — clearing ghost session.');
+          setCurrentUserId(null);
+          setAuthView('landing');
+        }
       }
     });
 
@@ -6003,6 +6011,9 @@ export default function App() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session?.user) {
         syncAuthSession(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUserId(null);
+        setAuthView('landing');
       }
       if (event === 'SIGNED_IN' && session?.user?.email) {
         const userEmail = session.user.email;

@@ -580,7 +580,11 @@ export function AdminCommandCenter({
     };
 
     try {
-      await registerUserAccountToSupabase(newUserObj);
+      const result = await registerUserAccountToSupabase(newUserObj);
+      if (!result.success) {
+        alert(result.error || 'Failed to create user account.');
+        return;
+      }
       await loadData();
       setShowAddUserModal(false);
       setNewUserName('');
@@ -588,8 +592,8 @@ export function AdminCommandCenter({
       setNewUserPhone('');
       setNewUserPassword('');
       triggerToast(`Account created for ${newUserObj.name}`);
-    } catch (err) {
-      alert('Failed to create account.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to create account.');
     }
   };
 

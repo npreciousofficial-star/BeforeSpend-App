@@ -1,12 +1,95 @@
 -- =====================================================================
--- BeforeSpend Database & Storage Security Hardening Script
+-- BeforeSpend Database & Storage Security Hardening Script (Fixed & Hardened)
 -- =====================================================================
 -- Run this script in the Supabase SQL Editor:
 -- https://supabase.com/dashboard/project/soqllmwmojyzvathirdd/sql/new
 --
--- This script replaces permissive "USING (true) WITH CHECK (true)" policies
--- with strict, authenticated, user-isolated Row Level Security (RLS) rules.
+-- Fixes:
+-- 1. Eliminates PostgreSQL 42P17 infinite recursion bug by using a SECURITY DEFINER
+--    is_admin() function to check admin roles safely.
+-- 2. Creates an automated trigger on auth.users to ensure public.profiles is ALWAYS
+--    created cleanly upon registration or Google OAuth, preventing missing profiles.
+-- 3. Enforces strict, user-isolated Row Level Security (RLS) across all 8 tables and storage.
 -- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- 0. ADMIN & ROLE HELPER FUNCTIONS (Prevents Infinite Recursion)
+-- ---------------------------------------------------------------------
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'Platform Administrator'
+  );
+$$;
+
+create or replace function public.get_my_role()
+returns text
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select role from public.profiles where id = auth.uid();
+$$;
+
+-- Grant execution to authenticated and anon roles
+grant execute on function public.is_admin() to authenticated, anon;
+grant execute on function public.get_my_role() to authenticated, anon;
+
+-- ---------------------------------------------------------------------
+-- 0.1 AUTOMATED PROFILE CREATION TRIGGER ON AUTH SIGNUP
+-- ---------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (
+    id, 
+    email, 
+    name, 
+    role, 
+    default_currency, 
+    avatar, 
+    phone_number, 
+    country, 
+    updated_at
+  )
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    case 
+      when new.email in ('admin@beforespend.app', 'admin@beforespend.xyz') then 'Platform Administrator'
+      when new.raw_user_meta_data->>'role' = 'Platform Administrator' then 'Personal Budgeter'
+      else coalesce(new.raw_user_meta_data->>'role', 'Personal Budgeter')
+    end,
+    coalesce(new.raw_user_meta_data->>'default_currency', 'NGN'),
+    'preset-emerald',
+    new.raw_user_meta_data->>'phone_number',
+    new.raw_user_meta_data->>'country',
+    now()
+  )
+  on conflict (id) do update set
+    name = coalesce(excluded.name, public.profiles.name),
+    email = excluded.email,
+    updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 -- ---------------------------------------------------------------------
 -- 1. PROFILES TABLE RLS
@@ -18,47 +101,34 @@ drop policy if exists "Users can view own profile" on public.profiles;
 drop policy if exists "Users can update own profile" on public.profiles;
 drop policy if exists "Users can insert own profile" on public.profiles;
 drop policy if exists "Admins can view all profiles" on public.profiles;
+drop policy if exists "Admins can delete profiles" on public.profiles;
 
 -- Users can read their own profile; admins can read all profiles
 create policy "Users can view own profile"
     on public.profiles for select
-    using (
-        auth.uid() = id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    );
+    using (auth.uid() = id or public.is_admin());
 
--- Users can insert their own profile on registration
+-- Users can insert their own profile on registration (or admins)
 create policy "Users can insert own profile"
     on public.profiles for insert
-    with check (auth.uid() = id);
+    with check (auth.uid() = id or public.is_admin());
 
 -- Users can update their own profile; non-admins cannot elevate their own role
 create policy "Users can update own profile"
     on public.profiles for update
-    using (auth.uid() = id)
+    using (auth.uid() = id or public.is_admin())
     with check (
-        auth.uid() = id
-        and (
-            role = (select p.role from public.profiles p where p.id = auth.uid())
-            or exists (
-                select 1 from public.profiles p
-                where p.id = auth.uid() and p.role = 'Platform Administrator'
-            )
+        public.is_admin()
+        or (
+            auth.uid() = id 
+            and (role = public.get_my_role() or role is null or public.get_my_role() is null)
         )
     );
 
 -- Only admins can delete profiles
 create policy "Admins can delete profiles"
     on public.profiles for delete
-    using (
-        exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    );
+    using (public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -72,14 +142,8 @@ drop policy if exists "Admins can view all buckets" on public.buckets;
 
 create policy "Users can control own buckets"
     on public.buckets for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (auth.uid() = user_id);
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -92,14 +156,8 @@ drop policy if exists "Users can manage own transactions" on public.transactions
 
 create policy "Users can manage own transactions"
     on public.transactions for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (auth.uid() = user_id);
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -112,14 +170,8 @@ drop policy if exists "Users can manage own payments" on public.payments;
 
 create policy "Users can manage own payments"
     on public.payments for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (auth.uid() = user_id);
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -132,14 +184,8 @@ drop policy if exists "Users can manage own milestones" on public.milestones;
 
 create policy "Users can manage own milestones"
     on public.milestones for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (auth.uid() = user_id);
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -152,14 +198,8 @@ drop policy if exists "Users can manage own reminders" on public.reminders;
 
 create policy "Users can manage own reminders"
     on public.reminders for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (auth.uid() = user_id);
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -172,20 +212,8 @@ drop policy if exists "Users can manage own notifications" on public.notificatio
 
 create policy "Users can manage own notifications"
     on public.notifications for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    );
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -198,14 +226,8 @@ drop policy if exists "Users can manage own expenses" on public.expenses;
 
 create policy "Users can manage own expenses"
     on public.expenses for all
-    using (
-        auth.uid() = user_id
-        or exists (
-            select 1 from public.profiles
-            where id = auth.uid() and role = 'Platform Administrator'
-        )
-    )
-    with check (auth.uid() = user_id);
+    using (auth.uid() = user_id or public.is_admin())
+    with check (auth.uid() = user_id or public.is_admin());
 
 
 -- ---------------------------------------------------------------------
@@ -224,11 +246,17 @@ create policy "Users can manage own avatar"
     on storage.objects for all
     using (
         bucket_id = 'avatars'
-        and (storage.foldername(name))[1] = auth.uid()::text
+        and (
+            (storage.foldername(name))[1] = auth.uid()::text
+            or public.is_admin()
+        )
     )
     with check (
         bucket_id = 'avatars'
-        and (storage.foldername(name))[1] = auth.uid()::text
+        and (
+            (storage.foldername(name))[1] = auth.uid()::text
+            or public.is_admin()
+        )
     );
 
 -- Receipts: Authenticated read/upload/delete restricted strictly to own user folder or platform administrator
@@ -241,20 +269,14 @@ create policy "Users can manage own receipts"
         bucket_id = 'receipts'
         and (
             (storage.foldername(name))[1] = auth.uid()::text
-            or exists (
-                select 1 from public.profiles
-                where id = auth.uid() and role = 'Platform Administrator'
-            )
+            or public.is_admin()
         )
     )
     with check (
         bucket_id = 'receipts'
         and (
             (storage.foldername(name))[1] = auth.uid()::text
-            or exists (
-                select 1 from public.profiles
-                where id = auth.uid() and role = 'Platform Administrator'
-            )
+            or public.is_admin()
         )
     );
 
@@ -268,20 +290,13 @@ create policy "Users can manage own statements"
         bucket_id = 'statements'
         and (
             (storage.foldername(name))[1] = auth.uid()::text
-            or exists (
-                select 1 from public.profiles
-                where id = auth.uid() and role = 'Platform Administrator'
-            )
+            or public.is_admin()
         )
     )
     with check (
         bucket_id = 'statements'
         and (
             (storage.foldername(name))[1] = auth.uid()::text
-            or exists (
-                select 1 from public.profiles
-                where id = auth.uid() and role = 'Platform Administrator'
-            )
+            or public.is_admin()
         )
     );
-

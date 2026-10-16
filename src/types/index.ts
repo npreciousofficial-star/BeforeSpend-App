@@ -84,6 +84,8 @@ export interface Milestone {
   targetAmount: number;
   bucketId: string;
   createdDate: string;
+  completed?: boolean;
+  completedDate?: string;
 }
 
 export interface Reminder {

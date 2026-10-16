@@ -533,15 +533,25 @@ export async function syncMilestonesToSupabase(milestones: Milestone[], userId: 
       name: m.name,
       target_amount: m.targetAmount,
       bucket_id: m.bucketId ? ensureUuid(m.bucketId) : null,
-      created_date: m.createdDate || new Date().toISOString()
+      created_date: m.createdDate || new Date().toISOString(),
+      completed: Boolean(m.completed),
+      completed_date: m.completedDate || (m.completed ? new Date().toISOString() : null)
     }));
 
-    const { error } = await supabase.from('milestones').upsert(records);
+    let { error } = await supabase.from('milestones').upsert(records);
     if (error) {
-      if (error.message.includes('foreign key constraint')) {
-        console.info('Supabase milestones FK notice: Run SUPABASE_SCHEMA_FIX.sql.');
-      } else {
-        console.warn('Supabase milestones sync error:', error.message);
+      if (error.message.includes('column') && error.message.includes('completed')) {
+        // Fallback for databases where completed column has not been added yet
+        const legacyRecords = records.map(({ completed, completed_date, ...rest }) => rest);
+        const retry = await supabase.from('milestones').upsert(legacyRecords);
+        error = retry.error;
+      }
+      if (error) {
+        if (error.message.includes('foreign key constraint')) {
+          console.info('Supabase milestones FK notice: Run SUPABASE_SCHEMA_FIX.sql.');
+        } else {
+          console.warn('Supabase milestones sync error:', error.message);
+        }
       }
     }
   } catch (err) {
@@ -802,6 +812,8 @@ export async function loadMilestonesFromSupabase(userId: string): Promise<Milest
       targetAmount: Number(m.target_amount),
       bucketId: m.bucket_id,
       createdDate: m.created_date,
+      completed: Boolean(m.completed),
+      completedDate: m.completed_date || undefined
     }));
   } catch (err) {
     console.warn('loadMilestonesFromSupabase failed:', err);

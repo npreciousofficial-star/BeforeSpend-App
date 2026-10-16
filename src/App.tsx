@@ -1863,13 +1863,46 @@ export function AuthenticatedApp({
 
   // Milestone actions
   const handleAddMilestone = (milestone: Milestone) => {
-    setMilestones((prev) => [...prev, milestone]);
+    const updated = [...milestones, milestone];
+    setMilestones(updated);
     addToast(`Milestone set: ${milestone.name}`, 'success');
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      syncMilestonesToSupabase(updated, currentUserId);
+    }
+  };
+
+  const handleToggleMilestone = (id: string) => {
+    let nextStatus = false;
+    const updated = milestones.map((m) => {
+      if (m.id === id) {
+        nextStatus = !m.completed;
+        return {
+          ...m,
+          completed: nextStatus,
+          completedDate: nextStatus ? new Date().toISOString() : undefined
+        };
+      }
+      return m;
+    });
+    setMilestones(updated);
+    addToast(
+      nextStatus 
+        ? 'Milestone marked as completed! 🎉' 
+        : 'Milestone marked as in-progress.',
+      'success'
+    );
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      syncMilestonesToSupabase(updated, currentUserId);
+    }
   };
 
   const handleDeleteMilestone = (id: string) => {
-    setMilestones((prev) => prev.filter((m) => m.id !== id));
+    const updated = milestones.filter((m) => m.id !== id);
+    setMilestones(updated);
     addToast('Milestone deleted.', 'info');
+    if (currentUserId && !currentUserId.startsWith('00000000-')) {
+      syncMilestonesToSupabase(updated, currentUserId);
+    }
   };
 
   // Reminder actions
@@ -3425,6 +3458,7 @@ export function AuthenticatedApp({
                         associatedBucket={buckets.find((b) => b.id === milestone.bucketId)}
                         currency={userProfile.defaultCurrency}
                         onDelete={handleDeleteMilestone}
+                        onToggleComplete={handleToggleMilestone}
                       />
                     ))
                   )}

@@ -17,6 +17,8 @@ alter table public.reminders add column if not exists done boolean default false
 alter table public.reminders add column if not exists completed boolean default false;
 alter table public.milestones add column if not exists name text;
 alter table public.milestones add column if not exists title text;
+alter table public.milestones add column if not exists completed boolean default false;
+alter table public.milestones add column if not exists completed_date timestamptz;
 
 -- 2. Drop legacy foreign key constraints that block custom UUID sync
 alter table public.buckets drop constraint if exists buckets_user_id_fkey;
